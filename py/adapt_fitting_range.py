@@ -24,6 +24,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
         HISTORY:
            2015-12-01 - Started adapt_fitting_range.py on the basis of BovyCode/py/adapt_fitting_range_flexible.py - Trick (MPIA)
            2015-12-10 - Included special treatment for case, where parameter is pegged at a limit. - Trick (MPIA)
+           2016-01-12 - Removed conditions where "force_fine_grid=True" forced to fit a Gaussian. Does sometimes just not work. - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -128,7 +129,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
 
 
             #_____find new fit range_____
-            if (frac < test) and not force_fine_grid: #the second highest bin is smaller than a gaussian at N*sigma.
+            if (frac < test): #the second highest bin is smaller than a gaussian at N*sigma.
                 fine_grid *= 0
                 print "Zoom in\t",
                 #zoom into highest bin, slightly shift it to mean:
@@ -138,14 +139,14 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
                 if i_x == 0: xmin -= 0.5 * numpy.fabs(dx)
                 elif i_x == (len(xp)-1): xmax += 0.5 * numpy.fabs(dx)
 
-            elif (frac >= test) or force_fine_grid:  
+            elif (frac >= test):  
                 #already reached approximately right resolution
                 if len(xp) % 2 == 0:
                     sys.exit("Error in adapt_fitting_range(): Better choose an odd number of grid points.")
                 else:
                     mid = (len(xp)-1)/2
                     biggest = numpy.sum(prob[mid] < prob)
-                    if (numpy.sum(biggest) > 0) and not force_fine_grid:  
+                    if (numpy.sum(biggest) > 0):  
                         #peak is not in the middle: shift
                         print "shift range\t",
                         mu = x_mean
