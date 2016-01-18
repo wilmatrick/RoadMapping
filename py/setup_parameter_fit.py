@@ -13,6 +13,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         OUTPUT:
         HISTORY:
            2015-11-30 - Started setup_parameter_fit.py on the basis of BovyCode/py/setup_parameter_fit.py - Trick (MPIA)
+           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
     """
 
     #read analysis parameters:
@@ -125,6 +126,11 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             elif ii == 3: zhs   = xs
             elif ii == 4: fhs   = xs
             elif ii == 5: dvdrs = xs
+        elif pottype == 5 or pottype == 51: #MNdHhHb POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+            if   ii == 2: a_ds = xs
+            elif ii == 3: b_ds = xs
+            elif ii == 4: f_hs = xs
+            elif ii == 5: a_hs = xs    
         else:
             sys.exit("Error in setup_parameter_fit(): "+\
              "potential type "+str(pottype)+" is not defined.")
@@ -146,6 +152,12 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         potParArr_phys[:,3] =   zh1.flatten()
         potParArr_phys[:,4] =   fh1.flatten()
         potParArr_phys[:,5] = dvdr1.flatten()
+    elif pottype == 5 or pottype == 51: #MNdHhHb POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+        r1,v1,a_d1,b_d1,f_h1,a_h1 = numpy.meshgrid(rs,vs,a_ds,b_ds,f_hs,a_hs,indexing='ij')
+        potParArr_phys[:,2] = a_d1.flatten()
+        potParArr_phys[:,3] = b_d1.flatten()
+        potParArr_phys[:,4] = f_h1.flatten()
+        potParArr_phys[:,5] = a_h1.flatten()
     else:
         sys.exit("Error in setup_parameter_fit(): "+\
              "potential type "+str(pottype)+\

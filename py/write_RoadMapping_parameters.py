@@ -32,6 +32,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         HISTORY:
            2015-11-25 - Started write_RoadMapping_parameters on the basis of BovyCode/py/write_flexible_analysis_parameters.py - Trick (MPIA)
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
+           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
     """
 
     #analysis parameter file:
@@ -85,6 +86,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if pottype  == 21: f.write('# potential          type: 21 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + StaeckelGrid actions\n')
     if pottype  == 3:  f.write('# potential          type: 3 = MW-like (Bovy & Rix 2013) + Staeckel actions\n')
     if pottype  == 31: f.write('# potential          type: 31 = MW-like (Bovy & Rix 2013) + StaeckelGrid actions\n')
+    if pottype  == 5:  f.write("# potential          type: 5 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
+    if pottype  == 51: f.write("# potential          type: 51 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
     if sftype   == 1:  f.write('# selection function type: 1 = wedge (box completeness)\n')
     if sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
     if sftype   == 31: f.write('# selection function type: 31 = sphere (incomplete in R & z)\n')
@@ -328,6 +331,30 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(potParTrue_phys[4])+'\t'+str(potParEst_phys[4])+'\t0\t'+\
                     str(potParMin_phys[4])+'\t'+str(potParMax_phys [4])+'\t'+str(potParFitNo [4])+'\n')
         f.write('# d(ln(v_c)) / d(ln(r)) =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
+                    str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
+
+    elif pottype == 5 or pottype == 51:
+        #MIYAMOTO-NAGAI DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
+        f.write('#\n')
+        f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + HERNQUIST HALO + BULGE (for D'Onghia simulation)*****\n")
+        f.write('# \t\t true value / estimate / --- / fit min / fit max / # grid points\n')
+        f.write('# R_0      [kpc]  =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[0])+'\t'+str(potParEst_phys[0])+'\t0\t'+\
+                    str(potParMin_phys[0])+'\t'+str(potParMax_phys [0])+'\t'+str(potParFitNo [0])+'\n')
+        f.write('# v_c(R_0) [km/s] =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[1])+'\t'+str(potParEst_phys[1])+'\t0\t'+\
+                    str(potParMin_phys[1])+'\t'+str(potParMax_phys [1])+'\t'+str(potParFitNo [1])+'\n')
+        f.write('# a_disk   [kpc]  =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[2])+'\t'+str(potParEst_phys[2])+'\t0\t'+\
+                    str(potParMin_phys[2])+'\t'+str(potParMax_phys [2])+'\t'+str(potParFitNo [2])+'\n')
+        f.write('# b_disk   [kpc]  =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[3])+'\t'+str(potParEst_phys[3])+'\t0\t'+\
+                    str(potParMin_phys[3])+'\t'+str(potParMax_phys [3])+'\t'+str(potParFitNo [3])+'\n')
+        f.write('# f_halo          =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[4])+'\t'+str(potParEst_phys[4])+'\t0\t'+\
+                    str(potParMin_phys[4])+'\t'+str(potParMax_phys [4])+'\t'+str(potParFitNo [4])+'\n')
+        f.write('# a_halo   [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
 

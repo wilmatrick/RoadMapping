@@ -20,7 +20,8 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         OUTPUT:
         HISTORY:
            2015-11-30 - Started setup_Potential_and_ActionAngle_object.py on the basis of BovyCode/py/setup_Potential_and_ActionAngle_object.py - Trick (MPIA)
-          2016-01-08 - Corrected bug: For the Staeckel Fudge one should use Delta = 0.45*ro (according to BR13) and NOT Delta = 0.55
+           2016-01-08 - Corrected bug: For the Staeckel Fudge one should use Delta = 0.45*ro (according to BR13) and NOT Delta = 0.55
+           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
     """
 
     #_____global constants_____
@@ -110,18 +111,38 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         pot = MWPotential2014
         #prepare ActionAngle object initialization:
         Delta = 0.45*ro
+    elif pottype == 5 or pottype == 51:
+        #========== POTENTIAL FOR ELENA D'ONGHIA SIMULATION ==========
+        #========== Miyamoto-Nagai disk, Hernquist halo + bulge ========
+        #========== with Staeckel actions ==============================
+        #potParArr = [ro,vo,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+        #transformation from physical to galpy units:
+        a_d = potPar_phys[2] / _REFR0 / ro # stellar disk scale length
+        b_d = potPar_phys[3] / _REFR0 / ro # stellar disk scale height
+        f_h = potPar_phys[4]               # halo contribution to the disk's v_c^2
+        a_h = potPar_phys[5]               # dark matter halo scale length
+        #check, if parameters are physical:
+        if a_d <= 0. or b_d <= 0. or vo <= 0. or f_h <= 0. or f_h >= 1. or a_h <= 0.:
+            raise RuntimeError("unphysical potential parameters")
+        #setup potential:
+        pot = setup_MNdHhHb_potential(
+                    numpy.array([ro,vo,a_d,b_d,f_h,a_h])
+                    )
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
+        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
     else:
         sys.exit("Error in setup_potential_and_action_object(): "+\
                  "potential type "+str(pottype)+" is not defined.")
 
 
-    if pottype == 2 or pottype == 3 or pottype == 4:
+    if pottype == 2 or pottype == 3 or pottype == 4 or pottype == 5:
         #==========StaeckelActions=======
         #initialize ActionAngle object:
         aA = actionAngleStaeckel(pot=pot,delta=Delta,c=True)
         #       c=True (default): use C implementation to speed up actionAngleStaeckel calculations, 
         #                         plus this is needed to calculate frequencies
-    elif pottype == 21 or pottype == 31:
+    elif pottype == 21 or pottype == 31 or pottype == 51:
         #==========StaeckelActions on a Grid=======
         #initialize ActionAngle object:
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
@@ -408,3 +429,72 @@ def plhalo_from_dlnvcdlnr(dlnvcdlnr,diskpot,bulgepot,fh):
     dvcdr_bulge= -potential.evaluateRforces(1.,0.,bulgepot)+potential.evaluateR2derivs(1.,0.,bulgepot)
              #= -F_R(R=1,z=0,bulge)                        +d^2 Phi / d R^2 (R=1,z=0,bulge)  
     return 2.-(2.*dlnvcdlnr-dvcdr_disk-dvcdr_bulge)/fh
+
+#--------------------------------------------------------------------------------------------------------------------
+
+def setup_MNdHhHb_potential(potparams):
+    """
+    NAME:
+        setup_MNdHhHb_potential
+    PURPOSE:
+        sets up pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
+    INPUT:
+    OUTPUT:
+    HISTORY:
+        2016-01-18 - written - Trick (MPIA)
+    """
+
+    #_____potential parameters_____
+    ro  = potparams[0]     # solar position in [_REFR0]
+    vo  = potparams[1]     # circular velocity at R_0 = 1 in [_REFV0].
+    a_d = potparams[2]     # stellar disk scale length in [galpy units] 
+    b_d = potparams[3]     # stellar disk scale height in [galpy units]
+    f_h = potparams[4]     # halo contribution to the disk's v_c^2
+    a_h = potparams[5]     # dark matter halo scale length in [galpy units]
+
+    #_____global constants_____
+    _REFR0 = 8.
+    _REFV0 = 220.
+
+    #_____bulge potential: Hernquist bulge______
+    #grav. constant:
+    G = bovy_conversion._G/1000.*1e10 #(km/s)^2 * kpc / 10^10 M_odot
+    #parameters:
+    a_bulge_kpc = 0.25099812
+    M_bulge     = 0.952400755715 #10^10 M_odot
+    #setup potential in physical units:
+    amp_bulge = 2. * M_bulge * G
+    bulgepot = potential.HernquistPotential(
+                    amp      =amp_bulge,
+                    a        =a_bulge,
+                    normalize=False
+                    )
+    #normalize:
+    FR_bulge = bulgepot.Rforce(ro*_REFR0,0.)    #[(km/s)^2]
+    FR_total = (vo*_REFV0)**2     #[(km/s)^2]
+    s_bulge  = FR_bulge/FR_total
+    #setup potential in galpy units:
+    bulgepot = potential.HernquistPotential(
+                    a        =a_bulge_kpc/_REFR0/ro,
+                    normalize=s_bulge
+                    )
+
+    #_____setup relative contributions_____
+    #(1) 1 = s_bulge + s_disk + s_halo
+    #(2) f_h = s_halo / (s_disk + s_halo)
+    s_halo = f_h * (1.-s_bulge)
+    s_disk = 1. - s_bulge - s_halo
+
+    #_____disk potential: Miyamoto-Nagai disk_____
+    diskpot = potential.MiyamotoNagaiPotential(
+                    a        =a_d, 
+                    b        =b_d, 
+                    normalize=s_disk)
+
+    #_____halo potential: Hernquist halo_____
+    halopot = potential.HernquistPotential(
+                    a        =a_h,
+                    normalize=s_halo
+                    )
+
+    return [diskpot,halopot,bulgepot]

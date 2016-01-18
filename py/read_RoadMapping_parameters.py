@@ -13,6 +13,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         HISTORY:
            2015-11-27 - Started read_RoadMapping_parameters.py on the basis of BovyCode/py/read_flexible_analysis_parameters.py - Trick (MPIA)
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
+           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
     """
 
     #analysis parameter file:
@@ -161,7 +162,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     if pottype == 1:
         #ISOCHRONE
         #potPar = [R0_kpc,vc_kms,b_kpc]
-        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km/s]','$b$ [kpc]']
+        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$b$ [kpc]']
         potNamesScreen = ['R_sun [kpc]','v_c [km/s]','b [kpc]']
 
         potParTrue_phys = numpy.array(out[nl:nl+3,0],dtype=float)
@@ -187,7 +188,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     elif pottype == 2 or pottype == 21:
         #2-COMPONENT KK STAECKEL
         #potPar = [R0_kpc,vc_kms,Delta,ac_D,ac_H,k]
-        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km/s]','$\Delta$','$(a/c)_{Disk}$','$(a/c)_{Halo}$','$k$']
+        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$\Delta$','$(a/c)_{Disk}$','$(a/c)_{Halo}$','$k$']
         potNamesScreen = ['R_sun [kpc]','v_c [km/s]','Delta','ac_D','ac_H','k']
 
         potParTrue_phys = numpy.array(out[nl:nl+6,0],dtype=float)
@@ -216,7 +217,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     elif pottype == 3 or pottype == 31:
         #MW-LIKE (Bovy & Rix 2013)
         #potPar = [R0_kpc,vc_kms,Rd_kpc,zh_kpc,fh,dlnvcdlnr]
-        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km/s]','$R_d$ [kpc]','$z_h$ [kpc]','$f_h$','$d(\ln v_c) / d(\ln r)$']
+        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$R_d$ [kpc]','$z_h$ [kpc]','$f_h$','$d(\ln v_c) / d(\ln r)$']
         potNamesScreen = ['R_sun [kpc]','v_c [km/s]','R_d [kpc]','z_h [kpc]','f_h','d(ln v_c)/d(ln r)']
 
         potParTrue_phys = numpy.array(out[nl:nl+6,0],dtype=float)
@@ -240,6 +241,35 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             elif pottype == 31: print "           * action calculation: actionAngleStaeckelGrid"
             print "           * true parameters:"
             print "                R_sun [kpc], v_circ(R_sun) [km/s], R_d [kpc], z_h [kpc], f_h, d(ln v_c)/d(ln r)"
+            print "               ",potParTrue_phys
+    
+    elif pottype == 5 or pottype == 51:
+        #POTENTIAL FOR ELENA D'ONGHIA SIMULATION
+        #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
+        potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+
+        potParTrue_phys = numpy.array(out[nl:nl+6,0],dtype=float)
+        potParEst_phys  = numpy.array(out[nl:nl+6,1],dtype=float)
+        potParMin_phys  = numpy.array(out[nl:nl+6,3],dtype=float)
+        potParMax_phys  = numpy.array(out[nl:nl+6,4],dtype=float)
+        potParFitNo     = numpy.array(out[nl:nl+6,5],dtype=int)
+        potParFitBool   = numpy.array((potParFitNo > 1),dtype=bool)
+
+        #physical boundaries:
+        potParLowerBound_phys = numpy.array([0.,0.,0.,0.,0.,0.])
+        potParUpperBound_phys = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,1.,numpy.inf])
+
+        #next line:
+        nl += 6
+
+        if print_to_screen:
+            print "POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge "
+            print "             (for simulation by Elena D'Onghia)"
+            if   pottype == 5:  print "           * action calculation: actionAngleStaeckel"
+            elif pottype == 51: print "           * action calculation: actionAngleStaeckelGrid"
+            print "           * true parameters:"
+            print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]"
             print "               ",potParTrue_phys
     else:
         sys.exit("Error in read_flexible_analysis_parameters(): "+\
@@ -273,7 +303,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     #=============
     #dfPar_phys = [hr_kpc,sr_kms,sz_kms,hsr_kpc,hsz_kpc]
 
-    dfNamesLatex = ['ln($h_R$/8kpc)','ln($\sigma_{R,0}$/220km/s)','ln($\sigma_{z,0}$/220km/s)',\
+    dfNamesLatex = ['ln($h_R$/8kpc)','ln($\sigma_{R,0}$/220km s$^-1$)','ln($\sigma_{z,0}$/220km s$^-1$)',\
                     'ln($h_{\sigma,R}$/8kpc)','ln($h_{\sigma,z}$/8kpc)']
     dfNamesScreen =  ['ln(h_R)','ln(s_R0)','ln(s_z0)',\
                       'ln(h_s_R)','ln(h_s_z)']
