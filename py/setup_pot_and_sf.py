@@ -120,7 +120,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         a_d = potPar_phys[2] / _REFR0 / ro # stellar disk scale length
         b_d = potPar_phys[3] / _REFR0 / ro # stellar disk scale height
         f_h = potPar_phys[4]               # halo contribution to the disk's v_c^2
-        a_h = potPar_phys[5]               # dark matter halo scale length
+        a_h = potPar_phys[5] / _REFR0 / ro # dark matter halo scale length
         #check, if parameters are physical:
         if a_d <= 0. or b_d <= 0. or vo <= 0. or f_h <= 0. or f_h >= 1. or a_h <= 0.:
             raise RuntimeError("unphysical potential parameters")
@@ -432,7 +432,7 @@ def plhalo_from_dlnvcdlnr(dlnvcdlnr,diskpot,bulgepot,fh):
 
 #--------------------------------------------------------------------------------------------------------------------
 
-def setup_MNdHhHb_potential(potparams):
+def setup_MNdHhHb_potential(potparams,with_DoubleExpDisk=False):
     """
     NAME:
         setup_MNdHhHb_potential
@@ -466,12 +466,12 @@ def setup_MNdHhHb_potential(potparams):
     amp_bulge = 2. * M_bulge * G
     bulgepot = potential.HernquistPotential(
                     amp      =amp_bulge,
-                    a        =a_bulge,
+                    a        =a_bulge_kpc,
                     normalize=False
                     )
     #normalize:
-    FR_bulge = bulgepot.Rforce(ro*_REFR0,0.)    #[(km/s)^2]
-    FR_total = (vo*_REFV0)**2     #[(km/s)^2]
+    FR_bulge = bulgepot.Rforce(ro*_REFR0,0.)    #[(km/s)^2 / kpc]
+    FR_total = -(vo*_REFV0)**2/(ro*_REFR0)     #[(km/s)^2 / kpc]
     s_bulge  = FR_bulge/FR_total
     #setup potential in galpy units:
     bulgepot = potential.HernquistPotential(
@@ -485,11 +485,18 @@ def setup_MNdHhHb_potential(potparams):
     s_halo = f_h * (1.-s_bulge)
     s_disk = 1. - s_bulge - s_halo
 
-    #_____disk potential: Miyamoto-Nagai disk_____
-    diskpot = potential.MiyamotoNagaiPotential(
-                    a        =a_d, 
-                    b        =b_d, 
-                    normalize=s_disk)
+    if not with_DoubleExpDisk:
+        #_____disk potential: Miyamoto-Nagai disk_____
+        diskpot = potential.MiyamotoNagaiPotential(
+                        a        =a_d, 
+                        b        =b_d, 
+                        normalize=s_disk)
+    else:
+        #_____disk potential: DoubleExponentialDisk_____
+        diskpot = potential.DoubleExponentialDiskPotential(
+                        hr        =a_d, 
+                        hz        =b_d, 
+                        normalize=s_disk)
 
     #_____halo potential: Hernquist halo_____
     halopot = potential.HernquistPotential(

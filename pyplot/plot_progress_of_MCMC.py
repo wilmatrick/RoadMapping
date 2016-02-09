@@ -57,7 +57,7 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
     for ii in range(nplots):
         ax = plt.subplot(nplots,1,ii+1)
         index = sorted(range(nwalkers*nsteps),key=lambda x: colors[x])
-        plt.scatter(steps[index],chain[:,ii][index],c=colors[index],cmap=cmaps.magma,alpha=0.3,edgecolor='None',vmin=-5.,vmax=0.)
+        plt.scatter(steps[index],chain[:,ii][index],c=colors[index],cmap=cmaps.magma,edgecolor='None',vmin=-5.,vmax=0.,alpha=0.3)
         ax.set_xlim([min(steps),max(steps)])
         if ii > len(trueValues)-1:
             plt.ylabel("auxiliary")

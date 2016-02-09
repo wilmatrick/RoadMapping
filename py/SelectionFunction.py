@@ -42,6 +42,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-19 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         #distribution function (including potential):
@@ -86,6 +87,7 @@ class SelectionFunction:
         INPUT:
         OUTPUT:
         HISTORY:
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -182,6 +184,8 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-19 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
+            2016-02-05 - If density in density grid becomes zero for numerical reasons, set to smallest float, such that log(density) still works - Trick (MPIA)
         """
 
         if self._df is None:
@@ -285,6 +289,10 @@ class SelectionFunction:
             # save final z and R grid on which the density is interpolated:
             self._densgrid_z = zs    
             self._densgrid_R = Rs
+
+            #special case: density so small that it became zero -> log would not work
+            if numpy.sum(self._densgrid.flatten() == 0.) > 0:
+                self._densgrid[self._densgrid == 0.] = sys.float_info.min
 
             # set up interpolation object:
             # this intepolate the log of the density ~linear
@@ -431,6 +439,10 @@ class SelectionFunction:
             #save final z and R grid:
             self._densgrid_z = zs_finalgrid
             self._densgrid_R = self._Rs_fid
+
+            #special case: density so small that it became zero -> log would not work
+            if numpy.sum(self._densgrid.flatten() == 0.) > 0:
+                self._densgrid[self._densgrid == 0.] = sys.float_info.min
 
             # set up interpolation object:
             # this intepolate the log of the density ~linear
@@ -592,6 +604,10 @@ class SelectionFunction:
             self._densgrid_z = zs_finalgrid
             self._densgrid_R = self._Rs_fid
 
+            #special case: density so small that it became zero -> log would not work
+            if numpy.sum(self._densgrid.flatten() == 0.) > 0:
+                self._densgrid[self._densgrid == 0.] = sys.float_info.min
+
             # set up interpolation object:
             # this intepolate the log of the density ~linear
             self._densInterp= scipy.interpolate.RectBivariateSpline(
@@ -659,6 +675,7 @@ class SelectionFunction:
         INPUT:
         OUTPUT:
         HISTORY:
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -695,6 +712,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-22 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         # reset distribution function and density grid:
         self._df         = df
@@ -784,6 +802,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-22 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         # set flag and fiducial df and reset df and density:
@@ -946,6 +965,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-22 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if ngl_vel is None:
@@ -1076,6 +1096,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         if self._with_incompleteness:
             if not quiet: print "     --> INCOMPLETE DATA SET"
@@ -1145,6 +1166,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1196,6 +1218,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1246,6 +1269,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1295,6 +1319,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1380,6 +1405,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1466,6 +1492,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         if self._with_incompleteness:
@@ -1572,6 +1599,7 @@ class SelectionFunction:
         HISTORY:
 
             2014-10-20 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         if self._with_incompleteness:
             sys.exit("Error in SelectionFunction.dMdv(): "+
@@ -1659,6 +1687,7 @@ class SelectionFunction:
            list of samples
         HISTORY:
            2012-12-17 - Written - Bovy (IAS)
+           2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         #initialize random number generator
@@ -1714,6 +1743,7 @@ class SelectionFunction:
            list of samples
         HISTORY:
            2012-12-17 - Written - Bovy (IAS)
+           2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         #Determine the maximum of the velocity distribution
         maxVR= 0.
@@ -1949,6 +1979,7 @@ class SelectionFunction:
         INPUT:
         OUTPUT:
         HISTORY:
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         
         #_____draw true velocities from df for true positions_____
@@ -2090,6 +2121,7 @@ class SelectionFunction:
         HISTORY:
 
             2015-01-08 - Started - Wilma Trick (MPIA)
+            2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
         # set flag:

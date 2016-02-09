@@ -562,7 +562,7 @@ def loglikelihood_dfPar(pot,aA,sf,
 
     #_____sum logL for final loglikelihood_____
     # sum up contributions for all data points: 
-    loglike_out = numpy.sum(lnL_i)                         
+    loglike_out = numpy.sum(lnL_i)  
 
     return loglike_out
 

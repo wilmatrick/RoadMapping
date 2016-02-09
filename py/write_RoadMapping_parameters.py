@@ -33,6 +33,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2015-11-25 - Started write_RoadMapping_parameters on the basis of BovyCode/py/write_flexible_analysis_parameters.py - Trick (MPIA)
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
+           2016-02-09 - Corrected bug. dfParFid_fit was not written in the file. Instead the dfParEst_fit was used. Now it's dfParFid_fit. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -484,19 +485,19 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('# \t\t true value / estimate / fiducial / fit min / fit max / # grid points\n')
     f.write('# \t\t (not used)  (not used)   \n')
     f.write('#   ln( h_R     [_REFR0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[0])+'\t'+str(dfParEst_fit[0])+'\t'+str(dfParEst_fit[0])+'\t'+\
+    f.write('\t\t\t'+str(dfParTrue_fit[0])+'\t'+str(dfParEst_fit[0])+'\t'+str(dfParFid_fit[0])+'\t'+\
                 str(dfParMin_fit[0])+'\t'+str(dfParMax_fit [0])+'\t'+str(dfParFitNo       [0])+'\n')
     f.write('#   ln( sigma_R [_REFV0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[1])+'\t'+str(dfParEst_fit[1])+'\t'+str(dfParEst_fit[1])+'\t'+\
+    f.write('\t\t\t'+str(dfParTrue_fit[1])+'\t'+str(dfParEst_fit[1])+'\t'+str(dfParFid_fit[1])+'\t'+\
                 str(dfParMin_fit[1])+'\t'+str(dfParMax_fit [1])+'\t'+str(dfParFitNo       [1])+'\n')
     f.write('#   ln( sigma_z [_REFV0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[2])+'\t'+str(dfParEst_fit[2])+'\t'+str(dfParEst_fit[2])+'\t'+\
+    f.write('\t\t\t'+str(dfParTrue_fit[2])+'\t'+str(dfParEst_fit[2])+'\t'+str(dfParFid_fit[2])+'\t'+\
                 str(dfParMin_fit[2])+'\t'+str(dfParMax_fit [2])+'\t'+str(dfParFitNo       [2])+'\n')
     f.write('#   ln( h_sigma_R [_REFR0]) =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[3])+'\t'+str(dfParEst_fit[3])+'\t'+str(dfParEst_fit[3])+'\t'+\
+    f.write('\t\t\t'+str(dfParTrue_fit[3])+'\t'+str(dfParEst_fit[3])+'\t'+str(dfParFid_fit[3])+'\t'+\
                 str(dfParMin_fit[3])+'\t'+str(dfParMax_fit [3])+'\t'+str(dfParFitNo       [3])+'\n')
     f.write('#   ln( h_sigma_z [_REFR0]) =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[4])+'\t'+str(dfParEst_fit[4])+'\t'+str(dfParEst_fit[4])+'\t'+\
+    f.write('\t\t\t'+str(dfParTrue_fit[4])+'\t'+str(dfParEst_fit[4])+'\t'+str(dfParFid_fit[4])+'\t'+\
                 str(dfParMin_fit[4])+'\t'+str(dfParMax_fit [4])+'\t'+str(dfParFitNo       [4])+'\n')
 
     #============================
