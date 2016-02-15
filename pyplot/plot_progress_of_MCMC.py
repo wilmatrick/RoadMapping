@@ -3,6 +3,8 @@ import numpy
 import sys
 import pickle
 import colormaps as cmaps
+sys.path.insert(0,'/home/trick/RoadMapping/py')
+from read_RoadMapping_parameters import read_RoadMapping_parameters
 
 datasetname = "isoSphFlex_short_hot_2kpc_1a"
 
@@ -38,6 +40,16 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
     savefile.close()
     trueValues = numpy.append(potParTrue_phys[potParFitBool],dfParTrue_fit[dfParFitBool])
 
+    #_____Estimates_____
+    #read analysis parameters:
+    ANALYSIS = read_RoadMapping_parameters(
+            datasetname,
+            testname=testname,
+            fulldatapath=datapath
+            )
+    estimatedValues = numpy.append(ANALYSIS['potParEst_phys'][potParFitBool],ANALYSIS['dfParEst_fit'][dfParFitBool])
+    fiducialValues  = ANALYSIS['dfParFid_fit'][dfParFitBool]
+
 
     #_____format MCMC chain for plotting_____
     npos = len(out[:,0])
@@ -63,7 +75,13 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
             plt.ylabel("auxiliary")
         else:
             plt.ylabel(fitParNamesLatex[ii])
-            #plt.hlines(trueValues[ii],min(steps),max(steps),color='0.3',linewidth=3,linestyle='dashed')
+            npot = numpy.sum(potParFitBool) #number of potential fit parameters
+            if ii >= npot: #DF parameter
+                plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
+                plt.hlines(fiducialValues[ii-npot],min(steps),max(steps),color='red',linewidth=3,linestyle='dashed')
+            elif ii < npot: #pot parameter
+                plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
+                plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
         plt.locator_params(nbins=5)
         if ii < nplots-1:
             ax.axes.get_xaxis().set_ticklabels([])

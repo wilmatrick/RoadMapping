@@ -22,7 +22,6 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
            2015-11-30 - Started setup_Potential_and_ActionAngle_object.py on the basis of BovyCode/py/setup_Potential_and_ActionAngle_object.py - Trick (MPIA)
            2016-01-08 - Corrected bug: For the Staeckel Fudge one should use Delta = 0.45*ro (according to BR13) and NOT Delta = 0.55
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
-           2016-02-15 - Added pottype 6,7,61,71 to the list and rewrote 5-7 to use the new function setup_DiskHaloBulge_potential().
     """
 
     #_____global constants_____
@@ -126,13 +125,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         if a_d <= 0. or b_d <= 0. or vo <= 0. or f_h <= 0. or f_h >= 1. or a_h <= 0.:
             raise RuntimeError("unphysical potential parameters")
         #setup potential:
-        pot = setup_DiskHaloBulge_potential(
+        pot = setup_MNdHhHb_potential(
                     numpy.array([ro,vo,a_d,b_d,f_h,a_h],
-                    Disk             = 'MiyamotoNagai',
-                    Halo             = 'Hernquist',
-                    a_bulge_kpc      = 0.25099812,
-                    M_bulge_1010Msol = 0.952400755715,
-                    s_bulge          = None
+                    with_DoubleExpDisk=False)
                     )
         #prepare ActionAngle object initialization:
         Delta = 0.45*ro
@@ -151,38 +146,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         if h_r <= 0. or h_z <= 0. or vo <= 0. or f_h <= 0. or f_h >= 1. or a_h <= 0.:
             raise RuntimeError("unphysical potential parameters")
         #setup potential:
-        pot = setup_DiskHaloBulge_potential(
+        pot = setup_MNdHhHb_potential(
                     numpy.array([ro,vo,h_r,h_z,f_h,a_h],
-                    Disk             = 'DoubleExponential',
-                    Halo             = 'Hernquist',
-                    a_bulge_kpc      = 0.25099812,
-                    M_bulge_1010Msol = 0.952400755715,
-                    s_bulge          = None
-                    )
-        #prepare ActionAngle object initialization:
-        Delta = 0.45*ro
-        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
-    elif pottype == 7 or pottype == 71:
-        #========== MWPotential(2014)-LIKE POTENTIAL FOR FITTING ==========
-        #========== Miyamoto-Nagai disk, NFW halo, Hernquist bulge ========
-        #========== with Staeckel actions ==============================
-        #potParArr = [ro,vo,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
-        #transformation from physical to galpy units:
-        a_d = potPar_phys[2] / _REFR0 / ro # stellar disk scale length
-        b_d = potPar_phys[3] / _REFR0 / ro # stellar disk scale height
-        f_h = potPar_phys[4]               # halo contribution to the disk's v_c^2
-        a_h = potPar_phys[5] / _REFR0 / ro # dark matter halo scale length
-        #check, if parameters are physical:
-        if a_d <= 0. or b_d <= 0. or vo <= 0. or f_h <= 0. or f_h >= 1. or a_h <= 0.:
-            raise RuntimeError("unphysical potential parameters")
-        #setup potential:
-        pot = setup_DiskHaloBulge_potential(
-                    numpy.array([ro,vo,h_r,h_z,f_h,a_h],
-                    Disk             = 'MiyamotoNagai',
-                    Halo             = 'NFW',
-                    a_bulge_kpc      = 0.6, #analogous to galpy MWPotential
-                    M_bulge_1010Msol = None,
-                    s_bulge          = 0.05 #analogous to galpy MWPotential
+                    with_DoubleExpDisk=True)
                     )
         #prepare ActionAngle object initialization:
         Delta = 0.45*ro
@@ -192,13 +158,13 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                  "potential type "+str(pottype)+" is not defined.")
 
 
-    if pottype in numpy.array([2,3,4,5,6,7],dtype=int):
+    if pottype == 2 or pottype == 3 or pottype == 4 or pottype == 5 or pottype == 6:
         #==========StaeckelActions=======
         #initialize ActionAngle object:
         aA = actionAngleStaeckel(pot=pot,delta=Delta,c=True)
         #       c=True (default): use C implementation to speed up actionAngleStaeckel calculations, 
         #                         plus this is needed to calculate frequencies
-    elif pottype in numpy.array([21,31,51,61,71],dtype=int):
+    elif pottype == 21 or pottype == 31 or pottype == 51 or pottype == 61:
         #==========StaeckelActions on a Grid=======
         #initialize ActionAngle object:
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
@@ -488,25 +454,16 @@ def plhalo_from_dlnvcdlnr(dlnvcdlnr,diskpot,bulgepot,fh):
 
 #--------------------------------------------------------------------------------------------------------------------
 
-def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist',a_bulge_kpc=None,M_bulge_1010Msol=None,s_bulge=None):
+def setup_MNdHhHb_potential(potparams,with_DoubleExpDisk=False):
     """
     NAME:
-        setup_DiskHaloBulge_potential
+        setup_MNdHhHb_potential
     PURPOSE:
-        This function can be used to setup a simple Hernquist Bulge + Disk + Halo potential.
-        Pottype 5 and 51 uses this function and sets up a Miyamoto-Nagai disk, 
-        Hernquist halo + Hernquist bulge for the Elena D'Onghias Simulation.
+        sets up pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
     INPUT:
-        a_bulge_kpc - (float) - scale length of the Hernquist bulge in kpc. 
-                                For Pottype 5 and 51 use: a_bulge_kpc=0.25099812
-        M_bulge_1010Msol - (float) - total mass of the Hernquist bulge in 10^10 M_sun.
-                                For Pottype 5 and 51 use: M_bulge_1010Msol=0.952400755715
-        s_bulge - (float) - normalization constant of the bulge: FR_bulge/FR_total. 
-                            If M_bulge_1010Msol is set, this is not needed.
     OUTPUT:
     HISTORY:
         2016-01-18 - written - Trick (MPIA)
-        2016-02-15 - rewrote and renamed this function to make it more flexible and to use different combinations of disks, halos and bulges. - Trick (MPIA)
     """
 
     #_____potential parameters_____
@@ -522,30 +479,22 @@ def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist
     _REFV0 = 220.
 
     #_____bulge potential: Hernquist bulge______
-    if a_bulge_kpc is None:
-        sys.exit("Error in setup_DiskHaloBulge_potential(): "+\
-                 "To set-up the Hernquist bulge a scale length a in "+\
-                 "kpc (a_bulge_kpc) must be specified.")
-    if M_bulge_1010Msol is not None and s_bulge is None:
-        #grav. constant:
-        G = bovy_conversion._G/1000.*1e10 #(km/s)^2 * kpc / 10^10 M_odot
-        #setup potential in physical units:
-        amp_bulge = 2. * M_bulge_1010Msun * G
-        bulgepot = potential.HernquistPotential(
-                        amp      =amp_bulge,
-                        a        =a_bulge_kpc,
-                        normalize=False
-                        )
-        #normalize:
-        FR_bulge = bulgepot.Rforce(ro*_REFR0,0.)    #[(km/s)^2 / kpc]
-        FR_total = -(vo*_REFV0)**2/(ro*_REFR0)     #[(km/s)^2 / kpc]
-        s_bulge  = FR_bulge/FR_total
-    elif (s_bulge is not None and M_bulge_1010Msol is not None) or \
-         (s_bulge is     None and M_bulge_1010Msol is     None):
-        sys.exit("Error in setup_DiskHaloBulge_potential(): "+\
-                 "To set-up the Hernquist bulge one and only one of "+\
-                 "the two parameters M_bulge_1010Msol and s_bulge is "+\
-                 "needed to normalize the bulge.")
+    #grav. constant:
+    G = bovy_conversion._G/1000.*1e10 #(km/s)^2 * kpc / 10^10 M_odot
+    #parameters:
+    a_bulge_kpc = 0.25099812
+    M_bulge     = 0.952400755715 #10^10 M_odot
+    #setup potential in physical units:
+    amp_bulge = 2. * M_bulge * G
+    bulgepot = potential.HernquistPotential(
+                    amp      =amp_bulge,
+                    a        =a_bulge_kpc,
+                    normalize=False
+                    )
+    #normalize:
+    FR_bulge = bulgepot.Rforce(ro*_REFR0,0.)    #[(km/s)^2 / kpc]
+    FR_total = -(vo*_REFV0)**2/(ro*_REFR0)     #[(km/s)^2 / kpc]
+    s_bulge  = FR_bulge/FR_total
     #setup potential in galpy units:
     bulgepot = potential.HernquistPotential(
                     a        =a_bulge_kpc/_REFR0/ro,
@@ -558,37 +507,23 @@ def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist
     s_halo = f_h * (1.-s_bulge)
     s_disk = 1. - s_bulge - s_halo
 
-    if Disk == 'MiyamotoNagai':
+    if not with_DoubleExpDisk:
         #_____disk potential: Miyamoto-Nagai disk_____
         diskpot = potential.MiyamotoNagaiPotential(
                         a        =a_d, 
                         b        =b_d, 
                         normalize=s_disk)
-    elif Disk == 'DoubleExponential':
+    else:
         #_____disk potential: DoubleExponentialDisk_____
         diskpot = potential.DoubleExponentialDiskPotential(
                         hr        =a_d, 
                         hz        =b_d, 
                         normalize=s_disk)
-    else:
-        sys.exit("Error in setup_DiskHaloBulge_potential(): "+\
-                 "Disk type "+Disk+" is not known. So far "+\
-                 "implemented are: MiyamotoNagai and DoubleExponential.")
 
     #_____halo potential: Hernquist halo_____
-    if Halo == 'Hernquist':
-        halopot = potential.HernquistPotential(
-                        a        =a_h,
-                        normalize=s_halo
-                        )
-    elif Halo == 'NFW':
-        halopot = potential.NFWPotential(
-                        a        =a_h,
-                        normalize=s_halo
-                        )
-    else:
-        sys.exit("Error in setup_DiskHaloBulge_potential(): "+\
-                 "Halo type "+Halo+" is not known. So far "+\
-                 "implemented are: Hernquist and NFW.")
+    halopot = potential.HernquistPotential(
+                    a        =a_h,
+                    normalize=s_halo
+                    )
 
     return [diskpot,halopot,bulgepot]
