@@ -377,8 +377,24 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             f.write(item+"\t")
         f.write("log(prob)\n")
         f.close()
+    
 
-        #_____setup dictionary with additional MCMC information_____
+        #_____setup shared memory for data_____
+        #define the shared memory array
+        ndata = noStars*_N_ERROR_SAMPLES
+        data_shared_base = multiprocessing.sharedctypes.RawArray(ctypes.c_double,5*ndata)#multiprocessing.Array(ctypes.c_double,5*ndata)#numpy.zeros((5,noStars*_N_ERROR_SAMPLES))
+        #copy values into the shared array        
+        data_shared_base[0      :  ndata] =  R_data
+        data_shared_base[  ndata:2*ndata] = vR_data
+        data_shared_base[2*ndata:3*ndata] = vT_data
+        data_shared_base[3*ndata:4*ndata] =  z_data
+        data_shared_base[4*ndata:5*ndata] = vz_data
+        #this array is used to access the shared array
+        data_shared = numpy.frombuffer(data_shared_base)#numpy.ctypeslib.as_array(data_shared_base.get_obj())
+        #reshape the array to match the shape of the original array
+        data_shared = data_shared.reshape((5,ndata))
+       
+        #_____setup dictionary with additional information_____
         info_MCMC = {   'chainfilename':chainfilename,
                         'potParEst_phys':potParEst_phys,
                         'dfParEst_fit':dfParEst_fit,
@@ -406,47 +422,24 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'MCMC_use_fidDF':MCMC_use_fidDF
                          }
 
-        #_____test if only the DF is fitted_____
-        DF_fit_only = (numpy.sum(potParFitBool) == 0)    
-
         #_____1. save shared data_____
         #write current path into file:
         if testname is None: current_path = mockdatapath+datasetname+"/"+datasetname
         else:                current_path = mockdatapath+datasetname+"/"+datasetname+"_"+testname
+        shared_data_filename = current_path+'_shared_data.npy'
+        info_MCMC_filename   = current_path+'_info_MCMC.sav'
         current_path_filename = "temp/path_of_current_analysis.sav"
         save_pickles(
             current_path_filename,
             current_path
             )
+        #write data into binary file:
+        numpy.save(shared_data_filename,data_shared)
         #write MCMC info into sav file:
-        info_MCMC_filename = current_path+'_info_MCMC.sav'
         save_pickles(
             info_MCMC_filename,
             info_MCMC
             )
-        #write shared data into .npy binary files:
-        if not DF_fit_only:     
-            #...standard case: 
-            #                  write (R,vR,vT,z,vz) into file...
-            shared_data_MCMC(
-                     R_data,vR_data,vT_data,z_data,vz_data,
-                     noStars,_N_ERROR_SAMPLES,
-                     current_path)
-            #file names:
-            shared_data_filename = current_path+'_shared_data.npy'
-        else:   
-            #...special case: potential is kept fixed: 
-            #                 write all pre-calculated actions into file...
-            shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
-                            potPar_phys,dfParFid_fit,sfParEst_phys,
-                            R_data,vR_data,vT_data,z_data,vz_data,
-                            ro_known,
-                            _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI,
-                            current_path)
-            #file names:
-            shared_data_actions_filename = current_path+'_shared_data_actions.npy'
-            shared_fiducial_actions_filename = current_path+'_shared_fiducial_actions.npy'
-
 
         #_____2. load shared data into global variables_____
         reload(likelihood)
@@ -454,13 +447,8 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
 
         #_____3. delete files immediately_____
         os.remove(current_path_filename)
+        os.remove(shared_data_filename)
         os.remove(info_MCMC_filename)
-        if not DF_fit_only: #standard case
-            os.remove(shared_data_filename)
-        else:
-            os.remove(shared_data_actions_filename)
-            os.remove(shared_data_actions_filename)
-        
 
         print " *** Start running the MCMC *** "
 

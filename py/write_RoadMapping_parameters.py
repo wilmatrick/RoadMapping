@@ -34,6 +34,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
            2016-02-09 - Corrected bug. dfParFid_fit was not written in the file. Instead the dfParEst_fit was used. Now it's dfParFid_fit. - Trick (MPIA)
+           2016-02-15 - Added pottype 6,7,61,72, Disk + Halo + Bulge potentials
     """
 
     #analysis parameter file:
@@ -47,7 +48,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         if os.path.exists(filename):
             out = read_RoadMapping_parameters(datasetname,testname=testname,mockdatapath=mockdatapath)
         else:
-            sys.exit("Error in write_flexible_analysis_parameters(): file "+\
+            sys.exit("Error in write_RoadMapping_parameters(): file "+\
                      filename+" does not exist.")
 
     #now open file to write:
@@ -78,21 +79,28 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('# \t\t data type / potential type / selection function type / --- / --- / file version)\n')
     f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t0\t0\t1\n')
 
-    if datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
-    if datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
-    if datatype == 3:  f.write('# data               type: 3 = perfect mock data + likelihood marginalization over one coordinate')
-    if datatype == 4:  f.write('# data               type: 4 = mix of two perfect data sets\n')
-    if pottype  == 1:  f.write('# potential          type: 1 = isochrone\n')
-    if pottype  == 2:  f.write('# potential          type: 2 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + Staeckel actions\n')
-    if pottype  == 21: f.write('# potential          type: 21 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + StaeckelGrid actions\n')
-    if pottype  == 3:  f.write('# potential          type: 3 = MW-like (Bovy & Rix 2013) + Staeckel actions\n')
-    if pottype  == 31: f.write('# potential          type: 31 = MW-like (Bovy & Rix 2013) + StaeckelGrid actions\n')
-    if pottype  == 5:  f.write("# potential          type: 5 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
-    if pottype  == 51: f.write("# potential          type: 51 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
-    if sftype   == 1:  f.write('# selection function type: 1 = wedge (box completeness)\n')
-    if sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
-    if sftype   == 31: f.write('# selection function type: 31 = sphere (incomplete in R & z)\n')
-    if sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
+    if   datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
+    elif datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
+    elif datatype == 3:  f.write('# data               type: 3 = perfect mock data + likelihood marginalization over one coordinate')
+    elif datatype == 4:  f.write('# data               type: 4 = mix of two perfect data sets\n')
+    else: sys.exit("Error in write_RoadMapping_parameters(): data type "+str(datatype)+" is not defined.")
+    if   pottype  == 1:  f.write('# potential          type: 1 = isochrone\n')
+    elif pottype  == 2:  f.write('# potential          type: 2 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + Staeckel actions\n')
+    elif pottype  == 21: f.write('# potential          type: 21 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + StaeckelGrid actions\n')
+    elif pottype  == 3:  f.write('# potential          type: 3 = MW-like (Bovy & Rix 2013) + Staeckel actions\n')
+    elif pottype  == 31: f.write('# potential          type: 31 = MW-like (Bovy & Rix 2013) + StaeckelGrid actions\n')
+    elif pottype  == 5:  f.write("# potential          type: 5 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
+    elif pottype  == 51: f.write("# potential          type: 51 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
+    elif pottype  == 6:  f.write("# potential          type: 6 = DoubleExponential disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
+    elif pottype  == 61: f.write("# potential          type: 61 = DoubleExponential disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
+    elif pottype  == 7:  f.write("# potential          type: 7 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (galpy MWPotential like) + Staeckel actions\n")
+    elif pottype  == 71: f.write("# potential          type: 71 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (galpy MWPotential like) + StaeckelGrid actions\n")
+    else: sys.exit("Error in write_RoadMapping_parameters(): potential type "+str(pottype)+" is not defined.")
+    if   sftype   == 1:  f.write('# selection function type: 1 = wedge (box completeness)\n')
+    elif sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
+    elif sftype   == 31: f.write('# selection function type: 31 = sphere (incomplete in R & z)\n')
+    elif sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
+    else: sys.exit("Error in write_RoadMapping_parameters(): selection function type "+str(sftype)+" is not defined.")
 
     if update and (noMCMCsteps    is None): noMCMCsteps  = out['noMCMCsteps']
     elif           noMCMCsteps    is None : noMCMCsteps  = 200
@@ -128,7 +136,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (noStars is None):
         noStars = out['noStars']
     elif noStars is None:
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "noStars must be set.")
 
     if datatype == 1:
@@ -144,7 +152,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         elif           errPar_obs      is None : errPar_obs      = numpy.zeros(4)+numpy.nan   #default: measurement errors not known
         if update and (sunCoords_phys  is None): sunCoords_phys  = out['sunCoords_phys']
         elif           sunCoords_phys  is None :
-            sys.exit("Error in write_flexible_analysis_parameters(): "+\
+            sys.exit("Error in write_RoadMapping_parameters(): "+\
              "position and velocity of sun (sunCoords_phys) must be set.")
         if update and (random_seed_for_errors is None): random_seed_for_errors = out['random_seed_for_errors']
         elif           random_seed_for_errors is None : random_seed_for_errors = numpy.random.random_integers(0,high=4294967295) 
@@ -181,7 +189,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         elif marginalize_over == 'z' : marginal_coord = 5
         elif marginalize_over == 'vz': marginal_coord = 6
         else:
-            sys.exit("Error in write_flexible_analysis_parameters(): "+\
+            sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "Coordinate "+marginalize_over+" to marginalize over is not known.")
         f.write('\t\t\t'+str(noStars)+'\t'+str(marginal_coord)+'\t'+str(ngl_marginal)+'\t0\t0\t0\n')
 
@@ -191,7 +199,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# * total # of stars / # in main data set / # in pollution data set / --- / --- / ---\n')
         f.write('\t\t\t'+str(noStars[0])+'\t'+str(noStars[1])+'\t'+str(noStars[2])+'\t0\t0\t0\n')
     else:
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "data type "+str(datatype)+" is not defined.")
     #datatype 1: perfect
     #datatype 2: measurement errors
@@ -241,7 +249,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     #_____default values_____
     #true values and estimate:
     if (potParTrue_phys is None) and (potParEst_phys is None):
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "either potParTrue_phys or potParEst_phys must be set.")
     if potParTrue_phys is None: potParTrue_phys = numpy.zeros(len(potParEst_phys))
     if potParEst_phys  is None: potParEst_phys  = numpy.array(potParTrue_phys,copy=True)
@@ -335,10 +343,20 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
 
-    elif pottype == 5 or pottype == 51:
-        #MIYAMOTO-NAGAI DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
+    elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
         f.write('#\n')
-        f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + HERNQUIST HALO + BULGE (for D'Onghia simulation)*****\n")
+        if pottype in numpy.array([5,51],dtype=int):
+            #MIYAMOTO-NAGAI DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
+            f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + HERNQUIST HALO + BULGE (for D'Onghia simulation)*****\n")
+            scalelength,scaleheight='a_disk','b_disk'
+        elif pottype in numpy.array([6,61],dtype=int):
+            #DOUBLE EXPONENTIAL DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
+            f.write("# ***** POTENTIAL: DOUBLE EXPONENTIAL DISK + HERNQUIST HALO + BULGE (for D'Onghia simulation)*****\n")
+            scalelength,scaleheight='hr_disk','hz_disk'
+        elif pottype in numpy.array([7,71],dtype=int):
+            #MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (analytic MWPotential(2014)-like potential)
+            f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (galpy MWPotential-like)*****\n")
+            scalelength,scaleheight='a_disk','b_disk'
         f.write('# \t\t true value / estimate / --- / fit min / fit max / # grid points\n')
         f.write('# R_0      [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[0])+'\t'+str(potParEst_phys[0])+'\t0\t'+\
@@ -346,10 +364,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# v_c(R_0) [km/s] =\n')
         f.write('\t\t\t'+str(potParTrue_phys[1])+'\t'+str(potParEst_phys[1])+'\t0\t'+\
                     str(potParMin_phys[1])+'\t'+str(potParMax_phys [1])+'\t'+str(potParFitNo [1])+'\n')
-        f.write('# a_disk   [kpc]  =\n')
+        f.write('# '+scalelength+'   [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[2])+'\t'+str(potParEst_phys[2])+'\t0\t'+\
                     str(potParMin_phys[2])+'\t'+str(potParMax_phys [2])+'\t'+str(potParFitNo [2])+'\n')
-        f.write('# b_disk   [kpc]  =\n')
+        f.write('# '+scaleheight+'   [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[3])+'\t'+str(potParEst_phys[3])+'\t0\t'+\
                     str(potParMin_phys[3])+'\t'+str(potParMax_phys [3])+'\t'+str(potParFitNo [3])+'\n')
         f.write('# f_halo          =\n')
@@ -360,7 +378,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
 
     else:
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "potential type "+str(pottype)+" is not defined.")
 
 
@@ -413,7 +431,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     traf = numpy.array([_REFR0,_REFV0,_REFV0,_REFR0,_REFR0])
     #true values and estimate:
     if (dfParTrue_phys is None) and (dfParEst_phys is None): 
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "either dfParTrue_phys or dfParEst_phys must be set.")
     if dfParTrue_phys is None: dfParTrue_phys = numpy.zeros(5)
     else:                      dfParTrue_phys = numpy.array(dfParTrue_phys,dtype=float)
@@ -509,7 +527,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         if sfParEst_phys  is None: sfParEst_phys  = out['sfParEst_phys' ]
 
     if sfParTrue_phys is None: 
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "sfParTrue_phys must be set.")
     else: sfParTrue_phys = numpy.array(sfParTrue_phys,dtype=float)
     if sfParEst_phys is None: sfParEst_phys = numpy.array(sfParTrue_phys,copy=True)
@@ -574,7 +592,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# z_cen   [kpc] =\n')
         f.write('\t\t\t'+str(sfParTrue_phys[3])+'\t'+str(sfParEst_phys[3])+'\t0\t0\t0\t0\n')
     else:
-        sys.exit("Error in write_flexible_analysis_parameters(): "+\
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "selection function type "+str(sftype)+" is not defined.")
 
     #_____close file_____

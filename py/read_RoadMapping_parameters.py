@@ -13,7 +13,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         HISTORY:
            2015-11-27 - Started read_RoadMapping_parameters.py on the basis of BovyCode/py/read_flexible_analysis_parameters.py - Trick (MPIA)
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
-           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
+           2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation - Trick (MPIA)
+           2016-02-15 - Added pottype 6,7,61,71, special Bulge + Disk + Halo potentials - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -243,11 +244,22 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "                R_sun [kpc], v_circ(R_sun) [km/s], R_d [kpc], z_h [kpc], f_h, d(ln v_c)/d(ln r)"
             print "               ",potParTrue_phys
     
-    elif pottype == 5 or pottype == 51:
-        #POTENTIAL FOR ELENA D'ONGHIA SIMULATION
-        #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
-        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
-        potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+    elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
+        if pottype == 5 or pottype == 51:
+            #POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION
+            #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+            potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+        elif pottype == 6 or pottype == 61:
+            #POTENTIAL 2 FOR ELENA D'ONGHIA SIMULATION
+            #potPar = [R0_kpc,vc_kms,hr_disk_kpc,hz_disk_kpc,f_halo,a_halo_kpc]
+            potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$h_{r,disk}$ [kpc]','$h_{z,disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','hr_d [kpc]','hz_d [kpc]','f_h','a_h [kpc]']
+        elif pottype == 7 or pottype == 71:
+            #GALPY MWPotential LIKE MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE
+            #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
+            potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
 
         potParTrue_phys = numpy.array(out[nl:nl+6,0],dtype=float)
         potParEst_phys  = numpy.array(out[nl:nl+6,1],dtype=float)
@@ -264,12 +276,16 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 6
 
         if print_to_screen:
-            print "POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge "
-            print "             (for simulation by Elena D'Onghia)"
-            if   pottype == 5:  print "           * action calculation: actionAngleStaeckel"
-            elif pottype == 51: print "           * action calculation: actionAngleStaeckelGrid"
+            if   pottype in numpy.array([5,51]     ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge "
+            elif pottype in numpy.array([6,61]     ,dtype=int): print "POTENTIAL: * potential with Double Exponential disk, Hernquist halo + bulge "
+            elif pottype in numpy.array([7,71]     ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge "
+            if   pottype in numpy.array([5,51,6,61],dtype=int): print "             (for simulation by Elena D'Onghia)"
+            elif pottype in numpy.array([7,71]     ,dtype=int): print "             (galpy MWPotential like)"
+            if   pottype in numpy.array([5,6,7]    ,dtype=int): print "           * action calculation: actionAngleStaeckel"
+            elif pottype in numpy.array([51,61,71] ,dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
             print "           * true parameters:"
-            print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]"
+            if   pottype in numpy.array([5,51,7,71],dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]"
+            elif pottype in numpy.array([6,61]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc]"
             print "               ",potParTrue_phys
     else:
         sys.exit("Error in read_flexible_analysis_parameters(): "+\
