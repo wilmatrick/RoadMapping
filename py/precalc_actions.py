@@ -3,6 +3,7 @@ import math
 import multiprocessing
 import numpy
 import sys
+import time
 from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_SelectionFunction_object
@@ -164,16 +165,29 @@ def precalc_pot_actions_sf(pottype,sftype,
                         ro_known,
                         _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI):
 
+    """
+        NAME:
+           precalc_pot_actions_sf
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+           2015-11-30 - Started precalc_pot_actions_sf.py on the basis of BovyCode/py/precalc_pot_actions_sf.py - Trick (MPIA)
+           2016-02-18 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object().
+    """
+
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
     _REFV0 = 220.               #[km/s]
 
     #_____setup potential / Action object_____
+    #print "Start potential setup"
     #start_1 = time.time()
     try:
         pot, aA = setup_Potential_and_ActionAngle_object(
                         pottype,
-                        potPar_phys
+                        potPar_phys,
+                        _MULTI=_MULTI
                         )
         pot_physical = True
     except RuntimeError as e:

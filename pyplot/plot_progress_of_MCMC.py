@@ -102,3 +102,10 @@ if __name__ == '__main__':
         plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None)
     elif len(sys.argv) == 4:
         plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=sys.argv[3])
+    elif len(sys.argv) == 5:
+        testname = sys.argv[3]
+        if testname == 'None':
+            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None,datapath=sys.argv[4]+'/')
+        else:
+            print "here"
+            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=testname,datapath=sys.argv[4]+'/')

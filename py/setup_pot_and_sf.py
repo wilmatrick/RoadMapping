@@ -203,6 +203,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #initialize ActionAngle object:
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
         else:                  numcores = 1
+        print numcores
         #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=5.,
         #         nE=25,npsi=25,nLz=30,numcores=numcores,c=True)
         #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=7.,

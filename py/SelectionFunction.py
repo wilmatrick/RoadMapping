@@ -964,57 +964,56 @@ class SelectionFunction:
         """
 
 
-    # set flag and fiducial df and reset df and density:
-    self.set_fiducial_df(df_fid)
-    self._use_fiducial_actions_Bovy = True
-    self._use_fiducial_actions_Trick = False
-    self._n_sigma_fiducial_fit_range = n_sigma
-    self._vT_galpy_max_fiducial_fit_range = vT_galpy_max
+        # set flag and fiducial df and reset df and density:
+        self.set_fiducial_df(df_fid)
+        self._use_fiducial_actions_Bovy = True
+        self._use_fiducial_actions_Trick = False
+        self._n_sigma_fiducial_fit_range = n_sigma
+        self._vT_galpy_max_fiducial_fit_range = vT_galpy_max
 
-    # grid on which the density will be calculated using fiducial actions:
-    Rs = numpy.linspace(self._Rmin,self._Rmax,nrs)
-    if self._zmax < 0.:
-        zup  = numpy.fabs(self._zmin)
-        zlow = numpy.fabs(self._zmax)
-    else:
-        zup  = max(numpy.fabs(self._zmax),numpy.fabs(self._zmin))
-        zlow = max(0.,self._zmin)
-    zs = numpy.linspace(zlow,zup,nzs)
-    self._zs_fid = zs
-    self._Rs_fid = Rs
+        # grid on which the density will be calculated using fiducial actions:
+        Rs = numpy.linspace(self._Rmin,self._Rmax,nrs)
+        if self._zmax < 0.:
+            zup  = numpy.fabs(self._zmin)
+            zlow = numpy.fabs(self._zmax)
+        else:
+            zup  = max(numpy.fabs(self._zmax),numpy.fabs(self._zmin))
+            zlow = max(0.,self._zmin)
+        zs = numpy.linspace(zlow,zup,nzs)
+        self._zs_fid = zs
+        self._Rs_fid = Rs
 
-    #test (at least for jr_fiducial) it it has the correct shape:
-    shape = jr_fiducial.shape
-    if shape[0] != nrs or shape[1] != nzs or shape[2] != ngl_vel**3:
-        sys.exit("Error in set_fiducial_df_actions_Bovy_from_precalculated_actions(): "+\
-                 "jr_fiducial (and all other actions) are expected to have the shape "+\
-                 "("+str(nrs)+","+str(nzs)+","+str(ngl_vel)+"^3). But it has the "+\
-                 "shape "+str(shape)+".")
+        #test (at least for jr_fiducial) it it has the correct shape:
+        shape = jr_fiducial.shape
+        if shape[0] != nrs or shape[1] != nzs or shape[2] != ngl_vel**3:
+            sys.exit("Error in set_fiducial_df_actions_Bovy_from_precalculated_actions(): "+\
+                     "jr_fiducial (and all other actions) are expected to have the shape "+\
+                     "("+str(nrs)+","+str(nzs)+","+str(ngl_vel)+"^3). But it has the "+\
+                     "shape "+str(shape)+".")
 
 
-    # set up pre-computed actions:
-    self._jr_fid    = jr_fiducial #Actions
-    self._lz_fid    = lz_fiducial
-    self._jz_fid    = jz_fiducial
-    self._rg_fid    = rg_fiducial #Guiding star radius
-    self._kappa_fid = kappa_fiducial #Frequencies
-    self._nu_fid    = nu_fiducial
-    self._Omega_fid = Omega_fiducial
+        # set up pre-computed actions:
+        self._jr_fid    = jr_fiducial #Actions
+        self._lz_fid    = lz_fiducial
+        self._jz_fid    = jz_fiducial
+        self._rg_fid    = rg_fiducial #Guiding star radius
+        self._kappa_fid = kappa_fiducial #Frequencies
+        self._nu_fid    = nu_fiducial
+        self._Omega_fid = Omega_fiducial
 
-    #calculate sigma used for integration ranges over vR and vz:
-    self._sigmaR1_fid   = numpy.zeros(nrs) #radial velocity dispersion at R
-    self._sigmaz1_fid   = numpy.zeros(nrs) #vertical velocity dispersion at R
-    for ii in range(nrs):
-        #radial velocity dispersion at R (cf. eq. (4) in Bovy & Rix 2013):
-        self._sigmaR1_fid[ii] = self._df_fid._sr * numpy.exp(
-                                            (self._df_fid._ro - self._Rs_fid[ii])/self._df_fid._hsr
-                                            )
-        #vertical velocity dispersion at R (cf. eq. (5) in Bovy & Rix 2013):
-        self._sigmaz1_fid[ii] = self._df_fid._sz * numpy.exp(
-                                            (self._df_fid._ro - self._Rs_fid[ii])/self._df_fid._hsz
-                                            )
-
-    return None
+        #calculate sigma used for integration ranges over vR and vz:
+        self._sigmaR1_fid   = numpy.zeros(nrs) #radial velocity dispersion at R
+        self._sigmaz1_fid   = numpy.zeros(nrs) #vertical velocity dispersion at R
+        for ii in range(nrs):
+            #radial velocity dispersion at R (cf. eq. (4) in Bovy & Rix 2013):
+            self._sigmaR1_fid[ii] = self._df_fid._sr * numpy.exp(
+                                                (self._df_fid._ro - self._Rs_fid[ii])/self._df_fid._hsr
+                                                )
+            #vertical velocity dispersion at R (cf. eq. (5) in Bovy & Rix 2013):
+            self._sigmaz1_fid[ii] = self._df_fid._sz * numpy.exp(
+                                                (self._df_fid._ro - self._Rs_fid[ii])/self._df_fid._hsz
+                                                )
+        return None
 
 
     #----------------------------------------------------------------
@@ -2577,6 +2576,15 @@ class SelectionFunction:
 
     def _spatialSampleDF_incomplete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
 
+        """
+        NAME:
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+            2016-02-26 - Renamed dsun --> Rcen
+        """
+
         #_____is incompleteness function initializeed?_____
         if self._incompleteness_function is None or self._incompleteness_maximum is None:
             sys.exit("Error in SelectionFunction._spatialSampleDF_incomplete(): "+
@@ -2630,7 +2638,7 @@ class SelectionFunction:
             phis_rad = math.pi * phis_deg / 180.
 
             #_____calculate distance from sun_____ 
-            xyz = bovy_coords.galcencyl_to_XYZ(Rs,phis_rad,zs,Xsun=self._dsun,Ysun=0.,Zsun=0.)
+            xyz = bovy_coords.galcencyl_to_XYZ(Rs,phis_rad,zs,Xsun=self._Rcen,Ysun=0.,Zsun=0.)
             Xs = xyz[0]
             Ys = xyz[1]
             Zs = xyz[2]

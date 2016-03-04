@@ -9,12 +9,16 @@ import sys
 from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
+from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
 
 #---------------------------------------------------------------------
 
 #____load shared memory_____
-data_shared = None
-info_MCMC = None
+data_shared             = None
+info_MCMC               = None
+data_actions_shared     = None
+fiducial_actions_shared = None
+
 #read current path
 current_path_filename = "temp/path_of_current_analysis.sav"
 if os.path.exists(current_path_filename):
@@ -301,6 +305,8 @@ def logprob_MCMC_fitDF_only(
     dfPar_fit[dfParFitBool] = dfPar_fit_MCMC
     traf                    = numpy.array([ro,vo,vo,ro,ro])
     dfPar_galpy             = numpy.exp(dfPar_fit) / traf
+    #fiducial DF parameters in galpy units:
+    dfParFid_galpy          = numpy.exp(dfParFid_fit) / traf
 
     #_____load precalculated actions_____
     #data actions:
@@ -319,6 +325,13 @@ def logprob_MCMC_fitDF_only(
     kappa_fiducial = fiducial_actions_shared[4,:,:,:]
     nu_fiducial    = fiducial_actions_shared[5,:,:,:]
     Omega_fiducial = fiducial_actions_shared[6,:,:,:]
+
+    #_____marginalization over a coordinate?_____
+    weights_marginal = None
+    if datatype == 3: #perfect mock data, marginalization over one coordinate
+        sys.exit("Error in logprob_MCM_fitDF_only(): So far the "+\
+                 "marginalization for this special case is not yet "+\
+                 "implemented.")
 
     #_____setup potential and actionAngle object_____
     #Attention: In case the actual potential uses a StaeckelFudgeGrid
@@ -371,7 +384,7 @@ def logprob_MCMC_fitDF_only(
         # interpolation grid:
         sf.set_fiducial_df_actions_Bovy_from_precalculated_actions(
                     qdf_fid,
-                    _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX
+                    _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
                     jr_fiducial,lz_fiducial,jz_fiducial,rg_fiducial,
                     kappa_fiducial,nu_fiducial,Omega_fiducial
                     )

@@ -4,13 +4,11 @@
 import emcee
 import math
 import multiprocessing
-import multiprocessing.sharedctypes
 import numpy
 import os
 import pickle
 import sys
 import time
-import ctypes
 import scipy.optimize
 from galpy.df import quasiisothermaldf
 from galpy.potential import Potential
@@ -25,6 +23,7 @@ import likelihood
 from likelihood import loglikelihood_potPar, loglikelihood_dfPar
 from emcee.interruptible_pool import InterruptiblePool as Pool
 from precalc_actions import setup_data_actions
+from setup_shared_data import shared_data_MCMC, shared_data_DFfit_only_MCMC
 
 def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdatapath='../data/',redo_analysis=True,method='GRID'):
 
@@ -407,7 +406,14 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                          }
 
         #_____test if only the DF is fitted_____
-        DF_fit_only = (numpy.sum(potParFitBool) == 0)    
+        DF_fit_only = (numpy.sum(potParFitBool) == 0)
+        if DF_fit_only:
+            #Setting up the StaeckelFudge ActionGrid is very slow. 
+            #As we precalculate all actions anyway, we use the standard StaeckelFudge
+            #to set up the potential in the MCMC chain.
+            if pottype in numpy.array([21,31,51,61,71]): 
+                pottype_slim = (pottype-1)/10
+                info_MCMC['pottype'] = pottype_slim   
 
         #_____1. save shared data_____
         #write current path into file:
@@ -438,7 +444,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #...special case: potential is kept fixed: 
             #                 write all pre-calculated actions into file...
             shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
-                            potPar_phys,dfParFid_fit,sfParEst_phys,
+                            potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_data,vR_data,vT_data,z_data,vz_data,
                             ro_known,
                             _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI,
@@ -450,16 +456,20 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
 
         #_____2. load shared data into global variables_____
         reload(likelihood)
-        from likelihood import logprob_MCMC
+        if not DF_fit_only: #standard case
+            from likelihood import logprob_MCMC as log_likelihood_MCMC
+        else:   #special case: potential is kept fixed
+            from likelihood import logprob_MCMC_fitDF_only as log_likelihood_MCMC
+            
 
         #_____3. delete files immediately_____
         os.remove(current_path_filename)
         os.remove(info_MCMC_filename)
         if not DF_fit_only: #standard case
             os.remove(shared_data_filename)
-        else:
+        else:   #special case: potential is kept fixed
             os.remove(shared_data_actions_filename)
-            os.remove(shared_data_actions_filename)
+            os.remove(shared_fiducial_actions_filename)
         
 
         print " *** Start running the MCMC *** "
@@ -488,7 +498,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             sampler = emcee.EnsembleSampler(
                         nwalkers, 
                         ndim, 
-                        logprob_MCMC,
+                        log_likelihood_MCMC, #logprob_MCMC,
                         #threads=numpy.amin([multiprocessing.cpu_count(),_MULTI]),
                         pool=pool
                         )
@@ -496,7 +506,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             sampler = emcee.EnsembleSampler(
                         nwalkers, 
                         ndim, 
-                        logprob_MCMC
+                        log_likelihood_MCMC #logprob_MCMC
                         )
 
 

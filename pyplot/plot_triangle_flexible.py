@@ -441,6 +441,12 @@ if __name__ == '__main__':
         plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=None)
     elif len(sys.argv) == 5:
         plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=sys.argv[4])
+    elif len(sys.argv) == 6:
+        testname = sys.argv[4]
+        if testname == 'None':
+            plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=None,datapath=sys.argv[5]+'/')
+        else:
+            plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=sys.argv[4],datapath=sys.argv[5]+'/')
     else:
         print "Error in plot_triangle_flexible(): Wrong number of input parameters."
 
