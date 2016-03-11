@@ -17,7 +17,8 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                                       output_path='../out/',
                                       mockdata_path='../data/',
                                       _MULTI=None,
-                                      _N_SPAT=20,_NGL_VEL=40,_N_SIGMA=5.
+                                      _N_SPAT=20,_NGL_VEL=40,_N_SIGMA=5.,
+                                      with_actions=False
                                       ):
 
     #_____global constants_____
@@ -112,13 +113,18 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         sf = setup_SelectionFunction_object(ANALYSIS['sftype'],ANALYSIS['sfParEst_phys'],ro,df=qdf)
 
 
-        #_____sample mock data_____                                                                                  
+        #_____sample mock data_____
 
-        #sample data:                                                                                         
-        print "* Sample coordinates *"
-        rs,zs,phis = sf.spatialSampleDF(nmock=_NSTARS,nrs=_N_SPAT,nzs=_N_SPAT,ngl_vel=_NGL_VEL,n_sigma=_N_SIGMA,_multi=_MULTI,quiet=False) #galpy units                                                                                         
-        print "* Sample velocities *"
-        vRs,vTs,vzs = sf.velocitySampleDF(rs,zs,_multi=_MULTI)   #galpy units
+        if _DATATYPE == 1: #perfect mock data                                                                             
+
+            #sample data:                                                                                         
+            print "* Sample coordinates *"
+            rs,zs,phis = sf.spatialSampleDF(nmock=_NSTARS,nrs=_N_SPAT,nzs=_N_SPAT,ngl_vel=_NGL_VEL,n_sigma=_N_SIGMA,_multi=_MULTI,quiet=False) #galpy units                                                                                         
+            print "* Sample velocities *"
+            vRs,vTs,vzs = sf.velocitySampleDF(rs,zs,_multi=_MULTI)   #galpy units
+
+        else:
+            sys.exit("Error in create_bestfit_reference_mockdata(): No reference mock data creation for _DATATYPE "+str(_DATATYPE))
 
         #create folder:
         if not os.path.exists(mockdata_path+datasetname_reference):
@@ -139,7 +145,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         write_RoadMapping_parameters(
                 datasetname_reference,
                 testname        = testname_original,
-                datatype        = ANALYSIS['datatype'],
+                datatype        = _DATATYPE,
                 pottype         = ANALYSIS['pottype'],
                 sftype          = ANALYSIS['sftype'],
                 noStars         = _NSTARS,
@@ -170,55 +176,61 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
             vzs   = pickle.load(savefile)/_REFV0/vo   #vz  [km/s] or actually now galpy
             savefile.close()
 
-    actiondatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata_actions.sav"
-    if not os.path.exists(actiondatafilename):
+    #-----------------------------------------------------------------------
 
-        print "* Calculate actions *"
-        actions = setup_data_actions(pot,aA,
-                           rs,vRs,vTs,zs,vzs,   #data in galpy units
-                           dfParFid_galpy,ro,
-                           _MULTI)
-        jr_data = actions[0,:] *_REFR0*ro*_REFV0*vo
-        lz_data = actions[1,:] *_REFR0*ro*_REFV0*vo
-        jz_data = actions[2,:] *_REFR0*ro*_REFV0*vo
+    if with_actions:
 
-        save_pickles(actiondatafilename,
-                        jr_data,        #[kpc km/s]
-                        lz_data,        #[kpc km/s]
-                        jz_data,        #[kpc km/s]
-                        actions[3:7,:]    #guiding star radius and frequencies in galpy units
-                        )
+        actiondatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata_actions.sav"
+        if not os.path.exists(actiondatafilename):
 
-    if testname_original is None:
-        originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_mockdata_actions.sav'
-    else:
-        originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_'+testname_original+'_mockdata_actions.sav'
-    if not os.path.exists(originalactiondatafilename):
+            print "* Calculate actions *"
+            actions = setup_data_actions(pot,aA,
+                               rs,vRs,vTs,zs,vzs,   #data in galpy units
+                               dfParFid_galpy,ro,
+                               _MULTI)
+            jr_data = actions[0,:] *_REFR0*ro*_REFV0*vo
+            lz_data = actions[1,:] *_REFR0*ro*_REFV0*vo
+            jz_data = actions[2,:] *_REFR0*ro*_REFV0*vo
 
-        #_____load data from file_____
-        originalmockdatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+"_mockdata.sav"
-        savefile= open(originalmockdatafilename,'rb')
-        rs    = pickle.load(savefile)/_REFR0/ro   #R   [kpc] or actually now galpy
-        vRs   = pickle.load(savefile)/_REFV0/vo   #vR  [km/s] or actually now galpy
-        phis  = pickle.load(savefile)             #phi [deg]
-        vTs   = pickle.load(savefile)/_REFV0/vo   #vT  [km/s] or actually now galpy
-        zs    = pickle.load(savefile)/_REFR0/ro   #z   [kpc] or actually now galpy
-        vzs   = pickle.load(savefile)/_REFV0/vo   #vz  [km/s] or actually now galpy
-        savefile.close()
+            save_pickles(actiondatafilename,
+                            jr_data,        #[kpc km/s]
+                            lz_data,        #[kpc km/s]
+                            jz_data,        #[kpc km/s]
+                            actions[3:7,:]    #guiding star radius and frequencies in galpy units
+                            )
 
-        print "* Calculate actions for original data *"
-        actions = setup_data_actions(pot,aA,
-                           rs,vRs,vTs,zs,vzs,   #data in galpy units
-                           dfParFid_galpy,ro,
-                           _MULTI)
-        jr_data = actions[0,:] *_REFR0*ro*_REFV0*vo
-        lz_data = actions[1,:] *_REFR0*ro*_REFV0*vo
-        jz_data = actions[2,:] *_REFR0*ro*_REFV0*vo
+        #--------------------------------
 
-        save_pickles(originalactiondatafilename,
-                        jr_data,        #[kpc km/s]
-                        lz_data,        #[kpc km/s]
-                        jz_data,        #[kpc km/s]
-                        actions[3:7,:]    #guiding star radius and frequencies in galpy units
-                        )
+        if testname_original is None:
+            originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_mockdata_actions.sav'
+        else:
+            originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_'+testname_original+'_mockdata_actions.sav'
+        if not os.path.exists(originalactiondatafilename):
+
+            #_____load data from file_____
+            originalmockdatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+"_mockdata.sav"
+            savefile= open(originalmockdatafilename,'rb')
+            rs    = pickle.load(savefile)/_REFR0/ro   #R   [kpc] or actually now galpy
+            vRs   = pickle.load(savefile)/_REFV0/vo   #vR  [km/s] or actually now galpy
+            phis  = pickle.load(savefile)             #phi [deg]
+            vTs   = pickle.load(savefile)/_REFV0/vo   #vT  [km/s] or actually now galpy
+            zs    = pickle.load(savefile)/_REFR0/ro   #z   [kpc] or actually now galpy
+            vzs   = pickle.load(savefile)/_REFV0/vo   #vz  [km/s] or actually now galpy
+            savefile.close()
+
+            print "* Calculate actions for original data *"
+            actions = setup_data_actions(pot,aA,
+                               rs,vRs,vTs,zs,vzs,   #data in galpy units
+                               dfParFid_galpy,ro,
+                               _MULTI)
+            jr_data = actions[0,:] *_REFR0*ro*_REFV0*vo
+            lz_data = actions[1,:] *_REFR0*ro*_REFV0*vo
+            jz_data = actions[2,:] *_REFR0*ro*_REFV0*vo
+
+            save_pickles(originalactiondatafilename,
+                            jr_data,        #[kpc km/s]
+                            lz_data,        #[kpc km/s]
+                            jz_data,        #[kpc km/s]
+                            actions[3:7,:]    #guiding star radius and frequencies in galpy units
+                            )
 

@@ -436,7 +436,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #                  write (R,vR,vT,z,vz) into file...
             shared_data_MCMC(
                      R_data,vR_data,vT_data,z_data,vz_data,
-                     noStars,_N_ERROR_SAMPLES,
                      current_path)
             #file names:
             shared_data_filename = current_path+'_shared_data.npy'

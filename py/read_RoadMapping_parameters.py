@@ -25,7 +25,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     if fulldatapath is None:
         filename = mockdatapath+datasetname+"/"+outname
     else:
-        filename = fulldatapath+"/"+outname
+        filename = fulldatapath+outname
 
     #load parameters:
     out = numpy.loadtxt(filename)

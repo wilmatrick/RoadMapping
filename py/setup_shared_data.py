@@ -81,13 +81,12 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
 #=================================================================================
 
 def shared_data_MCMC(R_data,vR_data,vT_data,z_data,vz_data,
-                     noStars,_N_ERROR_SAMPLES,
                      current_path):
 
     #_____setup shared memory for data_____
     #define the shared memory array
-    ndata = noStars*_N_ERROR_SAMPLES
-    data_shared_base = multiprocessing.sharedctypes.RawArray(ctypes.c_double,5*ndata)#multiprocessing.Array(ctypes.c_double,5*ndata)#numpy.zeros((5,noStars*_N_ERROR_SAMPLES))
+    ndata = len(R_data)
+    data_shared_base = multiprocessing.sharedctypes.RawArray(ctypes.c_double,5*ndata)
     #copy values into the shared array        
     data_shared_base[0      :  ndata] =  R_data
     data_shared_base[  ndata:2*ndata] = vR_data
@@ -95,7 +94,7 @@ def shared_data_MCMC(R_data,vR_data,vT_data,z_data,vz_data,
     data_shared_base[3*ndata:4*ndata] =  z_data
     data_shared_base[4*ndata:5*ndata] = vz_data
     #this array is used to access the shared array
-    data_shared = numpy.frombuffer(data_shared_base)#numpy.ctypeslib.as_array(data_shared_base.get_obj())
+    data_shared = numpy.frombuffer(data_shared_base)
     #reshape the array to match the shape of the original array
     data_shared = data_shared.reshape((5,ndata))
 

@@ -7,7 +7,7 @@ import numpy
 import scipy
 import scipy.stats
 
-def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath='../data/',fulldatapath=None):
+def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/'):
 
     #_____reference scales_____
     _REFR0 = 8.     #[kpc]
@@ -15,8 +15,8 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
 
     #_____load data from file_____
     if analysis_output_filename is None:
-        if testname is None: analysis_output_filename = "../out/"+datasetname+"_analysis_output_MCMC.sav"
-        else:                analysis_output_filename = "../out/"+datasetname+"_"+testname+"_analysis_output_MCMC.sav"
+        if testname is None: analysis_output_filename = fulldatapath+datasetname+"_analysis_output_MCMC.sav"
+        else:                analysis_output_filename = fulldatapath+datasetname+"_"+testname+"_analysis_output_MCMC.sav"
     savefile= open(analysis_output_filename,'rb')    
     chain_out      = pickle.load(savefile)          #MCMC chain (nwalker,nsteps,ndim)
     fitParNamesLatex   = pickle.load(savefile)      #names of axes in Latex
@@ -30,11 +30,16 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     savefile.close()
 
     #_____read model parameters_____
-    ANALYSIS = read_RoadMapping_parameters(
-        datasetname,testname=testname,
-        mockdatapath=mockdatapath,
-        fulldatapath=fulldatapath
-        )
+    if mockdatapath is None:
+        ANALYSIS = read_RoadMapping_parameters(
+            datasetname,testname=testname,
+            fulldatapath=fulldatapath
+            )
+    else:
+        ANALYSIS = read_RoadMapping_parameters(
+            datasetname,testname=testname,
+            mockdatapath=mockdatapath
+            )
     potParEst_phys = ANALYSIS['potParEst_phys']
     dfParEst_fit = ANALYSIS['dfParEst_fit']
     burnin_steps = ANALYSIS['noMCMCburnin']
