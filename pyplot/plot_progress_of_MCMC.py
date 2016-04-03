@@ -79,6 +79,7 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
             if ii >= npot: #DF parameter
                 plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
                 plt.hlines(fiducialValues[ii-npot],min(steps),max(steps),color='red',linewidth=3,linestyle='dashed')
+                plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
             elif ii < npot: #pot parameter
                 plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
                 plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')

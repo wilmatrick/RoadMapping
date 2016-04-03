@@ -200,17 +200,28 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #                         plus this is needed to calculate frequencies
     elif pottype in numpy.array([21,31,51,61,71],dtype=int):
         #==========StaeckelActions on a Grid=======
-        #initialize ActionAngle object:
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
         else:                  numcores = 1
-        print numcores
-        #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=5.,
-        #         nE=25,npsi=25,nLz=30,numcores=numcores,c=True)
-        #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=7.,
-        #         nE=35,npsi=35,nLz=45,numcores=numcores,c=True)
-        aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=10.,
-                 nE=50,npsi=50,nLz=60,numcores=numcores,c=True)
 
+        #initialize ActionAngle object:
+        if '_aASG_accuracy' in kwargs: 
+            aASG_acc = kwargs['_aASG_accuracy']
+            Rmax = float(    aASG_acc[0])
+            nE   = int(round(aASG_acc[1]))
+            npsi = int(round(aASG_acc[2]))
+            nLz  = int(round(aASG_acc[3]))
+            aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=Rmax,
+                     nE=nE,npsi=npsi,nLz=nLz,numcores=numcores,c=True)
+        else:
+            #This is the galpy default:
+            #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=5.,
+            #         nE=25,npsi=25,nLz=30,numcores=numcores,c=True)
+            #This is the accuracy I did most of paper 1 with:
+            #aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=10.,
+            #         nE=50,npsi=50,nLz=60,numcores=numcores,c=True)
+            #This accuracy should be slightly better (for Paper 1 - potential test, and for Paper 2):
+            aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=5.,
+                     nE=70,npsi=40,nLz=50,numcores=numcores,c=True)
 
     return pot,aA
 
