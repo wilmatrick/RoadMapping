@@ -20,7 +20,6 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                             marginalize_over=None,ngl_marginal=None,
                             N_error_samples=None,random_seed_for_errors=None,
                             errPar_obs=None,sunCoords_phys=None,
-                            aASG_accuracy=None,estimate_Delta=None,
                             mockdatapath='../data/',update=False
                             ):
 
@@ -36,7 +35,6 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
            2016-02-09 - Corrected bug. dfParFid_fit was not written in the file. Instead the dfParEst_fit was used. Now it's dfParFid_fit. - Trick (MPIA)
            2016-02-15 - Added pottype 6,7,61,72, Disk + Halo + Bulge potentials
-           2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
     """
 
     #analysis parameter file:
@@ -79,7 +77,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('# ***** GENERAL SETUP *****\n')
     f.write('# * DATA & MODEL:\n')
     f.write('# \t\t data type / potential type / selection function type / --- / --- / file version)\n')
-    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t0\t0\t2\n')
+    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t0\t0\t1\n')
 
     if   datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
     elif datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
@@ -104,7 +102,6 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): selection function type "+str(sftype)+" is not defined.")
 
-    #MCMC accuracy parameters:
     if update and (noMCMCsteps    is None): noMCMCsteps  = out['noMCMCsteps']
     elif           noMCMCsteps    is None : noMCMCsteps  = 200
     if update and (noMCMCburnin   is None): noMCMCburnin = out['noMCMCburnin']
@@ -112,7 +109,6 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (MCMC_use_fidDF is None): MCMC_use_fidDF = int(out['MCMC_use_fidDF'])
     elif           MCMC_use_fidDF is None : MCMC_use_fidDF = 0
     else                                  : MCMC_use_fidDF = int(MCMC_use_fidDF)
-    #Likelihood normalisation accuracy parameters:
     if update and (N_spatial      is None): N_spatial    = out['N_spatial']
     elif           N_spatial      is None : N_spatial    = 16
     if update and (N_velocity     is None): N_velocity   = out['N_velocity']
@@ -122,34 +118,16 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (vT_galpy_max   is None): vT_galpy_max = out['vT_galpy_max']
     elif           vT_galpy_max   is None : vT_galpy_max = 1.5
     if             vT_galpy_max == 0.     : vT_galpy_max = 1.5
-    #actionAngleStaeckel(Grid) accuracy parameters: 
-    if update and (estimate_Delta is None): estimate_Delta = int(out['estimate_Delta'])
-    elif           estimate_Delta is None : estimate_Delta = 0  #False. In this case the Default Delta = 0.45*ro will be used for the actionAngleStaeckel object. (Except of course for Staeckel Potentials, where Delta is known.)
-    else                                  : estimate_Delta = int(estimate_Delta)
-    if pottype in numpy.array([21,31,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
-    else                                                 : use_aASG     = 0    #False
-    if   update        and (aASG_accuracy is None): aASG_accuracy = out['aASG_accuracy']
-    elif use_aASG == 1 and (aASG_accuracy is None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
-    else                                          : aASG_accuracy = numpy.zeros(4)
 
     f.write('# * NUMERICAL PRECISION IN ANALYSIS:\n')
-    #fileversion 0:
-    #if vT_galpy_max == 1.5 or vT_galpy_max == 0.:   
+    #if vT_galpy_max == 1.5 or vT_galpy_max == 0.:   #old version
     #    f.write('# \t\t N_spatial / N_velocity / N_sigma / does MCMC use fiducial DF? / # MC steps: total / # MC steps: burn-in:\n')
     #    f.write('\t\t\t'+str(N_spatial)+'\t'+str(N_velocity)+'\t'+str(N_sigma)+'\t'+str(MCMC_use_fidDF)+'\t'+str(noMCMCsteps)+'\t'+str(noMCMCburnin)+'\n')
-    #else:
-    #fileversion 1:
-    #f.write('# \t\t N_spatial / N_velocity / N_sigma / vT_galpy_max / --- / ---\n')
-    #f.write('\t\t\t'+str(N_spatial)+'\t'+str(N_velocity)+'\t'+str(N_sigma)+'\t'+str(vT_galpy_max)+'\t0\t0\n')
-    #f.write('# \t\t Does MCMC use fiducial DF? / # MC steps: total / # MC steps: burn-in / --- / --- / ---\n')
-    #f.write('\t\t\t'+str(MCMC_use_fidDF)+'\t'+str(noMCMCsteps)+'\t'+str(noMCMCburnin)+'\t0\t0\t0\n')
-    #fileversion 2:
-    f.write('# \t\t Normalisation: N_spatial / N_velocity / N_sigma / vT_galpy_max / --- / ---\n')
+    #else: #new version
+    f.write('# \t\t N_spatial / N_velocity / N_sigma / vT_galpy_max / --- / ---\n')
     f.write('\t\t\t'+str(N_spatial)+'\t'+str(N_velocity)+'\t'+str(N_sigma)+'\t'+str(vT_galpy_max)+'\t0\t0\n')
-    f.write('# \t\t MCMC: Does MCMC use fiducial DF? / # MC steps: total / # MC steps: burn-in / --- / --- / ---\n')
+    f.write('# \t\t Does MCMC use fiducial DF? / # MC steps: total / # MC steps: burn-in / --- / --- / ---\n')
     f.write('\t\t\t'+str(MCMC_use_fidDF)+'\t'+str(noMCMCsteps)+'\t'+str(noMCMCburnin)+'\t0\t0\t0\n')
-    f.write('# \t\t ActionAngleStaeckel: Estimate Delta for each potential? / Use StaeckelGrid? / Rmax [galpy] / nE / npsi / nLz\n')
-    f.write('\t\t\t'+str(estimate_Delta)+'\t'+str(use_aASG)+'\t'+str(aASG_accuracy[0])+'\t'+str(aASG_accuracy[1])+'\t'+str(aASG_accuracy[2])+'\t'+str(aASG_accuracy[3])+'\n')
 
     #===================
     #=====DATA TYPE=====

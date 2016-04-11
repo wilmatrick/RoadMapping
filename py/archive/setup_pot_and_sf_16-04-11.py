@@ -98,6 +98,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     returnrawpot=False,
                     ngrid=101
                     )
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
+        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
     elif pottype == 4:
         #========== GALPY MW-POTENTIAL 2014 ===========
         #========== with StaeckelActions ==============
@@ -108,6 +111,8 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #setup potential:
         from galpy.potential import MWPotential2014
         pot = MWPotential2014
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
     elif pottype == 5 or pottype == 51:
         #========== POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION ==========
         #========== Miyamoto-Nagai disk, Hernquist halo + bulge ========
@@ -130,6 +135,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     M_bulge_1010Msun = 0.952400755715,
                     s_bulge          = None
                     )
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
+        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
     elif pottype == 6 or pottype == 61:
         #========== POTENTIAL 2 FOR ELENA D'ONGHIA SIMULATION ==========
         #========== Double exponential disk, Hernquist halo + bulge ========
@@ -152,6 +160,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     M_bulge_1010Msun = 0.952400755715,
                     s_bulge          = None
                     )
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
+        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
     elif pottype == 7 or pottype == 71:
         #========== MWPotential(2014)-LIKE POTENTIAL FOR FITTING ==========
         #========== Miyamoto-Nagai disk, NFW halo, Hernquist bulge ========
@@ -174,20 +185,12 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     M_bulge_1010Msun = None,
                     s_bulge          = 0.05 #analogous to galpy MWPotential
                     )
+        #prepare ActionAngle object initialization:
+        Delta = 0.45*ro
+        #       delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
     else:
         sys.exit("Error in setup_potential_and_action_object(): "+\
                  "potential type "+str(pottype)+" is not defined.")
-
-    #prepare ActionAngle object initialization:
-    if 'estimate_Delta' in kwargs: estimate_Delta = kwargs['estimate_Delta']
-    else                         : estimate_Delta = False
-    if estimate_Delta == False:
-            Delta = 0.45*ro #delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
-    elif (pottype in numpy.array([3,31,4,5,51,6,61,7,71],dtype=int)) and (estimate_Delta == True):
-        #TOOOOOOOOOOOO DOOOOOOOOOOOOOOOOOOOOOO
-    else:
-        sys.exit("Error in setup_potential_and_action_object(): "+\
-                 "Estimating Delta should not be allowed for "+str(pottype)+"not defined.")
 
 
     if pottype in numpy.array([2,3,4,5,6,7],dtype=int):

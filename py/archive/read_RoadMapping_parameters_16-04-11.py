@@ -15,7 +15,6 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation - Trick (MPIA)
            2016-02-15 - Added pottype 6,7,61,71, special Bulge + Disk + Halo potentials - Trick (MPIA)
-           2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
     """
 
     #analysis parameter file:
@@ -45,50 +44,23 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     fileversion = int(round(out[0,5]))
 
     #numerical precision of analysis:
-    if fileversion == 2:
-        #likelihood normalisation:
+    if fileversion == 1:
         N_spatial      = int(round(out[1,0]))
         N_velocity     = int(round(out[1,1]))
         N_sigma        =           out[1,2]
         vT_galpy_max   =           out[1,3]
-        #MCMC:
         MCMC_use_fidDF =      bool(out[2,0])
         noMCMCsteps    = int(round(out[2,1]))
         noMCMCburnin   = int(round(out[2,2]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta =        bool(out[3,0])
-        use_aASG       =        bool(out[3,1])
-        aASG_accuracy  = numpy.array(out[3,2:6],dtype=float)
-        nl = 4 #so far four lines: general setup + 3 lines numerical precision
-    elif fileversion == 1:
-        #likelihood normalisation:
-        N_spatial      = int(round(out[1,0]))
-        N_velocity     = int(round(out[1,1]))
-        N_sigma        =           out[1,2]
-        vT_galpy_max   =           out[1,3]
-        #MCMC:
-        MCMC_use_fidDF =      bool(out[2,0])
-        noMCMCsteps    = int(round(out[2,1]))
-        noMCMCburnin   = int(round(out[2,2]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta = False
-        use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
-        aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 3 #so far three lines: general setup + 2 lines numerical precision
     elif fileversion == 0:
-        #likelihood normalisation:
         N_spatial      = int(round(out[1,0]))
         N_velocity     = int(round(out[1,1]))
         N_sigma        =           out[1,2]
         vT_galpy_max   = 1.5
-        #MCMC:
         MCMC_use_fidDF =      bool(out[1,3])
         noMCMCsteps    = int(round(out[1,4]))
         noMCMCburnin   = int(round(out[1,5]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta = False
-        use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
-        aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 2 #so far two lines: general setup + numerical precision
 
 
@@ -473,18 +445,9 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "           * Analysis uses CURRENT qDF for fitting range in the MCMC."
         if datatype == 2:
             print "           * N_error_samples = ",N_error_samples,", random seed = ",random_seed_for_errors
-        if estimate_Delta:
-            print "           * Analysis uses the Staeckel fudge and ESTIMATES the focal length DELTA for each potential."
-        if use_aASG:
-            print "           * Analysis uses the actionAngleStaeckelGrid with:"
-            print "           * Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1])
-            print "           * npsi = ",aASG_accuracy[2],", nLz = ",int(aASG_accuracy[3])
 
-    return {
-            'datatype'  :datatype,
-            'pottype'   :pottype,
-            'sftype'    :sftype,
-            'noStars'   :noStars,
+    return {'datatype'  :datatype  ,'pottype'       :pottype       ,'sftype'       :sftype,
+            'noStars'   :noStars   ,
             'potParTrue_phys':potParTrue_phys,'dfParTrue_phys':dfParTrue_phys,'dfParTrue_fit':dfParTrue_fit,
             'potParEst_phys' :potParEst_phys , 'dfParEst_phys': dfParEst_phys, 'dfParEst_fit': dfParEst_fit,
                                                'dfParFid_phys': dfParFid_phys, 'dfParFid_fit': dfParFid_fit,
@@ -504,8 +467,6 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             'noMCMCsteps':noMCMCsteps,'noMCMCburnin':noMCMCburnin,'MCMC_use_fidDF':MCMC_use_fidDF,
             'marginal_coord':marginal_coord,'ngl_marginal':ngl_marginal,
             'N_error_samples':N_error_samples,'random_seed_for_errors':random_seed_for_errors,
-            'errPar_obs':errPar_obs,'sunCoords_phys':sunCoords_phys,
-            'estimate_Delta':estimate_Delta,'aASG_accuracy':aASG_accuracy
-            }
+            'errPar_obs':errPar_obs,'sunCoords_phys':sunCoords_phys}
 
     
