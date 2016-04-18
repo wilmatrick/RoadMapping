@@ -36,7 +36,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         HISTORY:
            2015-11-27 - Started analyze_mockdata_RoadMapping.py on the basis of BovyCode/py/analyze_mockdata_RoadMapping.py - Trick (MPIA)
            2016-02-16 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object() to speed up the ActionAngleStaeckelGrid. - Trick (MPIA)
-           2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
     """
 
     print "______________________________________________________________________"
@@ -213,38 +212,13 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                 #print "   * setup potential"
                 potPar_phys = potParArr_phys[ii,:]
                 try:
-                    if ANALYSIS['use_default_Delta']:
-                        pot, aA = setup_Potential_and_ActionAngle_object(
-                                        ANALYSIS['pottype'],
-                                        potPar_phys,
-                                        #Setting up actionAngleStaeckelGrid:
-                                        _MULTI           =_MULTI,
-                                        aASG_accuracy    =ANALYSIS['aASG_accuracy']
-                                        )
-                    else:
-                        if ANALYSIS['estimate_Delta']:
-                            pot_temp= setup_Potential_and_ActionAngle_object(
-                                        ANALYSIS['pottype'],
-                                        potPar_phys,
-                                        return_only_potential=True
-                                        )
-                            aAS_Delta = estimateDeltaStaeckel(
-                                        R_data,
-                                        z_data,
-                                        pot=pot_temp
-                                        )
-                        else:
-                            aAS_Delta = ANALYSIS['Delta_fixed']
-                        print "Delta=",aAS_Delta
-                        pot, aA = setup_Potential_and_ActionAngle_object(
-                                        ANALYSIS['pottype'],
-                                        potPar_phys,
-                                        #Setting up actionAngleStaeckelGrid:
-                                        _MULTI           =_MULTI,
-                                        aASG_accuracy    =ANALYSIS['aASG_accuracy'],
-                                        #Staeckel Delta:
-                                        aAS_Delta        =aAS_Delta
-                                        )
+                    pot, aA = setup_Potential_and_ActionAngle_object(
+                                    ANALYSIS['pottype'],
+                                    potPar_phys,
+                                    _MULTI=_MULTI
+                                    )
+                    #_MULTI is needed to set up actionAngleStaeckelGrid 
+                    #       (otherwise it is not used)
                 except RuntimeError as e:
                     # if this set of parameters gives a nonsense potential, 
                     # fix output to maximum negative number...
@@ -386,11 +360,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         MCMC_use_fidDF = ANALYSIS['MCMC_use_fidDF']
         #parameters used for marginalization (datatype == 3):
         marginal_coord = ANALYSIS['marginal_coord']
-        #actionAngleStaeckel(Grid):
-        use_default_Delta = ANALYSIS['use_default_Delta']
-        estimate_Delta = ANALYSIS['estimate_Delta']
-        fixed_Delta    = ANALYSIS['fixed_Delta']
-        aASG_accuracy  = ANALYSIS['aASG_accuracy']
 
         #___________________________________
         #_____Start analysis with MCMC______
@@ -433,12 +402,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'wgl_marginal':wgl_marginal,
                         '_N_ERROR_SAMPLES':_N_ERROR_SAMPLES,
                         'in_sf_data':in_sf_data,
-                        'MCMC_use_fidDF':MCMC_use_fidDF,
-                        'use_default_Delta':use_default_Delta,
-                        'estimate_Delta':estimate_Delta,
-                        'fixed_Delta':fixed_Delta,
-                        'aASG_accuracy':aASG_accuracy,
-                        'aAS_Delta_DFfitonly': None
+                        'MCMC_use_fidDF':MCMC_use_fidDF
                          }
 
         #_____test if only the DF is fitted_____
@@ -449,16 +413,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #to set up the potential in the MCMC chain.
             if pottype in numpy.array([21,31,51,61,71]): 
                 pottype_slim = (pottype-1)/10
-                info_MCMC['pottype'] = pottype_slim
-            #Set the Staeckel Fudge Delta once and for all:
-            if use_default_Delta: 
-                info_MCMC['aAS_Delta_DFfitonly'] = 0.45*ro
-            elif estimate_Delta:
-                sys.exit("Error in analyze_mockdata_RoadMapping:"+\
-                         "Estimating Delta for the DF fit only is "+\
-                         "not yet implemented.")
-            elif (not use_default_Delta) and (not estimate_Delta): 
-                info_MCMC['aAS_Delta_DFfitonly'] = fixed_Delta
+                info_MCMC['pottype'] = pottype_slim   
 
         #_____1. save shared data_____
         #write current path into file:

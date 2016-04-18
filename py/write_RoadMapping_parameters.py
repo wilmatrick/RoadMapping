@@ -20,7 +20,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                             marginalize_over=None,ngl_marginal=None,
                             N_error_samples=None,random_seed_for_errors=None,
                             errPar_obs=None,sunCoords_phys=None,
-                            aASG_accuracy=None,estimate_Delta=None,
+                            use_Default_delta=None,estimate_Delta=None,Delta_fixed=None,
+                            aASG_accuracy=None,
                             mockdatapath='../data/',update=False
                             ):
 
@@ -122,10 +123,23 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (vT_galpy_max   is None): vT_galpy_max = out['vT_galpy_max']
     elif           vT_galpy_max   is None : vT_galpy_max = 1.5
     if             vT_galpy_max == 0.     : vT_galpy_max = 1.5
-    #actionAngleStaeckel(Grid) accuracy parameters: 
-    if update and (estimate_Delta is None): estimate_Delta = int(out['estimate_Delta'])
-    elif           estimate_Delta is None : estimate_Delta = 0  #False. In this case the Default Delta = 0.45*ro will be used for the actionAngleStaeckel object. (Except of course for Staeckel Potentials, where Delta is known.)
-    else                                  : estimate_Delta = int(estimate_Delta)
+    #actionAngleStaeckel focal distance Delta:
+    if update and (use_default_Delta is None): use_default_Delta = int(out['use_default_Delta'])
+    elif           use_default_Delta is None : use_default_Delta = 1    #True
+    else                                     : use_default_Delta = int(use_default_Delta)
+    if update and (estimate_Delta    is None): estimate_Delta = int(out['estimate_Delta'])
+    elif           estimate_Delta    is None : estimate_Delta = 0  #False
+    else                                     : estimate_Delta = int(estimate_Delta)
+    if update and (Delta_fixed is None)   : Delta_fixed = float(out['Delta_fixed'])
+    elif           Delta_fixed is None)   : Delta_fixed = 0.
+    if pottype in numpy.array([1,2,21]) and (use_default_Delta != 1):
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
+                 "For pottype 1,2,21 it is required that use_default_Delta=True.")
+    if (use_default_Delta == 1) and ((estimate_Delta =! 0) or (Delta_fixed != 0.)):
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
+                 "If the default Staeckel Delta (0.45) is used, "+\
+                 "then it is required that estimate_Delta=0 and Delta_fixed=0.")
+    #actionAngleStaeckelGrid accuracy parameters:
     if pottype in numpy.array([21,31,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
     else                                                 : use_aASG     = 0    #False
     if   update        and (aASG_accuracy is None): aASG_accuracy = out['aASG_accuracy']
@@ -148,8 +162,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('\t\t\t'+str(N_spatial)+'\t'+str(N_velocity)+'\t'+str(N_sigma)+'\t'+str(vT_galpy_max)+'\t0\t0\n')
     f.write('# \t\t MCMC: Does MCMC use fiducial DF? / # MC steps: total / # MC steps: burn-in / --- / --- / ---\n')
     f.write('\t\t\t'+str(MCMC_use_fidDF)+'\t'+str(noMCMCsteps)+'\t'+str(noMCMCburnin)+'\t0\t0\t0\n')
-    f.write('# \t\t ActionAngleStaeckel: Estimate Delta for each potential? / Use StaeckelGrid? / Rmax [galpy] / nE / npsi / nLz\n')
-    f.write('\t\t\t'+str(estimate_Delta)+'\t'+str(use_aASG)+'\t'+str(aASG_accuracy[0])+'\t'+str(aASG_accuracy[1])+'\t'+str(aASG_accuracy[2])+'\t'+str(aASG_accuracy[3])+'\n')
+    f.write('# \t\t ActionAngleStaeckel: Use fixed default Delta? / Estimate Delta for each potential? / new fixed Delta [galpy] / --- / --- / ---\n')
+    f.write('\t\t\t'+str(use_default_Delta)+'\t'+str(estimate_Delta)+'\t'+str(Delta_fixed)+'\t0\t0\t0\n')
+    f.write('# \t\t ActionAngleStaeckelGrid: Use StaeckelGrid? / Rmax [galpy] / nE / npsi / nLz / ---\n')
+    f.write('\t\t\t'+str(use_aASG)+'\t'+str(aASG_accuracy[0])+'\t'+str(aASG_accuracy[1])+'\t'+str(aASG_accuracy[2])+'\t'+str(aASG_accuracy[3])+'\t0\n')
 
     #===================
     #=====DATA TYPE=====

@@ -163,9 +163,7 @@ def precalc_pot_actions_sf(pottype,sftype,
                         potPar_phys,dfParFid_fit,sfParEst_phys,
                         R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                         ro_known,
-                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
-                        _MULTI,
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed):
+                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI):
 
     """
         NAME:
@@ -176,10 +174,7 @@ def precalc_pot_actions_sf(pottype,sftype,
         HISTORY:
            2015-11-30 - Started precalc_pot_actions_sf.py on the basis of BovyCode/py/precalc_pot_actions_sf.py - Trick (MPIA)
            2016-02-18 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object().
-           2016-04-15 - Added options to estimate Staeckel Fudge Delta and or to set it by hand.
     """
-
-    sys.exit("Find all occurences of precalc_pot_actions_sf and adapt the call.")
 
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
@@ -189,38 +184,11 @@ def precalc_pot_actions_sf(pottype,sftype,
     #print "Start potential setup"
     #start_1 = time.time()
     try:
-        if use_default_Delta:
-            pot, aA = setup_Potential_and_ActionAngle_object(
-                            pottype,
-                            potPar_phys,
-                            #Setting up actionAngleStaeckelGrid:
-                            _MULTI           =_MULTI,
-                            aASG_accuracy    =aASG_accuracy
-                            )
-        else:
-            if estimate_Delta:
-                pot_temp= setup_Potential_and_ActionAngle_object(
-                            pottype,
-                            potPar_phys,
-                            return_only_potential=True
-                            )
-                aAS_Delta = estimateDeltaStaeckel(
-                            R_galpy,
-                            z_galpy,
-                            pot=pot_temp
-                            )
-            else:
-                aAS_Delta = Delta_fixed
-            print "Delta=",aAS_Delta
-            pot, aA = setup_Potential_and_ActionAngle_object(
-                            pottype,
-                            potPar_phys,
-                            #Setting up actionAngleStaeckelGrid:
-                            _MULTI           =_MULTI,
-                            aASG_accuracy    =aASG_accuracy,
-                            #Staeckel Delta:
-                            aAS_Delta        =aAS_Delta
-                            )
+        pot, aA = setup_Potential_and_ActionAngle_object(
+                        pottype,
+                        potPar_phys,
+                        _MULTI=_MULTI
+                        )
         pot_physical = True
     except RuntimeError as e:
         pot = None

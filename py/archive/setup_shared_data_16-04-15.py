@@ -12,25 +12,8 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
                             potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_data,vR_data,vT_data,z_data,vz_data,
                             ro_known,
-                            _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
-                            _MULTI,
-                            aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed,
+                            _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI,
                             current_path):
-
-    """
-    NAME:
-        logprob_MCMC_fitDF_only
-    PURPOSE:
-    INPUT:
-        p - (float numpy array)
-          - current walker position in potential and qdf parameter space [potPar,dfPar]
-    OUTPUT:
-    HISTORY:
-        16-02-?? - Written. - Trick (MPIA)
-        16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
-    """
-
-    sys.exit('Find all occurences of shared_data_DFfit_only_MCMC and adapt input parameters.')
 
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
@@ -56,10 +39,7 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
                             potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                             ro_known,
-                            _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
-                            _MULTI,
-                            aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed
-                            )
+                            _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI)
 
     #_____setup shared memory for data actions_____
     #define the shared memory array

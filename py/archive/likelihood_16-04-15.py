@@ -65,7 +65,6 @@ def logprob_MCMC(
           - current walker position in potential and qdf parameter space [potPar,dfPar]
     OUTPUT:
     HISTORY:
-        16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
     """
     #zeit_start = time.time()
 
@@ -99,10 +98,6 @@ def logprob_MCMC(
     _N_ERROR_SAMPLES= int(          info_MCMC['_N_ERROR_SAMPLES'])
     in_sf_data      = numpy.array(  info_MCMC['in_sf_data'],dtype='float64')
     MCMC_use_fidDF  = bool(         info_MCMC['MCMC_use_fidDF'])
-    aASG_accuracy   = numpy.array(  info_MCMC['aASG_accuracy'],dtype='float64')
-    use_default_Delta = bool(       info_MCMC['use_default_Delta'])
-    estimate_Delta  = bool(         info_MCMC['estimate_Delta'])
-    Delta_fixed     = float(        info_MCMC['Delta_fixed'])
 
     #_____separate coordinates into free potential and free df coordinates_____
     npotpar = numpy.sum(potParFitBool)
@@ -156,9 +151,7 @@ def logprob_MCMC(
                         sfParEst_phys,
                         R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                         ro_known,
-                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
-                        None,   #<-- _MULTI
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed)
+                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,None)
     else:
         # the integration range for the density is set by the current QDF!
         pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,
@@ -167,9 +160,7 @@ def logprob_MCMC(
                         sfParEst_phys,
                         R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                         ro_known,
-                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
-                        None,   #<-- _MULTI
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed)
+                        _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,None)
 
     if not pot_physical:
         #_____if potential is unphysical, return log(0)_____
@@ -258,7 +249,6 @@ def logprob_MCMC_fitDF_only(
     OUTPUT:
     HISTORY:
         16-02-18 - Written (based on logprob_MCMC()). - Trick (MPIA)
-        16-04-15 - Added the parameter aAS_Delta to setup_potential_and_ActionAngle_object().
     """
 
     #_____Reference scales_____
@@ -291,7 +281,6 @@ def logprob_MCMC_fitDF_only(
     _N_ERROR_SAMPLES= int(          info_MCMC['_N_ERROR_SAMPLES'])
     in_sf_data      = numpy.array(  info_MCMC['in_sf_data'],dtype='float64')
     MCMC_use_fidDF  = bool(         info_MCMC['MCMC_use_fidDF'])
-    aAS_Delta_DFonly = float(       info_MCMC['aAS_Delta_DFfitonly'])
 
     #_____separate coordinates into free potential and free df coordinates_____
     npotpar = numpy.sum(potParFitBool)
@@ -349,13 +338,11 @@ def logprob_MCMC_fitDF_only(
     #           to interpolate the actions, we do not set it up here 
     #           (because it is too expensive) but rather the slim version
     #           with StaeckelFudge. The pottype was changed in 
-    #           analyze_mockdata_RoadMapping.py after setting up the shared data.    
+    #           analyze_mockdata_RoadMapping.py after setting up the shared data/
     try:
         pot, aA = setup_Potential_and_ActionAngle_object(
                         pottype,
-                        potPar_phys,
-                        #Staeckel Delta:
-                        aAS_Delta=aAS_Delta_DFonly
+                        potPar_phys
                         )
         pot_physical = True
     except RuntimeError as e:

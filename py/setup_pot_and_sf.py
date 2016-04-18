@@ -9,6 +9,7 @@ from SF_Wedge import SF_Wedge
 from SF_Cylinder import SF_Cylinder
 import numpy
 import sys
+from galpy.actionAngleStaeckel import estimateDeltaStaeckel
 
 def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
 
@@ -24,6 +25,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
            2016-02-15 - Added pottype 6,7,61,71 to the list and rewrote 5-7 to use the new function setup_DiskHaloBulge_potential().
            2016-04-03 - Changed default accuracy of actionAngleStaeckelGrid. From Rmax = 10, nE = 50, npsi = 50, nLz = 60 to Rmax =  5, nE = 70, npsi = 40, nLz = 50
+           2016-04-15 - Added an option to return only the potential, and one option to set Delta by hand.
     """
 
     #_____global constants_____
@@ -178,16 +180,18 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         sys.exit("Error in setup_potential_and_action_object(): "+\
                  "potential type "+str(pottype)+" is not defined.")
 
-    #prepare ActionAngle object initialization:
-    if 'estimate_Delta' in kwargs: estimate_Delta = kwargs['estimate_Delta']
-    else                         : estimate_Delta = False
-    if estimate_Delta == False:
-            Delta = 0.45*ro #delta=0.45 * R0 is a good estimate for the Milky Way's Staeckel approximation (cf. Bovy&Rix 2013)
-    elif (pottype in numpy.array([3,31,4,5,51,6,61,7,71],dtype=int)) and (estimate_Delta == True):
-        #TOOOOOOOOOOOO DOOOOOOOOOOOOOOOOOOOOOO
-    else:
-        sys.exit("Error in setup_potential_and_action_object(): "+\
-                 "Estimating Delta should not be allowed for "+str(pottype)+"not defined.")
+    #_____return only potential_____
+    if ('return_only_potential' in kwargs) and (kwargs['return_only_potential']):
+        return pot
+
+    #_____prepare ActionAngle object initialization and setup Delta_____
+    if (pottype in numpy.array([3,31,4,5,51,6,61,7,71],dtype=int)):
+        if 'aAS_Delta' in kwargs: 
+            Delta = kwargs['aAS_Delta']
+        else: 
+            Delta = 0.45*ro 
+            #delta=0.45 * R0 is a good estimate for the Milky Way's 
+            #Staeckel approximation (cf. Bovy&Rix 2013)
 
 
     if pottype in numpy.array([2,3,4,5,6,7],dtype=int):
@@ -202,8 +206,8 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         else:                  numcores = 1
 
         #initialize ActionAngle object:
-        if '_aASG_accuracy' in kwargs: 
-            aASG_acc = kwargs['_aASG_accuracy']
+        if 'aASG_accuracy' in kwargs: 
+            aASG_acc = kwargs['aASG_accuracy']
             Rmax = float(    aASG_acc[0])
             nE   = int(round(aASG_acc[1]))
             npsi = int(round(aASG_acc[2]))

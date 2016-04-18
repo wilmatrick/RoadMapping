@@ -90,7 +90,6 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     print "* Setup Galaxy *"
 
     #potential:
-    sys.exit("Call to setup_Potentia_and_ActionAngle_object needs to be account for Delta changes before proceeding.")
     pot, aA = setup_Potential_and_ActionAngle_object(ANALYSIS['pottype'],potPar_phys)
 
     mockdatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata.sav"

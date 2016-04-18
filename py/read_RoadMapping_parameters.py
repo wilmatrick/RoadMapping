@@ -55,11 +55,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         MCMC_use_fidDF =      bool(out[2,0])
         noMCMCsteps    = int(round(out[2,1]))
         noMCMCburnin   = int(round(out[2,2]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta =        bool(out[3,0])
-        use_aASG       =        bool(out[3,1])
-        aASG_accuracy  = numpy.array(out[3,2:6],dtype=float)
-        nl = 4 #so far four lines: general setup + 3 lines numerical precision
+        #actionAngleStaeckel Delta:
+        use_default_Delta =     bool(out[3,0])
+        estimate_Delta    =     bool(out[3,1])
+        Delta_fixed       =    float(out[3,2])
+        #actionAngleStaeckelGrid:
+        use_aASG       =        bool(out[4,0])
+        aASG_accuracy  = numpy.array(out[4,1:5],dtype=float)
+        nl = 5 #so far four lines: general setup + 4 lines numerical precision
     elif fileversion == 1:
         #likelihood normalisation:
         N_spatial      = int(round(out[1,0]))
@@ -70,8 +73,11 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         MCMC_use_fidDF =      bool(out[2,0])
         noMCMCsteps    = int(round(out[2,1]))
         noMCMCburnin   = int(round(out[2,2]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta = False
+        #actionAngleStaeckel Delta:
+        use_default_Delta = True
+        estimate_Delta    = False
+        Delta_fixed       = 0
+        #actionAngleStaeckelGrid:
         use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 3 #so far three lines: general setup + 2 lines numerical precision
@@ -85,8 +91,11 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         MCMC_use_fidDF =      bool(out[1,3])
         noMCMCsteps    = int(round(out[1,4]))
         noMCMCburnin   = int(round(out[1,5]))
-        #actionAngleStaeckel(Grid):
-        estimate_Delta = False
+        #actionAngleStaeckel Delta:
+        use_default_Delta = True
+        estimate_Delta    = False
+        Delta_fixed       = 0
+        #actionAngleStaeckelGrid:
         use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 2 #so far two lines: general setup + numerical precision
@@ -475,6 +484,10 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "           * N_error_samples = ",N_error_samples,", random seed = ",random_seed_for_errors
         if estimate_Delta:
             print "           * Analysis uses the Staeckel fudge and ESTIMATES the focal length DELTA for each potential."
+        if not estimate_Delta and not use_default_Delta:
+            print "           * Analysis uses the Staeckel fudge with FIXED focal length DELTA=",Delta_fixed,"*ro for each potential."
+        if not estimate_Delta and use_default_Delta:
+            print "           * Analysis uses the Staeckel fudge with DEFAULT focal length DELTA=0.45*ro for each potential."
         if use_aASG:
             print "           * Analysis uses the actionAngleStaeckelGrid with:"
             print "           * Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1])
@@ -505,7 +518,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             'marginal_coord':marginal_coord,'ngl_marginal':ngl_marginal,
             'N_error_samples':N_error_samples,'random_seed_for_errors':random_seed_for_errors,
             'errPar_obs':errPar_obs,'sunCoords_phys':sunCoords_phys,
-            'estimate_Delta':estimate_Delta,'aASG_accuracy':aASG_accuracy
+            'use_default_Delta':use_default_Delta,'estimate_Delta':estimate_Delta,'Delta_fixed':Delta_fixed,
+            'aASG_accuracy':aASG_accuracy
             }
 
     
