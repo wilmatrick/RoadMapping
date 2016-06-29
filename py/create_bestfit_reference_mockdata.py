@@ -9,6 +9,7 @@ from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_Select
 from galpy.df import quasiisothermaldf
 from galpy.util import save_pickles
 from precalc_actions import setup_data_actions
+import sys
 
 
 def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference,
@@ -18,7 +19,8 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                                       mockdata_path='../data/',
                                       _MULTI=None,
                                       _N_SPAT=20,_NGL_VEL=40,_N_SIGMA=5.,
-                                      with_actions=False
+                                      with_actions=False,
+                                      redo_everything=False
                                       ):
 
     #_____global constants_____
@@ -36,14 +38,16 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         analysis_original = output_path+datasetname_original+"_"+testname_original+"_analysis_output_MCMC.sav"
 
     #get best fit values from previous analysis:
-    means, stddevs = get_MCMC_mean_SE(
+    means, stddevs, medians = get_MCMC_mean_SE(
                         datasetname_original,
                         testname=testname_original,
                         analysis_output_filename=analysis_original,
                         mockdatapath=mockdata_path,
-                        quantities_to_calculate=None
+                        quantities_to_calculate=None,
+                        Gaussian_fit=False
                         )
-    print "best fit values: ", means
+    print "best fit values (median of MC distribution): ", medians
+    bestfits = medians
 
     #read analysis parameters:
     ANALYSIS = read_RoadMapping_parameters(
@@ -54,8 +58,8 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
 
     #separate coordinates into free potential and free df coordinates
     npotpar = numpy.sum(ANALYSIS['potParFitBool'])
-    potPar_phys_MCMC = means[0:npotpar]    #physical units
-    dfPar_fit_MCMC   = means[npotpar::]    #logarithmic fit units, not yet galpy scaled
+    potPar_phys_MCMC = bestfits[0:npotpar]    #physical units
+    dfPar_fit_MCMC   = bestfits[npotpar::]    #logarithmic fit units, not yet galpy scaled
 
     #p_Phi parameters
     #load estimates for fixed potential parameters
@@ -90,11 +94,12 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     print "* Setup Galaxy *"
 
     #potential:
-    sys.exit("Call to setup_Potentia_and_ActionAngle_object needs to be account for Delta changes before proceeding.")
+    if not ANALYSIS['use_default_Delta'] or ANALYSIS['estimate_Delta']:
+        sys.exit("Call to setup_Potential_and_ActionAngle_object needs to be account for Delta changes before proceeding.")
     pot, aA = setup_Potential_and_ActionAngle_object(ANALYSIS['pottype'],potPar_phys)
 
     mockdatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata.sav"
-    if not os.path.exists(mockdatafilename):
+    if (not os.path.exists(mockdatafilename)) or redo_everything:
 
 
         #set up distribution function (galpy units):
@@ -182,7 +187,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     if with_actions:
 
         actiondatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata_actions.sav"
-        if not os.path.exists(actiondatafilename):
+        if (not os.path.exists(actiondatafilename)) or redo_everything:
 
             print "* Calculate actions *"
             actions = setup_data_actions(pot,aA,
@@ -206,7 +211,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
             originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_mockdata_actions.sav'
         else:
             originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_'+testname_original+'_mockdata_actions.sav'
-        if not os.path.exists(originalactiondatafilename):
+        if (not os.path.exists(originalactiondatafilename)) or redo_everything:
 
             #_____load data from file_____
             originalmockdatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+"_mockdata.sav"

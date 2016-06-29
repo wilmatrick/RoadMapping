@@ -198,6 +198,8 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                 A = popt[0]
                 mu = popt[1]
                 sigma = popt[2]
+                print "Attention: The Gauss curve fitting to the triangle plot does not account for possible physical upper and lower limits."+ \
+                      "Therefore the result might be slightly different than what the violin plots and get_MCMC_mean_SE() calculate."         
                 xtemp = numpy.linspace(x_range[0],x_range[1],200)
                 gtemp = gauss(xtemp, A, mu, sigma)
                 plt.plot(xtemp,gtemp,color='k',linestyle='dashed',linewidth=2)

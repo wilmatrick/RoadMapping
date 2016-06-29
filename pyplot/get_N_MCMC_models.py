@@ -73,7 +73,7 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
 def gauss(x, A, mu, sigma):
     return A * numpy.exp(-(x-mu)**2/(2.*sigma**2))
 
-def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,mockdatapath='../data/',fulldatapath=None,quantities_to_calculate=None):
+def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,mockdatapath='../data/',fulldatapath=None,quantities_to_calculate=None,Gaussian_fit=False):
 
     #_____reference scales_____
     _REFR0 = 8.     #[kpc]
@@ -115,6 +115,7 @@ def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,moc
     n_quant = len(quantities_to_calculate)
     means   = numpy.zeros(n_quant) + numpy.nan
     stddevs = numpy.zeros(n_quant) + numpy.nan
+    medians = numpy.zeros(n_quant) + numpy.nan
     for ii in range(n_quant):
 
         #MCMC sampels
@@ -122,33 +123,44 @@ def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,moc
         xs = chain[:,ix] 
         mean = numpy.mean(xs)
         stddev = numpy.std(xs)
-        xmin = mean-3.*stddev
-        xmax = mean+3.*stddev
-        if numpy.isfinite(lower_bounds[ix]): xmin = numpy.max([lower_bounds[ix],xmin])                           
-        if numpy.isfinite(upper_bounds[ix]): xmax = numpy.min([upper_bounds[ix],xmax])                 
-        xp = numpy.linspace(xmin,xmax,30)
 
-        #kernel density estimation:
-        kernel = scipy.stats.gaussian_kde(xs)
-        prob   = kernel(xp)
+        if Gaussian_fit:
+            xmin = mean-3.*stddev
+            xmax = mean+3.*stddev
+            if numpy.isfinite(lower_bounds[ix]): xmin = numpy.max([lower_bounds[ix],xmin])                           
+            if numpy.isfinite(upper_bounds[ix]): xmax = numpy.min([upper_bounds[ix],xmax])                 
+            xp = numpy.linspace(xmin,xmax,30)
 
-        indices = numpy.where(prob == prob.max())
-        i_x = indices[0]
-        x_best = xp[i_x]
+            #kernel density estimation:
+            kernel = scipy.stats.gaussian_kde(xs)
+            prob   = kernel(xp)
 
-        #_____fit gaussian_____
-        try:
-            popt, pcov = scipy.optimize.curve_fit(gauss, xp, prob,p0=[1.,x_best,0.3*(max(xp)-min(xp))])
-        except RuntimeError as e:
-            pass #do nothing
+            indices = numpy.where(prob == prob.max())
+            i_x = indices[0]
+            x_best = xp[i_x]
+
+        
+            #_____fit gaussian_____
+            try:
+                popt, pcov = scipy.optimize.curve_fit(gauss, xp, prob,p0=[1.,x_best,0.3*(max(xp)-min(xp))])
+            except RuntimeError as e:
+                pass #do nothing
+            else:
+                A = popt[0]
+                mu = popt[1]
+                sigma = numpy.fabs(popt[2])
+                print A, mu, sigma
+                if mu >= xmin:
+                    means[ii] = mu
+                    stddevs[ii] = sigma
+                else:
+                    sys.exit("Error in get_MCMC_mean_SE(): mu is smaller than xmin.")
         else:
-            A = popt[0]
-            mu = popt[1]
-            sigma = numpy.fabs(popt[2])
-            if mu >= xmin:
-                means[ii] = mu
-                stddevs[ii] = sigma
+            means[ii] = mean
+            stddevs[ii] = stddev
+        medians[ii] = numpy.median(xs)
+            
 
-    return means, stddevs
+    return means, stddevs, medians
 
 #--------------------------------------------

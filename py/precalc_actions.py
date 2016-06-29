@@ -7,6 +7,7 @@ import time
 from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_SelectionFunction_object
+from galpy.actionAngle import estimateDeltaStaeckel
 
 #-------------------------------------------------------------------
 
@@ -179,8 +180,6 @@ def precalc_pot_actions_sf(pottype,sftype,
            2016-04-15 - Added options to estimate Staeckel Fudge Delta and or to set it by hand.
     """
 
-    sys.exit("Find all occurences of precalc_pot_actions_sf and adapt the call.")
-
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
     _REFV0 = 220.               #[km/s]
@@ -211,7 +210,7 @@ def precalc_pot_actions_sf(pottype,sftype,
                             )
             else:
                 aAS_Delta = Delta_fixed
-            print "Delta=",aAS_Delta
+            #print "Delta=",aAS_Delta
             pot, aA = setup_Potential_and_ActionAngle_object(
                             pottype,
                             potPar_phys,

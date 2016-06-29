@@ -58,6 +58,8 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
                          quiet=True,
                          Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.):
 
+    sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
+
     if isinstance(R_kpc,float):
         R_kpc = numpy.array([R_kpc])
         phi_rad = numpy.array([phi_rad])
@@ -130,6 +132,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
                                     quiet=True,
                                     Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
                                     vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.):
+
+    sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
 
     if isinstance(R_kpc,float):
         R_kpc = numpy.array([R_kpc])
@@ -251,6 +255,8 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
                          quiet=True,
                          Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.):
 
+    sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
+
     if isinstance(ra_rad,float):
         ra_rad = numpy.array([ra_rad])
         dec_rad = numpy.array([dec_rad])
@@ -317,6 +323,9 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
                                     vlos_kms,pm_ra_masyr,pm_dec_masyr,quiet=True,
                                     Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
                                     vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.):
+
+    sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
+
     if isinstance(ra_rad,float):
         ra_rad = numpy.array([ra_rad])
         dec_rad = numpy.array([dec_rad])

@@ -8,7 +8,7 @@ from read_RoadMapping_parameters import read_RoadMapping_parameters
 
 datasetname = "isoSphFlex_short_hot_2kpc_1a"
 
-def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home/trick/ElenaSim/out/'):
+def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home/trick/ElenaSim/out/',nwalkers = 100):
 
     """
         NAME:
@@ -54,7 +54,6 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
     #_____format MCMC chain for plotting_____
     npos = len(out[:,0])
     print npos
-    nwalkers = 100
     nsteps = npos / nwalkers
     chain  = out[0:nwalkers*nsteps,0:-1]
     steps = numpy.repeat(range(nsteps),nwalkers)
@@ -98,15 +97,15 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         plotfilename = '../out/'+sys.argv[1]+'_progress_MCMC.png'
-        plot_progress_of_MCMC(sys.argv[1],plotfilename,testname=None)
+        plot_progress_of_MCMC(sys.argv[1],plotfilename,testname=None,nwalkers=100)
     elif len(sys.argv) == 3:
-        plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None)
-    elif len(sys.argv) == 4:
-        plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=sys.argv[3])
+        plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None,nwalkers=100)
     elif len(sys.argv) == 5:
+        plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=sys.argv[3],nwalkers=int(sys.argv[4]))
+    elif len(sys.argv) == 6:
         testname = sys.argv[3]
         if testname == 'None':
-            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None,datapath=sys.argv[4]+'/')
+            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None,datapath=sys.argv[4]+'/',nwalkers=int(sys.argv[5]))
         else:
             print "here"
-            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=testname,datapath=sys.argv[4]+'/')
+            plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=testname,datapath=sys.argv[4]+'/',nwalkers=int(sys.argv[5]))

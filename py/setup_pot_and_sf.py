@@ -9,7 +9,6 @@ from SF_Wedge import SF_Wedge
 from SF_Cylinder import SF_Cylinder
 import numpy
 import sys
-from galpy.actionAngleStaeckel import estimateDeltaStaeckel
 
 def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
 
@@ -192,6 +191,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
             Delta = 0.45*ro 
             #delta=0.45 * R0 is a good estimate for the Milky Way's 
             #Staeckel approximation (cf. Bovy&Rix 2013)
+        #print "Delta = ",Delta
 
 
     if pottype in numpy.array([2,3,4,5,6,7],dtype=int):

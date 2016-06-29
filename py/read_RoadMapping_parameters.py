@@ -490,8 +490,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "           * Analysis uses the Staeckel fudge with DEFAULT focal length DELTA=0.45*ro for each potential."
         if use_aASG:
             print "           * Analysis uses the actionAngleStaeckelGrid with:"
-            print "           * Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1])
-            print "           * npsi = ",aASG_accuracy[2],", nLz = ",int(aASG_accuracy[3])
+            print "             Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1]),","
+            print "             npsi = ",int(aASG_accuracy[2]),", nLz = ",int(aASG_accuracy[3])
 
     return {
             'datatype'  :datatype,

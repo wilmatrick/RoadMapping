@@ -20,7 +20,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                             marginalize_over=None,ngl_marginal=None,
                             N_error_samples=None,random_seed_for_errors=None,
                             errPar_obs=None,sunCoords_phys=None,
-                            use_Default_delta=None,estimate_Delta=None,Delta_fixed=None,
+                            use_default_Delta=None,estimate_Delta=None,Delta_fixed=None,
                             aASG_accuracy=None,
                             mockdatapath='../data/',update=False
                             ):
@@ -131,20 +131,21 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif           estimate_Delta    is None : estimate_Delta = 0  #False
     else                                     : estimate_Delta = int(estimate_Delta)
     if update and (Delta_fixed is None)   : Delta_fixed = float(out['Delta_fixed'])
-    elif           Delta_fixed is None)   : Delta_fixed = 0.
+    elif           Delta_fixed is None    : Delta_fixed = 0.
     if pottype in numpy.array([1,2,21]) and (use_default_Delta != 1):
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "For pottype 1,2,21 it is required that use_default_Delta=True.")
-    if (use_default_Delta == 1) and ((estimate_Delta =! 0) or (Delta_fixed != 0.)):
+    if (use_default_Delta == 1) and ((estimate_Delta != 0) or (Delta_fixed != 0.)):
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "If the default Staeckel Delta (0.45) is used, "+\
                  "then it is required that estimate_Delta=0 and Delta_fixed=0.")
     #actionAngleStaeckelGrid accuracy parameters:
     if pottype in numpy.array([21,31,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
     else                                                 : use_aASG     = 0    #False
-    if   update        and (aASG_accuracy is None): aASG_accuracy = out['aASG_accuracy']
-    elif use_aASG == 1 and (aASG_accuracy is None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
-    else                                          : aASG_accuracy = numpy.zeros(4)
+    if   update        and (aASG_accuracy is     None): aASG_accuracy = out['aASG_accuracy']
+    elif use_aASG == 1 and (aASG_accuracy is     None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
+    elif use_aASG == 1 and (aASG_accuracy is not None): aASG_accuracy = numpy.array(aASG_accuracy)
+    else                                              : aASG_accuracy = numpy.zeros(4)
 
     f.write('# * NUMERICAL PRECISION IN ANALYSIS:\n')
     #fileversion 0:

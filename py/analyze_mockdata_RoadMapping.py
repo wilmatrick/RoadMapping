@@ -24,6 +24,7 @@ from likelihood import loglikelihood_potPar, loglikelihood_dfPar
 from emcee.interruptible_pool import InterruptiblePool as Pool
 from precalc_actions import setup_data_actions
 from setup_shared_data import shared_data_MCMC, shared_data_DFfit_only_MCMC
+from galpy.actionAngle import estimateDeltaStaeckel
 
 def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdatapath='../data/',redo_analysis=True,method='GRID'):
 
@@ -37,6 +38,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2015-11-27 - Started analyze_mockdata_RoadMapping.py on the basis of BovyCode/py/analyze_mockdata_RoadMapping.py - Trick (MPIA)
            2016-02-16 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object() to speed up the ActionAngleStaeckelGrid. - Trick (MPIA)
            2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
+           2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
     """
 
     print "______________________________________________________________________"
@@ -235,7 +237,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                                         )
                         else:
                             aAS_Delta = ANALYSIS['Delta_fixed']
-                        print "Delta=",aAS_Delta
                         pot, aA = setup_Potential_and_ActionAngle_object(
                                         ANALYSIS['pottype'],
                                         potPar_phys,
@@ -389,7 +390,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #actionAngleStaeckel(Grid):
         use_default_Delta = ANALYSIS['use_default_Delta']
         estimate_Delta = ANALYSIS['estimate_Delta']
-        fixed_Delta    = ANALYSIS['fixed_Delta']
+        Delta_fixed    = ANALYSIS['Delta_fixed']
         aASG_accuracy  = ANALYSIS['aASG_accuracy']
 
         #___________________________________
@@ -436,7 +437,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'MCMC_use_fidDF':MCMC_use_fidDF,
                         'use_default_Delta':use_default_Delta,
                         'estimate_Delta':estimate_Delta,
-                        'fixed_Delta':fixed_Delta,
+                        'Delta_fixed':Delta_fixed,
                         'aASG_accuracy':aASG_accuracy,
                         'aAS_Delta_DFfitonly': None
                          }
@@ -458,7 +459,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                          "Estimating Delta for the DF fit only is "+\
                          "not yet implemented.")
             elif (not use_default_Delta) and (not estimate_Delta): 
-                info_MCMC['aAS_Delta_DFfitonly'] = fixed_Delta
+                info_MCMC['aAS_Delta_DFfitonly'] = Delta_fixed
 
         #_____1. save shared data_____
         #write current path into file:
@@ -526,7 +527,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #number of free fit parameters:
         ndim     = numpy.sum(potParFitBool) + numpy.sum(dfParFitBool)
         #number of walkers:
-        nwalkers = 100
+        nwalkers = 64
         #initial walker positions:
         p0 = numpy.random.randn(ndim * nwalkers).reshape((nwalkers, ndim))
         p0 = p0 * 0.25 * (max_walkerpos - min_walkerpos) #central pixel corresponds to +/- 2 sigma
