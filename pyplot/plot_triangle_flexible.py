@@ -18,6 +18,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                                 quantities_to_plot=None,size=15,analysis_output_filename=None,
                                 method='MCMC',
                                 burnin_steps=None,color=True,
+                                fit_gaussian=True,
                                 datapath='/home/trick/ElenaSim/out/'):
 
     """
@@ -185,24 +186,26 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                 #   values = kernel(cp)
                 #   plt.plot(xp,values,color='darkorchid',linestyle='dashed',linewidth=2)
 
-                #_____best value of the marginalized pdf_____
-                if numpy.sum(numpy.isnan(N)) == N.size:
-                    x_best = truevalues[ix]
-                else:
-                    indices = numpy.where(N == N.max())
-                    i_x = indices[0][0]
-                    x_best = xp[i_x]
+                if fit_gaussian:
 
-                #_____fit gaussian_____
-                popt, pcov = scipy.optimize.curve_fit(gauss, xp, N, p0=[max(N),x_best,0.3*(x_range[1]-x_range[0])])
-                A = popt[0]
-                mu = popt[1]
-                sigma = popt[2]
-                print "Attention: The Gauss curve fitting to the triangle plot does not account for possible physical upper and lower limits."+ \
-                      "Therefore the result might be slightly different than what the violin plots and get_MCMC_mean_SE() calculate."         
-                xtemp = numpy.linspace(x_range[0],x_range[1],200)
-                gtemp = gauss(xtemp, A, mu, sigma)
-                plt.plot(xtemp,gtemp,color='k',linestyle='dashed',linewidth=2)
+                    #_____best value of the marginalized pdf_____
+                    if numpy.sum(numpy.isnan(N)) == N.size:
+                        x_best = truevalues[ix]
+                    else:
+                        indices = numpy.where(N == N.max())
+                        i_x = indices[0][0]
+                        x_best = xp[i_x]
+
+                    #_____fit gaussian_____
+                    popt, pcov = scipy.optimize.curve_fit(gauss, xp, N, p0=[max(N),x_best,0.3*(x_range[1]-x_range[0])])
+                    A = popt[0]
+                    mu = popt[1]
+                    sigma = popt[2]
+                    print "Attention: The Gauss curve fitting to the triangle plot does not account for possible physical upper and lower limits."+ \
+                          "Therefore the result might be slightly different than what the violin plots and get_MCMC_mean_SE() calculate."         
+                    xtemp = numpy.linspace(x_range[0],x_range[1],200)
+                    gtemp = gauss(xtemp, A, mu, sigma)
+                    plt.plot(xtemp,gtemp,color='k',linestyle='dashed',linewidth=2)
 
 
                 #_____format_____

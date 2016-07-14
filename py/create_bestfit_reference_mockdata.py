@@ -4,7 +4,7 @@ import os
 import pickle
 from write_RoadMapping_parameters import write_RoadMapping_parameters
 from read_RoadMapping_parameters import read_RoadMapping_parameters
-from get_N_MCMC_models import get_MCMC_mean_SE
+from get_N_MCMC_models import get_MCMC_mean_SE, get_GRID_midpoint
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_SelectionFunction_object
 from galpy.df import quasiisothermaldf
 from galpy.util import save_pickles
@@ -20,7 +20,8 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                                       _MULTI=None,
                                       _N_SPAT=20,_NGL_VEL=40,_N_SIGMA=5.,
                                       with_actions=False,
-                                      redo_everything=False
+                                      redo_everything=False,
+                                      method='MCMC_median'
                                       ):
 
     #_____global constants_____
@@ -34,20 +35,33 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     #MCMC output filename:
     if testname_original is None: 
         analysis_original = output_path+datasetname_original+"_analysis_output_MCMC.sav"
+        analysis_original_grid = output_path+datasetname_original+"_analysis_output_GRID.sav"
     else: 
         analysis_original = output_path+datasetname_original+"_"+testname_original+"_analysis_output_MCMC.sav"
+        analysis_original_grid = output_path+datasetname_original+"_"+testname_original+"_analysis_output_GRID.sav"
 
     #get best fit values from previous analysis:
-    means, stddevs, medians = get_MCMC_mean_SE(
-                        datasetname_original,
-                        testname=testname_original,
-                        analysis_output_filename=analysis_original,
-                        mockdatapath=mockdata_path,
-                        quantities_to_calculate=None,
-                        Gaussian_fit=False
-                        )
-    print "best fit values (median of MC distribution): ", medians
-    bestfits = medians
+    if method == 'MCMC_median':
+        means, stddevs, medians = get_MCMC_mean_SE(
+                            datasetname_original,
+                            testname=testname_original,
+                            analysis_output_filename=analysis_original,
+                            mockdatapath=mockdata_path,
+                            quantities_to_calculate=None,
+                            Gaussian_fit=False
+                            )
+        print "best fit values (median of MC distribution): ", medians
+        bestfits = medians
+    elif method == 'GRID_midpoint':
+        ParFit_GRID_phys = get_GRID_midpoint(
+                            datasetname_original,
+                            testname=testname_original,
+                            analysis_output_filename=analysis_original_grid,
+                            mockdatapath=mockdata_path,
+                            fulldatapath=None,
+                            quantities_to_calculate=None
+                            )
+        bestfits = ParFit_GRID_phys
 
     #read analysis parameters:
     ANALYSIS = read_RoadMapping_parameters(

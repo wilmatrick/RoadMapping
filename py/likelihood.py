@@ -625,7 +625,7 @@ def loglikelihood_dfPar(pot,aA,sf,
                         _XGL,_WGL,
                         datatype,noStars,
                         marginal_coord=None,weights_marginal=None,
-                        _N_ERROR_SAMPLES=None,in_sf_data=None,use_outlier_model=True):
+                        _N_ERROR_SAMPLES=None,in_sf_data=None,use_outlier_model=True,return_likelihoods_of_stars=False):
     """
         NAME:
         PURPOSE:
@@ -800,6 +800,9 @@ def loglikelihood_dfPar(pot,aA,sf,
     # sum up contributions for all data points: 
     loglike_out = numpy.sum(lnL_i)  
 
-    return loglike_out
+    if return_likelihoods_of_stars:
+        return lnL_i
+    else:
+        return loglike_out
 
 

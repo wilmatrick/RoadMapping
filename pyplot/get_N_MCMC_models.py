@@ -164,3 +164,50 @@ def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,moc
     return means, stddevs, medians
 
 #--------------------------------------------
+
+def get_GRID_midpoint(datasetname,testname=None,analysis_output_filename=None,mockdatapath='../data/',fulldatapath=None,quantities_to_calculate=None):
+
+    #_____reference scales_____
+    _REFR0 = 8.     #[kpc]
+    _REFV0 = 220.   #[km s$^{-1}$]
+
+    #_____load data from file_____
+    if analysis_output_filename is None:
+        if testname is None: analysis_output_filename = datapath+datasetname+"_analysis_output_"+method+".sav"
+        else:                analysis_output_filename = datapath+datasetname+"_"+testname+"_analysis_output_"+method+".sav"
+    savefile= open(analysis_output_filename,'rb')    
+    savefile       = open(analysis_output_filename,'rb')
+    loglike_out    = pickle.load(savefile)             #likelihood grid
+    ii             = pickle.load(savefile)             #iteration index
+    fitParNamesLatex   = pickle.load(savefile)      #names of axes in Latex
+    gridPointNo        = pickle.load(savefile)      #number of points along each axis
+    gridAxesPoints     = pickle.load(savefile)      #all axes in one flattened array
+    gridAxesIndex      = pickle.load(savefile)      #indices of start and end of each axis in above array
+    potParFitBool      = pickle.load(savefile)      #boolean array that indicates which of all potential parameters are fitted
+    dfParFitBool       = pickle.load(savefile)      #boolean array that indicates which of all DF parameters are fitted
+    potParTrue_phys    = pickle.load(savefile)      #true potential parameters in physical units
+    dfParTrue_fit      = pickle.load(savefile)      #true df parameters in logarithmic fit units
+    savefile.close()
+
+    #_____number of dimensions_____
+    ndim = len(loglike_out.shape)
+    #_____rescale as probabilities are too small to plot_____
+    loglike_out[numpy.isnan(loglike_out)] = -numpy.finfo(numpy.dtype(numpy.float64)).max
+    loglike_out -= loglike_out.max()
+
+    #_____iterate over quantities_____
+    if quantities_to_calculate is None: quantities_to_calculate = range(ndim)
+    axislist = numpy.array(range(ndim),dtype=int)
+    n_quant = len(quantities_to_calculate)
+    midpoint   = numpy.zeros(n_quant) + numpy.nan
+    for ii in range(n_quant):
+
+        ix = quantities_to_calculate[ii]
+        xp = gridAxesPoints[gridAxesIndex[ix]:gridAxesIndex[ix+1]]  #grid axes points
+        if len(xp) == 3:
+            midpoint[ii] = xp[1]
+        else:
+            sys.exit('Error in get_GRID_midpoint: not implemented for more than 3 grid points yet.')
+        midpoint
+        
+    return midpoint
