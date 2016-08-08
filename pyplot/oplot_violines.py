@@ -220,6 +220,8 @@ def oplot_violines(datasetname,pos_in_plot,
 
             else:
                 percentile = numpy.percentile(xs, [15.87,50.,84.13])
+                #percentile2 = percentile
+                #print ii, percentile2[1],', +',percentile2[2]-percentile2[1],', -',percentile2[1]-percentile2[0]
                 
                 #_____sigma confidence levels_____
                 err_l = percentile[1]-percentile[0]

@@ -13,7 +13,7 @@ def gauss(x, A, mu, sigma):
 
 #==================================================
 
-def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,n_sigma_range=3.,n_gridpoints_final=9,mockdatapath='../data/',force_fine_grid=False,method='GRID'):
+def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,n_sigma_range=3.,n_gridpoints_final=9,mockdatapath='../data/',force_fine_grid=False,method='GRID',fit_method='Gauss',testname_previous=None):
 
     """
         NAME:
@@ -25,16 +25,20 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2015-12-01 - Started adapt_fitting_range.py on the basis of BovyCode/py/adapt_fitting_range_flexible.py - Trick (MPIA)
            2015-12-10 - Included special treatment for case, where parameter is pegged at a limit. - Trick (MPIA)
            2016-01-12 - Removed conditions where "force_fine_grid=True" forced to fit a Gaussian. Does sometimes just not work. - Trick (MPIA)
+           2016-08-08 - Included keyword testname_previous to be able to create a new analysis/test on basis of an older analysis/test
     """
 
     #_____reference scales_____
     _REFR0 = 8.  #[kpc]
     _REFV0 = 220.   #[km/s]
 
+    #...testname-->the file to be created, testname_previous-->the analysis to be used to update:
+    if testname_previous is None: testname_previous=testname
+
     #_____load data from file_____
     if analysis_output_filename is None:
-        if testname is None: analysis_output_filename = "../out/"+dataname+"_analysis_output_"+method+".sav"
-        else:                analysis_output_filename = "../out/"+dataname+"_"+testname+"_analysis_output_"+method+".sav"
+        if testname_previous is None: analysis_output_filename = "../out/"+dataname+"_analysis_output_"+method+".sav"
+        else:                         analysis_output_filename = "../out/"+dataname+"_"+testname_previous+"_analysis_output_"+method+".sav"
     if os.path.exists(analysis_output_filename):
         savefile= open(analysis_output_filename,'rb')
         if method == 'GRID':   
@@ -70,7 +74,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     elif method == 'MCMC':
         #_____burnin + bounds_____
         ANALYSIS = read_RoadMapping_parameters(
-                datasetname,testname=testname,
+                datasetname,testname=testname_previous,
                 mockdatapath=mockdatapath
                 )
         burnin_steps = ANALYSIS['noMCMCburnin']
@@ -84,6 +88,8 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     #_____quantities_____
     axislist = numpy.array(range(nquant),dtype=int)
 
+    if method == 'GRID' and fit_method != 'Gauss':
+        sys.exit('Error in adapt_fitting_range: When a GRID analysis is used to adapt the fitting range, a "Gauss" fit has to be chosen.')
 
 
     ##################################################
@@ -209,36 +215,44 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
         elif method == 'MCMC':
 
             #_____MCMC sampels_____
-            xs = chain[:,ii] 
+            xs = chain[:,ii]
 
             #_____mean and stddev from marginalized pdf_____
             x_mean = numpy.mean(xs)
             x_stddev = numpy.std(xs)
 
-            #optimal bin width (1D)
-            bar_width = 3.5 * x_stddev / len(xs)**(1./3.)  
-            Delta = n_sigma_range*x_stddev
-            #number of bins (1D)
-            kx = int(math.ceil(Delta / (0.5 * bar_width)))   
-            if ((kx % 2) == 0): kx += 1
-            #histogram range (1D and plot)
-            xmax = x_mean + kx * 0.5 * bar_width
-            xmin = x_mean - kx * 0.5 * bar_width
-            x_range = [xmin,xmax]
+            if fit_method == 'Gauss':
 
-            #_____histogram_____
-            N, b = numpy.histogram(xs, bins=kx, range=x_range,normed=True)
-            #coordinates:
-            dx = 0.5 * numpy.fabs(b[1] - b[0])
-            xp = b[0:-1] + dx
+                #optimal bin width (1D)
+                bar_width = 3.5 * x_stddev / len(xs)**(1./3.)  
+                Delta = n_sigma_range*x_stddev
+                #number of bins (1D)
+                kx = int(math.ceil(Delta / (0.5 * bar_width)))   
+                if ((kx % 2) == 0): kx += 1
+                #histogram range (1D and plot)
+                xmax = x_mean + kx * 0.5 * bar_width
+                xmin = x_mean - kx * 0.5 * bar_width
+                x_range = [xmin,xmax]
 
-            #_____find new fit range_____
-            print "fit Gauss\t",
-            popt, pcov = scipy.optimize.curve_fit(gauss, xp, N, p0=[max(N),x_mean,x_stddev])
-            A = popt[0]
-            mu = popt[1]
-            sigma = numpy.fabs(popt[2])
-            fine_grid *= 1
+                #_____histogram_____
+                N, b = numpy.histogram(xs, bins=kx, range=x_range,normed=True)
+                #coordinates:
+                dx = 0.5 * numpy.fabs(b[1] - b[0])
+                xp = b[0:-1] + dx
+
+                #_____find new fit range_____
+                print "fit Gauss\t",
+                popt, pcov = scipy.optimize.curve_fit(gauss, xp, N, p0=[max(N),x_mean,x_stddev])
+                A = popt[0]
+                mu = popt[1]
+                sigma = numpy.fabs(popt[2])
+                fine_grid *= 1
+            elif fit_method == 'mean':
+                mu    = x_mean
+                sigma = x_stddev
+            else:
+                sys.exit('Error in adapt_fitting_range: When a MCMC analysis is used to adapt the fitting range, a "Gauss" fit or "mean" has to be chosen.')
+
             xmin = mu - n_sigma_range * sigma
             xmax = mu + n_sigma_range * sigma
 
