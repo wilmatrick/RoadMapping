@@ -56,7 +56,7 @@ import numpy
 
 def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
                          quiet=True,
-                         Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.):
+                         Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.): #position of Sun in galactocentric (X,Y,Z) coordinates
 
     sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
 
@@ -77,11 +77,11 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
     # (R,z,phi) --> (x,y,z):
     xyz = bovy_coords.galcencyl_to_XYZ(
                 R_kpc, phi_rad, z_kpc, 
-                Xsun=Xsun_kpc, Ysun=Ysun_kpc, Zsun=Zsun_kpc
+                Xsun=Xgc_sun_kpc, Ysun=Ygc_sun_kpc, Zsun=Zgc_sun_kpc
                 )
-    Xs_kpc = xyz[0]
-    Ys_kpc = xyz[1]
-    Zs_kpc = xyz[2]
+    Xs_kpc = xyz[:,0]
+    Ys_kpc = xyz[:,1]
+    Zs_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
             print ii,"(x,y,z) \t\t= "+\
@@ -130,10 +130,11 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
 def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
                                     vR_kms,vT_kms, vz_kms,
                                     quiet=True,
-                                    Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
-                                    vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.):
+                                    Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.,
+                                    vXgc_sun_kms=0.,vYgc_sun_kms=230.,vZgc_sun_kms=0.): #position & velocity of Sun in galactocentric (X,Y,Z) frame, i.e. (X,Y,Z)_gc=(8.,0.,0.025)kpc, (vX,vY,vZ)_gc=(-U,V+vcirc,W)~(-10,240,7) km/s
 
     sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
+    sys.exit("Test this function again with solar peculiar velocity != 0.")
 
     if isinstance(R_kpc,float):
         R_kpc = numpy.array([R_kpc])
@@ -155,11 +156,11 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     # (R,z,phi) --> (x,y,z):
     xyz = bovy_coords.galcencyl_to_XYZ(
                 R_kpc, phi_rad, z_kpc, 
-                Xsun=Xsun_kpc, Ysun=Ysun_kpc, Zsun=Zsun_kpc
+                Xsun=Xgc_sun_kpc, Ysun=Ygc_sun_kpc, Zsun=Zgc_sun_kpc
                 )
-    Xs_kpc = xyz[0]
-    Ys_kpc = xyz[1]
-    Zs_kpc = xyz[2]
+    Xs_kpc = xyz[:,0]
+    Ys_kpc = xyz[:,1]
+    Zs_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
             print ii,"(x,y,z) \t\t= "+\
@@ -208,7 +209,7 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     vxyz = bovy_coords.galcencyl_to_vxvyvz(
                     vR_kms,vT_kms,vz_kms,
                     phi_rad,
-                    vsun=[vXsun_kms,vYsun_kms,vZsun_kms])
+                    vsun=[vXgc_sun_kms,vYgc_sun_kms,vZgc_sun_kms])
     vx_kms = vxyz[0]
     vy_kms = vxyz[1]
     vz_kms = vxyz[2]
@@ -253,7 +254,7 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
 
 def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
                          quiet=True,
-                         Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.):
+                         Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.):
 
     sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
 
@@ -302,7 +303,7 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
     # (x,y,z) --> (R,z,phi):
     Rzphi = bovy_coords.XYZ_to_galcencyl(
                     x_kpc, y_kpc, z_kpc, 
-                    Xsun=Xsun_kpc, Ysun=Ysun_kpc, Zsun=Zsun_kpc
+                    Xsun=Xgc_sun_kpc, Ysun=Ygc_sun_kpc, Zsun=Zgc_sun_kpc
                     )
     R_kpc   = Rzphi[0]
     phi_rad = Rzphi[1]
@@ -321,10 +322,11 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
 
 def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
                                     vlos_kms,pm_ra_masyr,pm_dec_masyr,quiet=True,
-                                    Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
-                                    vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.):
+                                    Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.,
+                                    vXgc_sun_kms=0.,vYgc_sun_kms=230.,vZgc_sun_kms=0.): #position & velocity of Sun in galactocentric (X,Y,Z) frame, i.e. (X,Y,Z)_gc=(8.,0.,0.025)kpc, (vX,vY,vZ)_gc=(-U,V+vcirc,W)~(-10,240,7) km/s
 
     sys.exit("Make sure to use the newest version of galpy. There have been changes in the coordinate transformations.")
+    sys.exit("Test this function again with solar peculiar velocity != 0.")
 
     if isinstance(ra_rad,float):
         ra_rad = numpy.array([ra_rad])
@@ -374,7 +376,7 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     # (x,y,z) --> (R,z,phi):
     Rzphi = bovy_coords.XYZ_to_galcencyl(
                     x_kpc, y_kpc, z_kpc, 
-                    Xsun=Xsun_kpc, Ysun=Ysun_kpc, Zsun=Zsun_kpc
+                    Xsun=Xgc_sun_kpc, Ysun=Ygc_sun_kpc, Zsun=Zgc_sun_kpc
                     )
     R_kpc   = Rzphi[0]
     phi_rad = Rzphi[1]
@@ -424,7 +426,7 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
                     R_kpc,
                     phi_rad, 
                     z_kpc, 
-                    vsun=[vXsun_kms,vYsun_kms,vZsun_kms], 
+                    vsun=[vXgc_sun_kms,vYgc_sun_kms,vZgc_sun_kms], 
                     galcen=True
                     )
     vR_kms = vRvTvZ[0]
@@ -454,15 +456,15 @@ if __name__ == "__main__":
                 galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
                                     vR_kms,vT_kms,vz_kms,
                                     quiet=False,
-                                    Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
-                                    vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.)
+                                    Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.,
+                                    vXgc_sun_kms=0.,vYgc_sun_kms=230.,vZgc_sun_kms=0.)
 
     R_kpc, phi_rad, z_kpc,vR_kms,vT_kms, vz_kms = \
                 radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
                                     vlos_kms,pm_ra_masyr,pm_dec_masyr,
                                     quiet=False,
-                                    Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
-                                    vXsun_kms=0.,vYsun_kms=230.,vZsun_kms=0.)
+                                    Xgc_sun_kpc=8.,Ygc_sun_kpc=0.,Zgc_sun_kpc=0.,
+                                    vXgc_sun_kms=0.,vYgc_sun_kms=230.,vZgc_sun_kms=0.)
 
 
 

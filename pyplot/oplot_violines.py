@@ -216,7 +216,7 @@ def oplot_violines(datasetname,pos_in_plot,
                     sigma = numpy.fabs(popt[2])
 
                 #_____sigma confidence levels_____
-                ax1.errorbar([pos_in_plot], [mu], yerr=[sigma], color=markercolor,marker=marker,zorder=4,ecolor=markercolor,elinewidth=2,markeredgecolor='None',capsize=0,markersize=10)
+                ax1.errorbar([pos_in_plot], [mu], yerr=[sigma], color=markercolor,marker=marker,zorder=4,ecolor=markercolor,elinewidth=2,markeredgecolor=edgecolor,capsize=0,markersize=10,alpha=alpha)
 
             else:
                 percentile = numpy.percentile(xs, [15.87,50.,84.13])
@@ -226,7 +226,7 @@ def oplot_violines(datasetname,pos_in_plot,
                 #_____sigma confidence levels_____
                 err_l = percentile[1]-percentile[0]
                 err_u = percentile[2]-percentile[1]
-                ax1.errorbar([pos_in_plot], [percentile[1]], yerr=[[err_l],[err_u]], color=markercolor,marker=marker,zorder=4,ecolor=markercolor,elinewidth=2,markeredgecolor='None',capsize=0,markersize=10)
+                ax1.errorbar([pos_in_plot], [percentile[1]], yerr=[[err_l],[err_u]], color=markercolor,marker=marker,zorder=4,ecolor=markercolor,elinewidth=2,markeredgecolor=edgecolor,capsize=0,markersize=10,alpha=alpha)
 
         #_____plot true values_____
         if plot_true_values:
