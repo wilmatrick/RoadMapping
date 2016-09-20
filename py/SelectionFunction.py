@@ -2583,14 +2583,14 @@ class SelectionFunction:
         OUTPUT:
         HISTORY:
             2016-02-26 - Renamed dsun --> Rcen
+            2016-09-20 - incompleteness_function is now a function of galactocentric coordinates (R,p_deg,z)
         """
 
         #_____is incompleteness function initializeed?_____
         if self._incompleteness_function is None or self._incompleteness_maximum is None:
             sys.exit("Error in SelectionFunction._spatialSampleDF_incomplete(): "+
                      "There is no completeness function and/or peak. "+
-                     "The completeness function should be a function of distance "+
-                     "from sun and height above the plane")
+                     "The completeness function should be a function of Galactocentric coordinates")
         if not recalc_densgrid:
             sys.exit("Error in SelectionFunction._spatialSampleDF_incomplete(): "+
                      "Keyword recalc_densgrid is not set to True. "+
@@ -2635,20 +2635,21 @@ class SelectionFunction:
                                    recalc_densgrid=False,
                                    quiet=True
                                    )
-            phis_rad = math.pi * phis_deg / 180.
+            #phis_rad = math.pi * phis_deg / 180.  #obsolete as of 16-09-20
 
-            #_____calculate distance from sun_____ 
-            xyz = bovy_coords.galcencyl_to_XYZ(Rs,phis_rad,zs,Xsun=self._Rcen,Ysun=0.,Zsun=0.)
-            Xs = xyz[0]
-            Ys = xyz[1]
-            Zs = xyz[2]
-            ds = numpy.sqrt(Xs**2 + Ys**2 + Zs**2)
+            #_____calculate distance from sun_____   #obsolete as of 16-09-20
+            #xyz = bovy_coords.galcencyl_to_XYZ(Rs,phis_rad,zs,Xsun=self._Rcen,Ysun=0.,Zsun=0.)
+            #Xs = xyz[0]
+            #Ys = xyz[1]
+            #Zs = xyz[2]
+            #ds = numpy.sqrt(Xs**2 + Ys**2 + Zs**2)
 
             #_____Apply incmpleteness using the rejection method:_____
             #random number:
             etas = numpy.random.rand(nmore)
             #max completeness at distances:
-            comp_at_dz = self._incompleteness_function(ds,zs)
+            #comp_at_dz = self._incompleteness_function(ds,zs)  #obsolete as of 16-09-20
+            comp_at_dz = self._incompleteness_function(Rs,phi_deg,zs)
             #max completeness at peak * random number < 1:
             comptest = self._incompleteness_maximum * etas
             #accepted data points:

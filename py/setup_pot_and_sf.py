@@ -240,6 +240,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None):
         OUTPUT:
         HISTORY:
            2015-11-30 - Started setup_SelectionFunction_object.py on the basis of BovyCode/py/setup_SelectionFunction_object.py - Trick (MPIA)
+           2016-09-20 - Incompleteness_function is now function of R,z and phi in Galactocentric coordinates, and not anymore of r,z in solarcentric coordinates - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -287,10 +288,12 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None):
         #size and position of sphere in galpy units
         sfTemp = numpy.array(sfPar_phys[0:2]) /_REFR0/ro
         r_obs  = sfTemp[0]
+        d_obs  = sfTemp[1]
+        degtorad = math.pi/180.
         #    SF_Sphere(rsun,dsun,df=None)
         sf = SF_Sphere(
                 r_obs,      #r_obs
-                sfTemp[1],      #d_obs
+                d_obs,      #d_obs
                 df=df
                 )
         #incompleteness function:
@@ -303,10 +306,17 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None):
             #no imcompleteness
             setup_incompleteness = False
         elif eps_z == 0. and eps_r != 0.:
-            incompleteness_function = lambda r, z: (1. - eps_r * r             / r_obs)
+            sys.exit('Error in setup_SelectionFunction_object(), sf_type=31: the incompleteness function with (R,z,phi) input has not been tested yet.')
+            #incompleteness_function = lambda r, z: (1. - eps_r * r             / r_obs)    #obsolete as of 16-09-20
+            incompleteness_function = lambda R,p_deg,z: (1. - eps_r / r_obs * numpy.sqrt(
+                                                                                 (d_obs-R*numpy.cos(p_deg*degtorad))**2 +
+                                                                                 (      R*numpy.sin(p_deg*degtorad))**2 +
+                                                                                 z**2
+                                                                                 ))
             setup_incompleteness = True
         elif eps_r == 0. and eps_z != 0.:
-            incompleteness_function = lambda r, z: (1. - eps_z * numpy.fabs(z) / r_obs)
+            #incompleteness_function = lambda r, z: (1. - eps_z * numpy.fabs(z) / r_obs)    #obsolete as of 16-09-20
+            incompleteness_function = lambda R,p_deg,z: (1. - eps_z * numpy.fabs(z) / r_obs)
             setup_incompleteness = True
         else:
             sys.exit("Error in setup_SelectionFunction_object(): "+\
@@ -315,7 +325,8 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None):
             # incompleteness_maximum = peak of completeness, used for 
             #         rejection sampling, as function does not 
             #         have to be normalized
-            incompleteness_maximum  = incompleteness_function(0.,0.)                              
+            #incompleteness_maximum  = incompleteness_function(0.,0.)   #obsolete as of 16-09-20
+            incompleteness_maximum  = incompleteness_function(d_obs,0.,0.)                              
             sf.set_incompleteness_function(
                     incompleteness_function,
                     incompleteness_maximum
