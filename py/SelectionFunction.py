@@ -1508,11 +1508,8 @@ class SelectionFunction:
 
             2014-09-23 - Started - Wilma Trick (MPIA)
             2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
+            2016-09-22 - Removed warning for incompleteness. The derived classes should take care of that.
         """
-
-        if self._with_incompleteness:
-            sys.exit("Error in SelectionFunction.Mtot(): "+
-                     "Function not yet implemented to take care of imcompleteness.")
 
         #if Gauss-Legendre points and weights are already given, choose fast way of integration:
         if xgl is not None and wgl is not None:
@@ -2649,7 +2646,7 @@ class SelectionFunction:
             etas = numpy.random.rand(nmore)
             #max completeness at distances:
             #comp_at_dz = self._incompleteness_function(ds,zs)  #obsolete as of 16-09-20
-            comp_at_dz = self._incompleteness_function(Rs,phi_deg,zs)
+            comp_at_dz = self._incompleteness_function(Rs,phis_deg,zs)
             #max completeness at peak * random number < 1:
             comptest = self._incompleteness_maximum * etas
             #accepted data points:

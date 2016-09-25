@@ -30,8 +30,6 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
         16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
     """
 
-    sys.exit('Find all occurences of shared_data_DFfit_only_MCMC and adapt input parameters.')
-
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
     _REFV0 = 220.               #[km/s]

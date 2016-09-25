@@ -38,6 +38,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-02-09 - Corrected bug. dfParFid_fit was not written in the file. Instead the dfParEst_fit was used. Now it's dfParFid_fit. - Trick (MPIA)
            2016-02-15 - Added pottype 6,7,61,72, Disk + Halo + Bulge potentials
            2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
+           2016-09-22 - Added pottype 4,41 MWPotential2014 by Bovy (2015) - Trick (MPIA)
+           2016-09-25 - Added pottype 42,421 MWPotential from galpy - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -92,6 +94,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif pottype  == 21: f.write('# potential          type: 21 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + StaeckelGrid actions\n')
     elif pottype  == 3:  f.write('# potential          type: 3 = MW-like (Bovy & Rix 2013) + Staeckel actions\n')
     elif pottype  == 31: f.write('# potential          type: 31 = MW-like (Bovy & Rix 2013) + StaeckelGrid actions\n')
+    elif pottype  == 4:  f.write('# potential          type: 4 = MWPotential2014 by Bovy 2015 + Staeckel actions\n')    
+    elif pottype  == 41: f.write('# potential          type: 41 = MWPotential2014 by Bovy 2015 + StaeckelGrid actions\n')   
+    elif pottype  == 42: f.write('# potential          type: 42 = MWPotential from galpy + Staeckel actions\n')   
+    elif pottype  == 421:f.write('# potential          type: 421 = MWPotential from galpy + StaeckelGrid actions\n')  
     elif pottype  == 5:  f.write("# potential          type: 5 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
     elif pottype  == 51: f.write("# potential          type: 51 = Miyamoto-Nagai disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
     elif pottype  == 6:  f.write("# potential          type: 6 = DoubleExponential disk, Hernquist halo & bulge (for D'Onghia simulation) + Staeckel actions\n")
@@ -103,6 +109,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
     elif sftype   == 31: f.write('# selection function type: 31 = sphere (incomplete in R & z)\n')
     elif sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
+    elif sftype   == 4:  f.write('# selection function type: 4 = incomplete shell\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): selection function type "+str(sftype)+" is not defined.")
 
     #MCMC accuracy parameters:
@@ -140,7 +147,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                  "If the default Staeckel Delta (0.45) is used, "+\
                  "then it is required that estimate_Delta=0 and Delta_fixed=0.")
     #actionAngleStaeckelGrid accuracy parameters:
-    if pottype in numpy.array([21,31,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
+    if pottype in numpy.array([21,31,41,421,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
     else                                                 : use_aASG     = 0    #False
     if   update        and (aASG_accuracy is     None): aASG_accuracy = out['aASG_accuracy']
     elif use_aASG == 1 and (aASG_accuracy is     None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
@@ -381,6 +388,21 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# d(ln(v_c)) / d(ln(r)) =\n')
         f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
+
+    elif pottype in numpy.array([4,41,42,421],dtype=int):
+        #MWPotential2014 FROM GALPY (Bovy 2015) (4+41), or MWPotential FROM GALPY (42+421)
+        f.write('#\n')
+        if pottype in numpy.array([4,41],dtype=int):
+            f.write('# ***** POTENTIAL: MWPotential2014 (Bovy 2015; galpy)*****\n')
+        elif pottype in numpy.array([42,421],dtype=int):
+            f.write('# ***** POTENTIAL: MWPotential (galpy)*****\n')
+        f.write('# \t\t true value / estimate / --- / fit min / fit max / # grid points\n')
+        f.write('# R_0      [kpc]  =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[0])+'\t'+str(potParEst_phys[0])+'\t0\t'+\
+                    str(potParMin_phys[0])+'\t'+str(potParMax_phys [0])+'\t'+str(potParFitNo [0])+'\n')
+        f.write('# v_c(R_0) [km/s] =\n')
+        f.write('\t\t\t'+str(potParTrue_phys[1])+'\t'+str(potParEst_phys[1])+'\t0\t'+\
+                    str(potParMin_phys[1])+'\t'+str(potParMax_phys [1])+'\t'+str(potParFitNo [1])+'\n')
 
     elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
         f.write('#\n')
@@ -630,9 +652,33 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(sfParTrue_phys[2])+'\t'+str(sfParEst_phys[2])+'\t0\t0\t0\t0\n')
         f.write('# z_cen   [kpc] =\n')
         f.write('\t\t\t'+str(sfParTrue_phys[3])+'\t'+str(sfParEst_phys[3])+'\t0\t0\t0\t0\n')
+    elif sftype == 4:
+        #INCOMPLETE SHELL
+        #sfPar = [dmin_kpc,dmax_kpc,Rgc_sun_kpc,phigc_sun_deg,zgc_sun_kpc,file_no]
+        #max. and min. radius of shell, galactocentric position of Sun/center of shell,
+        #file number containing incompleteness information
+        f.write('#\n')  
+        f.write('# ***** OBSERVED VOLUME: SHELL / COMPLETENESS: FROM FILE / CENTER: FREE *****\n')
+        f.write('# \t\t true value / estimate / --- / --- / --- / ---\n')
+        f.write('# d_min      [kpc] =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[0])+'\t'+str(sfParEst_phys[0])+'\t0\t0\t0\t0\n')
+        f.write('# d_max      [kpc] =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[1])+'\t'+str(sfParEst_phys[1])+'\t0\t0\t0\t0\n')
+        f.write('# R_gc_Sun   [kpc] =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[2])+'\t'+str(sfParEst_phys[2])+'\t0\t0\t0\t0\n')
+        f.write('# phi_gc_Sun [deg] =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[3])+'\t'+str(sfParEst_phys[3])+'\t0\t0\t0\t0\n')
+        f.write('# z_gc_Sun   [kpc] =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[4])+'\t'+str(sfParEst_phys[4])+'\t0\t0\t0\t0\n')
+        f.write('# file_no          =\n')
+        f.write('\t\t\t'+str(sfParTrue_phys[5])+'\t'+str(sfParEst_phys[5])+'\t0\t0\t0\t0\n')
     else:
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "selection function type "+str(sftype)+" is not defined.")
+
+    if datatype == 2 and sftype == 4:
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
+                 "If datatype = 2 and sftype = 4: Check that they use the same sun coordinates!")
 
     #_____close file_____
     f.close()

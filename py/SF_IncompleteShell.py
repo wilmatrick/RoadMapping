@@ -1,3 +1,4 @@
+#_____import packages_____
 from SelectionFunction import SelectionFunction
 import sys
 import numpy
@@ -5,6 +6,11 @@ import math
 import scipy
 import matplotlib.pyplot as plt
 from coord_trafo import galcencyl_to_radecDM, radecDM_to_galcencyl
+import healpy
+from galpy.util import bovy_coords
+from galpy.util import save_pickles
+import matplotlib.pyplot as plt
+import colormaps as cmaps
 
 class SF_IncompleteShell(SelectionFunction):
     """
@@ -25,8 +31,8 @@ class SF_IncompleteShell(SelectionFunction):
             dmax_kpc: radius of outer edge of shell around center (@ sun) [galpy]
             dmin_kpc: radius of inner edge of shell around center (@ sun) [galpy]
             Rgc_Sun_kpc: distance of center (@ sun) to Galactic center [galpy]
-            zcen_kpc: height of center over Galactic plane [galpy]
-            phicen_deg: azimuth of center [deg]
+            zgc_Sun_kpc: height of center over Galactic plane [galpy]
+            phigc_Sun_deg: azimuth of center [deg]
             df: galpy object of a distribution function
             incomp_R: 1D array: radial coordinate of incompleteness array
             incomp_z: 1D array: vertical coordinate of incompleteness array
@@ -38,9 +44,6 @@ class SF_IncompleteShell(SelectionFunction):
         """
         SelectionFunction.__init__(self,df=df)
 
-        if zcen != 0.:
-            sys.exit("Error in SF_IncompleteShell: Nonzero zcen is not implemented yet.")
-
         #Edges of the spherical shell:
         self._dmin = dmin
         self._dmax = dmax
@@ -48,15 +51,15 @@ class SF_IncompleteShell(SelectionFunction):
         #coordinates of the Sun:
         self._Rsun       = Rgc_Sun
         self._zsun       = zgc_Sun
-        self._phisun_rad = phigc_Sun_deg * math.pi/180.
+        self._phisun_deg = phigc_Sun_deg
 
         #Borders:
-        self._Rmin = Rsun - dmax
-        self._Rmax = Rsun + dmax
-        self._zmin = zsun - dmax
-        self._zmax = zsun + dmax
-        self._pmax_deg = phigc_Sun_deg + math.degrees(math.asin(dmax / Rsun))
-        self._pmin_deg = phigc_Sun_deg - math.degrees(math.asin(dmax / Rsun))
+        self._Rmin = Rgc_Sun - dmax
+        self._Rmax = Rgc_Sun + dmax
+        self._zmin = zgc_Sun - dmax
+        self._zmax = zgc_Sun + dmax
+        self._pmax_deg = phigc_Sun_deg + math.degrees(math.asin(dmax / Rgc_Sun))
+        self._pmin_deg = phigc_Sun_deg - math.degrees(math.asin(dmax / Rgc_Sun))
 
         
         #no incompleteness:
@@ -70,13 +73,13 @@ class SF_IncompleteShell(SelectionFunction):
             self._NSIDE = NSIDE #resolution of healpixels
             self._galpy_to_kpc = galpy_to_kpc
             self._incomp_dbin_kpc  = dbin_kpc #bin edges of distance bins in SF(healpix_ID,d_kpc), shape:(N+1)
-            self._incomp_SF_of_hpID_dkpc = SF_of_hpID_dkpc #function of healpix_ID and d_kpc bin, shape: (hp.nside2npix(NSIDE),N)
+            self._incomp_SF_of_hpID_dkpc = SF_of_hpID_dkpc #function of healpix_ID and d_kpc bin, shape: (healpy.nside2npix(NSIDE),N)
 
             self._with_incompleteness     = True
             self._incompleteness_function = self._aux_incompleteness_function_shell #function of (R,phi_deg,z)
             self._incompleteness_maximum  = max(SF_of_hpID_dkpc.flatten())
 
-            if numpy.shape(SF_of_hpID_dkpc)[0] != hp.nside2npix(NSIDE):
+            if numpy.shape(SF_of_hpID_dkpc)[0] != healpy.nside2npix(NSIDE):
                 sys.exit("Error in SF_IncompleteShell.__init__(): NSIDE and length of 1st axis of completeness array (which should be the number of healpix) do not agree.")
             if numpy.shape(SF_of_hpID_dkpc)[1] != len(dbin_kpc)-1:
                 sys.exit("_prepare_incompleteness.__init__(): length of d_dist and length of 2nd axis of completeness array (which should be the number distances - 1) do not agree.")
@@ -99,7 +102,7 @@ class SF_IncompleteShell(SelectionFunction):
 
     #-----------------------------------------------------------------------
 
-    def _aux_incompleteness_function_shell(R,phi_deg,z):
+    def _aux_incompleteness_function_shell(self,R,phi_deg,z):
         """
         NAME:
         PURPOSE:
@@ -110,15 +113,24 @@ class SF_IncompleteShell(SelectionFunction):
             2016-09-20 - Started. - Trick (MPIA)
         """
 
+        #scalar vs. array input:
+        if isinstance(R      ,float): R       = numpy.array([R])
+        if isinstance(phi_deg,float): phi_deg = numpy.array([phi_deg])
+        if isinstance(z      ,float): z       = numpy.array([z])
+        ndata = numpy.max(numpy.array([len(R),len(phi_deg),len(z)]))
+        if len(R)       == 1: R       = R[0]       + numpy.zeros(ndata)
+        if len(z)       == 1: z       = z[0]       + numpy.zeros(ndata)
+        if len(phi_deg) == 1: phi_deg = phi_deg[0] + numpy.zeros(ndata)
+
         # (Rsun,zsun,phisun) --> (xsun,ysun,zsun) [galpy units]
-        xyz_sun = bovy_coords.cyl_to_rect(self._Rsun*galpy_to_kpc,self._phigc_Sun_rad,self._zsun*galpy_to_kpc)
+        xyz_sun = bovy_coords.cyl_to_rect(self._Rsun*self._galpy_to_kpc,self._phisun_deg/180.*math.pi,self._zsun*self._galpy_to_kpc)
         Xgc_sun_kpc = xyz_sun[0]
         Ygc_sun_kpc = xyz_sun[1]
         Zgc_sun_kpc = xyz_sun[2]
 
         # (R,z,phi) --> (x,y,z):
         xyz = bovy_coords.galcencyl_to_XYZ(
-                    R*galpy_to_kpc, phi_deg/180.*math.pi, z*galpy_to_kpc, 
+                    R*self._galpy_to_kpc, phi_deg/180.*math.pi, z*self._galpy_to_kpc, 
                     Xsun=Xgc_sun_kpc, Zsun=Zgc_sun_kpc
                     )
         Xs_kpc = xyz[:,0]
@@ -137,19 +149,19 @@ class SF_IncompleteShell(SelectionFunction):
         # given (l,b), find the pixelID:
         phi_star_rad = l_rad
         theta_star_rad = 0.5*numpy.pi - b_rad
-        pixelIDs = hp.ang2pix(NSIDE,theta_star_rad, phi_star_rad)
+        pixelIDs = healpy.ang2pix(self._NSIDE,theta_star_rad, phi_star_rad)
 
         #return completeness:
         out = numpy.zeros(ndata)
         for ii in range(ndata):
-            d_index = (d_kpc >= self._incomp_d_kpc[0:-1]) * (d_kpc < self._incomp_d_kpc[1::])
+            d_index = (d_kpc[ii] >= self._incomp_dbin_kpc[0:-1]) * (d_kpc[ii] < self._incomp_dbin_kpc[1::])
             out[ii] = self._incomp_SF_of_hpID_dkpc[pixelIDs[ii],d_index]
         return out
 
 
     #-----------------------------------------------------------------------
 
-    def _prepare_and_set_SF_of_R_z(self,nbin_R=400,nbin_z=400,border=None,plotfilename='test_SF_preparation.png'):
+    def _prepare_and_set_SF_of_R_z(self,nbin_R=400,nbin_z=400,border=None,plotfilename='test_SF_preparation.png',savefilename=None):
         """
         NAME:
         PURPOSE:
@@ -160,8 +172,8 @@ class SF_IncompleteShell(SelectionFunction):
         """
    
         #coordinates at which to evaluate the integral:
-        Rs_kpc = numpy.linspace(self._Rmin-border,self._Rmax+border,nbin_R)  * galpy_to_kpc
-        zs_kpc = numpy.linspace(-self._zmin-border,self._zmax+border,nbin_z) * galpy_to_kpc
+        Rs_kpc = numpy.linspace(self._Rmin-border,self._Rmax+border,nbin_R)  * self._galpy_to_kpc
+        zs_kpc = numpy.linspace(self._zmin-border,self._zmax+border,nbin_z) * self._galpy_to_kpc
         Rg_kpc, zg_kpc = numpy.meshgrid(Rs_kpc,zs_kpc,indexing='ij')
         Rg_kpc = Rg_kpc.flatten()
         zg_kpc = zg_kpc.flatten()
@@ -169,7 +181,7 @@ class SF_IncompleteShell(SelectionFunction):
         #evaluate integral along phi for the whole coordiante array:
         incomp_C = numpy.zeros(len(Rg_kpc))
         for ii in range(len(Rg_kpc)):
-            incomp_C[ii] = _aux_integrate_SF_overphi_in_shell(Rg_kpc[ii],zg_kpc[ii],completeness=completeness,ngl=80,nside=NSIDE)
+            incomp_C[ii] = self._aux_integrate_SF_overphi_in_shell(Rg_kpc[ii],zg_kpc[ii],ngl=80)
 
         #prepare output and set the incompleteness for this object:
         self._incomp_SF_of_R_z = numpy.reshape(incomp_C,(len(Rs_kpc),len(zs_kpc)))
@@ -181,11 +193,14 @@ class SF_IncompleteShell(SelectionFunction):
                                         kx=3,ky=3,
                                         s=0.
                                         )
+        if savefilename is not None:
+            save_pickles(savefilename,
+              self._incomp_Rbin_kpc,self._incomp_zbin_kpc,self._incomp_SF_of_R_z)
 
         #plot to test integration:
         fig = plt.figure(figsize=(6,5))
         ax = fig.add_subplot(111)
-        im = ax.imshow(incomp_C.T,origin='lower',cmap=cmaps.magma,extent=[min(Rs_kpc),max(Rs_kpc),min(zs_kpc),max(zs_kpc)],aspect='equal',interpolation='nearest')
+        im = ax.imshow(self._incomp_SF_of_R_z.T,origin='lower',cmap=cmaps.magma,extent=[min(Rs_kpc),max(Rs_kpc),min(zs_kpc),max(zs_kpc)],aspect='equal',interpolation='nearest')
         ax.set_xlabel('$R$ [kpc]')
         ax.set_ylabel('$z$ [kpc]')
         cbar = plt.colorbar(im)
@@ -200,50 +215,55 @@ class SF_IncompleteShell(SelectionFunction):
     #-----------------------------------------------------------------------
 
 
-    def _aux_integrate_SF_overphi_in_shell(self,R_kpc,z_kpc,completeness=None,ngl=None,nside=None):
+    def _aux_integrate_SF_overphi_in_shell(self,R_kpc,z_kpc,ngl=None):
 
         if not isinstance(R_kpc,float):
             sys.exit("Error in _aux_integrate_SF_overphi_in_shell(): Only for scalar input.")
 
-        rtest_kpc = numpy.sqrt((z_kpc - self._zgc_Sun_kpc)**2 + (R_kpc - self.Rgc_sun_kpc)**2)
+        rtest_kpc = numpy.sqrt((z_kpc - self._zsun*self._galpy_to_kpc)**2 + (R_kpc - self._Rsun*self._galpy_to_kpc)**2)
         eps = 1e-15
-        if rtest_kpc > (dmax_kpc-eps): 
+        if rtest_kpc > (self._dmax*self._galpy_to_kpc-eps):
             return 0.
         else:
 
             #law of cosines: calculate the angle between R and Rsun in a triangle, where the third side is r=sqrt(rm^2+(z-z0)^2):
-            phi_dmax_rad = self._deltaphi_rad(R_kpc,z_kpc,self._dmax_kpc)
+            phi_dmax_rad = self._deltaphi_rad(R_kpc/self._galpy_to_kpc,z_kpc/self._galpy_to_kpc,self._dmax)
 
             #function to integrate over:
-            func = lambda phi_x_rad: _aux_incompleteness_function_shell(R,phi_x_rad,z)  #galpy units
+            func = lambda phi_x_rad: self._aux_incompleteness_function_shell(R_kpc/self._galpy_to_kpc,phi_x_rad/math.pi*180.,z_kpc/self._galpy_to_kpc)  #galpy units
 
             jacobian = R_kpc
+
+            phisun_rad = self._phisun_deg/180.*math.pi
             
-            if rtest_kpc >= self._dmin_kpc:
+            if rtest_kpc >= self._dmin*self._galpy_to_kpc:
                 integral = scipy.integrate.fixed_quad(
                                 func, 
-                                self._phigc_Sun_rad - phi_dmax_rad, 
-                                self._phigc_Sun_rad + phi_dmax_rad, 
+                                phisun_rad - phi_dmax_rad, 
+                                phisun_rad + phi_dmax_rad, 
                                 args=(), n=ngl
                                 )
                 return integral[0] * jacobian
 
-            elif rtest_kpc < self._dmin_kpc:
-                phi_dmin_rad = self._deltaphi_rad(R_kpc,z_kpc,self._dmin_kpc)   #law of cosines
+            elif rtest_kpc < self._dmin*self._galpy_to_kpc:
+                phi_dmin_rad = self._deltaphi_rad(R_kpc/self._galpy_to_kpc,z_kpc/self._galpy_to_kpc,self._dmin)   #law of cosines
 
                 integral1 = scipy.integrate.fixed_quad(
                                 func, 
-                                self._phigc_Sun_rad - phi_dmax_rad,
-                                self._phigc_Sun_rad - phi_dmin_rad, 
+                                phisun_rad - phi_dmax_rad,
+                                phisun_rad - phi_dmin_rad, 
                                 args=(), n=ngl
                                 )
+                func = lambda phi_x_rad: self._aux_incompleteness_function_shell(R_kpc/self._galpy_to_kpc,phi_x_rad/math.pi*180.,z_kpc/self._galpy_to_kpc)  #galpy units
                 integral2 = scipy.integrate.fixed_quad(
                                 func, 
-                                self._phigc_Sun_rad + phi_dmin_rad, 
-                                self._phigc_Sun_rad + phi_dmax_rad, 
+                                phisun_rad + phi_dmin_rad, 
+                                phisun_rad + phi_dmax_rad, 
                                 args=(), n=ngl
                                 )
                 return (integral1[0]+integral2[0]) * jacobian
+            else:
+                sys.exit("Error in _aux_integrate_SF_overphi_in_shell(). Check code!")
                 
 
     #-----------------------------------------------------------------------
@@ -259,13 +279,23 @@ class SF_IncompleteShell(SelectionFunction):
         """largest possible phi at given radius and height at distance rmax from sun"""
 
         #scalar vs. array input:
-        if isinstance(R  ,float): R   = numpy.array([R])
-        if isinstance(z  ,float): z   = numpy.array([z])
-        ndata = numpy.max(numpy.array([len(R),len(z)]))
-        if len(R)   == 1: R   = R[0] + numpy.zeros(ndata)
-        if len(z)   == 1: z   = z[0] + numpy.zeros(ndata)
+        if isinstance(R,numpy.ndarray):
+            if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(R)
+            return numpy.array([self._deltaphi_rad(rr,zz,rmax) for rr,zz in zip(R,z)])
+        elif isinstance(z,numpy.ndarray):
+            if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(z)
+            return numpy.array([self._deltaphi_rad(rr,zz,rmax) for rr,zz in zip(R,z)])
+
+        if (z < self._zmin) or (z > self._zmax):
+            return 0.
 
         rc = math.sqrt(rmax**2 - (z-self._zsun)**2)  #radius of circle around sphere at height z, pythagoras
+
+        r1max = self._Rsun + rc
+        r1min = self._Rsun - rc
+        if (R < r1min) or (R > r1max):
+            return 0.
+
         cosphi = (R**2 - rc**2 + self._Rsun**2) / (2. * self._Rsun * R) #law of cosines
         phimax_rad = numpy.fabs(numpy.arccos(cosphi))  #rad
         return phimax_rad
@@ -274,8 +304,6 @@ class SF_IncompleteShell(SelectionFunction):
     #-----------------------------------------------------------------------
 
     def _densfunc(self,R,z,phi=None,set_outside_zero=False,throw_error_outside=False,consider_incompleteness=False):
-
-        sys.exit("[TO DO: Rewrite for Shell]")
 
         if self._densInterp is None:
             sys.exit("Error in SF_IncompleteShell._densfunc(): "+\
@@ -291,7 +319,7 @@ class SF_IncompleteShell(SelectionFunction):
             if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(z)
             if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(R)
 
-        #outside of obseved volume:
+        #outside of observed volume:
         if throw_error_outside or set_outside_zero:
 
             if phi is None: sys.exit("Error in SF_IncompleteShell._densfunc(): "+\
@@ -299,22 +327,24 @@ class SF_IncompleteShell(SelectionFunction):
                "when using throw_error_outside=True or set_outside_zero=True.") 
 
             #rotate x axis to go through center of sphere:
-            phip = phi - self._phicen_deg
+            phip_deg = phi - self._phisun_deg   #deg
 
-            x = self._Rcen - R * numpy.cos(numpy.radians(phip))
-            y = R * numpy.sin(numpy.radians(phip))
+            xp = self._Rsun - R * numpy.cos(numpy.radians(phip_deg))
+            yp = R * numpy.sin(numpy.radians(phip_deg))
+            zp = z - self._zsun
+            rp2 = (xp**2 + yp**2 + zp**2)
 
-            outside = (x**2 + y**2 + z**2) > self._dmax**2
+            outside = (rp2 > self._dmax**2) * (rp2 < self._dmin**2)
 
             if numpy.sum(outside) > 0:
                 if throw_error_outside:
-                    print "x^2+y^2+z^2 = ",(x[outside][0])**2 + (y[outside][0])**2 + (z[outside][0])**2
+                    print "x^2+y^2+z^2 = ",(xp[outside][0])**2 + (yp[outside][0])**2 + (zp[outside][0])**2
                     print "d_max^2     = ",self._dmax**2
+                    print "d_min^2     = ",self._dmin**2
                     print "R: ",self._Rmin," <= ",R[outside][0]," <= ",self._Rmax,"?"
                     print "z: ",self._zmin," <= ",z[outside][0]," <= ",self._zmax,"?"
                     dphi = numpy.degrees(0.5 * self._deltaphi_max_rad(R[outside][0],z[outside][0]))
-                    print "phi: ",self._phicen_deg-dphi," <= ",phi[outside][0]," <= ",self._phicen_deg+dphi,"?"
-                    print hahaha
+                    print "phi: ",self._phisun_deg-dphi," <= ",phi[outside][0]," <= ",self._phisun_deg+dphi,"?"
                     sys.exit("Error in SF_IncompleteShell._densfunc(). If yes, something is wrong. Testing of code is required.")
                 if set_outside_zero:
                     return 0.
@@ -342,10 +372,6 @@ class SF_IncompleteShell(SelectionFunction):
         HISTORY:
             2016-09-20 - Started. - Trick (MPIA)
         """
-        
-        if not self._with_incompleteness:
-            sys.exit("Error in SF_IncompleteShell._fastGLint_sphere(): "+
-                     "This function only works with a pre-computed SF_of_R_z, i.e. SF(R,z) = int SF(X) R d phi, stored in self._incomp_SF_of_R_z.")
 
         #R oordinates: R_j = 0.5 * (Rmax - Rmin) * (xgl_j + 1) + Rmin:
         Rgl_j = 0.5 * (self._Rmax - self._Rmin) * (xgl + 1.) + self._Rmin
@@ -379,10 +405,16 @@ class SF_IncompleteShell(SelectionFunction):
         func_ij = func(Rglm_j,zglm_ij)
 
         #angular extend (including incompleteness) at each grid point:
-        incomp_ij = self._incomp_SF_interpolated_Rkpc_zkpc(Rglm_j*galpy_to_kpc,zglm_ij*galpy_to_kpc)
+        if self._with_incompleteness:
+            #"This function only works with a pre-computed SF_of_R_z, i.e. SF(R,z) = int SF(X) R d phi, stored in self._incomp_SF_of_R_z."
+            comp_ij = self._incomp_SF_interpolated_Rkpc_zkpc.ev(Rglm_j*self._galpy_to_kpc,zglm_ij*self._galpy_to_kpc)
+        else:
+            deltaphi_max_ij_rad = self._deltaphi_rad(Rglm_j,zglm_ij,self._dmax)
+            deltaphi_min_ij_rad = self._deltaphi_rad(Rglm_j,zglm_ij,self._dmin)
+            comp_ij = 2. * (deltaphi_max_ij_rad-deltaphi_min_ij_rad) * Rglm_j       #angular extent of shell times Jabobian R
 
         #total:
-        tot = numpy.sum(wm_i * wm_j * func_ij * incomp_ij)
+        tot = numpy.sum(wm_i * wm_j * func_ij * comp_ij)
         return tot
 
 
@@ -394,12 +426,8 @@ class SF_IncompleteShell(SelectionFunction):
         """integrate total mass inside effective volume by hand, analogous to Bovy, using Gauss Legendre quadrature.
            The integration accounts for integration limits - we therefore do not have to set the density outside the sphere to zero."""
 
-        if self._with_incompleteness:
-            sys.exit("Error in SF_IncompleteShell._Mtot_fastGL(): "+
-                     "Function not yet implemented to take care of imcompleteness.")
-
         #define function func(R,z) to integrate:
-        func = lambda rr,zz: self._densfunc(rr,zz,phi=None,set_outside_zero=False,throw_error_outside=True,consider_incompleteness=False)
+        func = lambda rr,zz: self._densfunc(rr,zz,phi=None,set_outside_zero=False,throw_error_outside=False,consider_incompleteness=False)
         
         #total mass in selection function:
         Mtot = self._fastGLint_IncompleteShell(func,xgl,wgl)
@@ -408,8 +436,6 @@ class SF_IncompleteShell(SelectionFunction):
     #-----------------------------------------------------------------
 
     def _spatialSampleDF_complete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
-
-        sys.exit("[TO DO: Rewrite for Shell]")
 
         #initialize interpolated density grid:
         if not quiet: print "Initialize interpolated density grid"
@@ -434,7 +460,7 @@ class SF_IncompleteShell(SelectionFunction):
             zprime = 0.
         densmax = self._df.density(self._Rmin,zprime,ngl=ngl_vel,nsigma=n_sigma,vTmax=vT_galpy_max)
         #print densmax
-        #print self._densfunc(self._Rmin,zprime,phi=self._phicen_deg)
+        #print self._densfunc(self._Rmin,zprime,phi=self._phisun_deg)
         #sys.exit("test")
 
         #number of found mockdata:
@@ -455,31 +481,38 @@ class SF_IncompleteShell(SelectionFunction):
             rc = (eta[1])**(1./3.) * self._dmax #radius in spherical coordinates, distributed according to p(rc) ~ rc^2
             theta = math.asin(2. * eta[2] - 1.)#altitute angle, distributed according to p(theta) ~ cos(theta), [rad]
 
-            #transformation to (R,phi,z):
-            x = self._Rcen - rc * math.cos(psi) * math.cos(theta)
-            y = rc * math.sin(psi) * math.cos(theta)
-            z = rc * math.sin(theta)
-
-            R = math.sqrt(x**2 + y**2)
-            phi = math.atan2(y,x)   #rad
-            phi = math.degrees(phi) #deg
-            phi = phi + self._phicen_deg #rotate x axis to go through center of sphere
-
-            #density at this point:
-            dens = self._densfunc(R,z,phi=phi,set_outside_zero=False,throw_error_outside=True,consider_incompleteness=False)
-
-            #Rejection method:
-            dtest = densmax * eta[3]
-            if dtest < dens:
-                Rarr.extend([R])
-                zarr.extend([z])
-                phiarr.extend([phi])
-                nfound += 1
-                if not quiet: print nfound," found"
-            else:
+            #reject if smaller than inner edge of shell:
+            if rc < self._dmin:
                 nreject += 1
                 if not quiet: 
                     print nreject," rejected"
+            else:
+
+                #transformation to (R,phi,z):
+                x = self._Rsun - rc * math.cos(psi) * math.cos(theta)
+                y = rc * math.sin(psi) * math.cos(theta)
+                z = rc * math.sin(theta)
+
+                R = math.sqrt(x**2 + y**2)
+                phi = math.atan2(y,x)   #rad
+                phi = math.degrees(phi) #deg
+                phi = phi + self._phisun_deg #rotate x axis to go through center of sphere
+
+                #density at this point:
+                dens = self._densfunc(R,z,phi=phi,set_outside_zero=False,throw_error_outside=True,consider_incompleteness=False)
+
+                #Rejection method:
+                dtest = densmax * eta[3]
+                if dtest < dens:
+                    Rarr.extend([R])
+                    zarr.extend([z])
+                    phiarr.extend([phi])
+                    nfound += 1
+                    if not quiet: print nfound," found"
+                else:
+                    nreject += 1
+                    if not quiet: 
+                        print nreject," rejected"
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
@@ -489,8 +522,8 @@ class SF_IncompleteShell(SelectionFunction):
                                            e_radec_rad=None,e_DM_mag=None,
                                            Xsun_kpc=8.,Ysun_kpc=0.,Zsun_kpc=0.,
                                            spatialGalpyUnits_in_kpc=8.,velocityGalpyUnits_in_kms=230.):
-
-        sys.exit("[TO DO: Rewrite for Shell]")
+ 
+        sys.exit("Error in SF_IncompleteShell._spatialSampleDF_measurementErrors(): This function was not written yet for the IncompleteShell Class.")
 
         if self._with_incompleteness:
             sys.exit("Error in SF_IncompleteShell._spatialSampleDF_measurementErrors(): "+

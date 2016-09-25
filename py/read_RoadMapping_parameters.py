@@ -16,6 +16,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation - Trick (MPIA)
            2016-02-15 - Added pottype 6,7,61,71, special Bulge + Disk + Halo potentials - Trick (MPIA)
            2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
+           2014-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
+           2014-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -78,7 +80,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         estimate_Delta    = False
         Delta_fixed       = 0
         #actionAngleStaeckelGrid:
-        use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
+        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 3 #so far three lines: general setup + 2 lines numerical precision
     elif fileversion == 0:
@@ -96,7 +98,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         estimate_Delta    = False
         Delta_fixed       = 0
         #actionAngleStaeckelGrid:
-        use_aASG       = (pottype in numpy.array([21,31,51,61,71],dtype=int))
+        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 2 #so far two lines: general setup + numerical precision
 
@@ -165,7 +167,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         elif marginal_coord == 5: marginalize_over = 'z'
         elif marginal_coord == 6: marginalize_over = 'vz'
         else:
-            sys.exit("Error in read_flexible_analysis_parameters(): "+\
+            sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "Coordinate no. "+marginal_coord+" to marginalize over is not known.")
         
         if print_to_screen:
@@ -190,7 +192,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "           * in total ",noStars[0]," stars"
             print "           * no measurement errors"
     else:
-        sys.exit("Error in read_flexible_analysis_parameters(): "+\
+        sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "data type "+str(datatype)+" is not defined.")
 
     #===================
@@ -281,6 +283,36 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "                R_sun [kpc], v_circ(R_sun) [km/s], R_d [kpc], z_h [kpc], f_h, d(ln v_c)/d(ln r)"
             print "               ",potParTrue_phys
     
+    elif pottype in numpy.array([4,41,42,421],dtype=int):
+        #MWPotential2014 (Bovy2015) (4) or MWPotential from galpy (42)
+        #potPar = [R0_kpc,vc_kms]
+        potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]']
+        potNamesScreen = ['R_sun [kpc]','v_c [km/s]']
+
+        potParTrue_phys = numpy.array(out[nl:nl+2,0],dtype=float)
+        potParEst_phys  = numpy.array(out[nl:nl+2,1],dtype=float)
+        potParMin_phys  = numpy.array(out[nl:nl+2,3],dtype=float)
+        potParMax_phys  = numpy.array(out[nl:nl+2,4],dtype=float)
+        potParFitNo     = numpy.array(out[nl:nl+2,5],dtype=int)
+        potParFitBool   = numpy.array((potParFitNo > 1),dtype=bool)
+
+        #physical boundaries:
+        potParLowerBound_phys = numpy.array([0.,0.])
+        potParUpperBound_phys = numpy.array([numpy.inf,numpy.inf])
+
+        #next line:
+        nl += 2
+
+        if print_to_screen:
+            
+            if   pottype in numpy.array([4 ,41 ],dtype=int): print "POTENTIAL: * MWPotential2014 (Bovy 2015)"
+            elif pottype in numpy.array([42,421],dtype=int): print "POTENTIAL: * MWPotential from galpy"
+            if   pottype in numpy.array([4 ,42 ],dtype=int): print "           * action calculation: actionAngleStaeckel"
+            elif pottype in numpy.array([41,421],dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
+            print "           * true parameters:"
+            print "                R_sun [kpc], v_circ(R_sun) [km/s]"
+            print "               ",potParTrue_phys
+    
     elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
         if pottype == 5 or pottype == 51:
             #POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION
@@ -325,7 +357,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             elif pottype in numpy.array([6,61]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc]"
             print "               ",potParTrue_phys
     else:
-        sys.exit("Error in read_flexible_analysis_parameters(): "+\
+        sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "potential type "+str(pottype)+" is not defined.")
 
     #scaling:
@@ -466,9 +498,27 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "               ",sfParTrue
             if numpy.sum(sfParTrue != sfParEst) > 0:
                 print "           * parameters used in analysis:"
-                print "               ",sfParEst      
+                print "               ",sfParEst
+    elif sftype == 4:
+        #INCOMPLETE SHELL
+        #sfPar = [dmin_kpc,dmax_kpc,Rgc_sun_kpc,phigc_obs_deg,zgc_sun_kpc,file_no]
+        #max. and min. radius of shell, galactocentric position of Sun/center of shell,
+        #file number containing incompleteness information
+        sfParTrue = numpy.array(out[nl:nl+6,0],dtype=float)
+        sfParEst  = numpy.array(out[nl:nl+6,1],dtype=float)
+        
+        if print_to_screen:
+            print "SELECTION FUNCTION:"
+            print "           * shell around sun"
+            print "           * incompleteness from file no. ",int(sfParTrue[5])
+            print "           * true parameters:"
+            print "                d_min [kpc], d_max [kpc], R_Sun [kpc], phi_Sun [deg], z_Sun [kpc]"
+            print "               ",sfParTrue[0:5]
+            if numpy.sum(sfParTrue != sfParEst) > 0:
+                print "           * parameters used in analysis:"
+                print "               ",sfParEst  
     else:
-        sys.exit("Error in read_flexible_analysis_parameters(): "+\
+        sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "selection function type "+str(sftype)+" is not defined.")
 
     if print_to_screen:

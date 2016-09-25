@@ -15,6 +15,8 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2015-11-30 - Started setup_parameter_fit.py on the basis of BovyCode/py/setup_parameter_fit.py - Trick (MPIA)
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation - Trick (MPIA)
            2015-02-16 - Added pottype 6,61,7,71, DISK+HALO+BULGE potentials. - Trick (MPIA)
+           2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
+           2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -127,6 +129,8 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             elif ii == 3: zhs   = xs
             elif ii == 4: fhs   = xs
             elif ii == 5: dvdrs = xs
+        elif pottype in numpy.array([4,41,42,421],dtype=int):  #MWPotential2014 or MWPotential from galpy, potPar = [R0_kpc,vc_kms]
+            pass
         elif pottype in numpy.array([5,51,6,61,7,71],dtype=int): #DISK+HALO+BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
             #5: MNd Hh Hb POTENTIAL
             #6: expd Hh Hb POTENTIAL (here a_disk_kpc = hr_disk_kpc, b_disk_kpc = hz_disk_kpc)
@@ -156,6 +160,8 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         potParArr_phys[:,3] =   zh1.flatten()
         potParArr_phys[:,4] =   fh1.flatten()
         potParArr_phys[:,5] = dvdr1.flatten()
+    elif pottype in numpy.array([4,41,42,421],dtype=int): #MWPotential2014 or MWPotential from galpy, potPar = [R0_kpc,vc_kms]
+        r1,v1 = numpy.meshgrid(rs,vs,indexing='ij')
     elif pottype in numpy.array([5,51,6,61,7,71],dtype=int): #DISK+HALO+BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
         r1,v1,a_d1,b_d1,f_h1,a_h1 = numpy.meshgrid(rs,vs,a_ds,b_ds,f_hs,a_hs,indexing='ij')
         potParArr_phys[:,2] = a_d1.flatten()

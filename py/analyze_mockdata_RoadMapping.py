@@ -448,12 +448,16 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #Setting up the StaeckelFudge ActionGrid is very slow. 
             #As we precalculate all actions anyway, we use the standard StaeckelFudge
             #to set up the potential in the MCMC chain.
-            if pottype in numpy.array([21,31,51,61,71]): 
+            if pottype in numpy.array([21,31,41,421,51,61,71]): 
                 pottype_slim = (pottype-1)/10
                 info_MCMC['pottype'] = pottype_slim
             #Set the Staeckel Fudge Delta once and for all:
             if use_default_Delta: 
-                info_MCMC['aAS_Delta_DFfitonly'] = 0.45*ro
+                if not ro_known: 
+                    sys.exit("Error in analyze_mockdata_RoadMapping:"+\
+                             "ro is not known. How to deal with the "+\
+                             "Staeckel Fudge Delta?")
+                info_MCMC['aAS_Delta_DFfitonly'] = 0.45
             elif estimate_Delta:
                 sys.exit("Error in analyze_mockdata_RoadMapping:"+\
                          "Estimating Delta for the DF fit only is "+\
@@ -493,6 +497,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                             R_data,vR_data,vT_data,z_data,vz_data,
                             ro_known,
                             _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_MULTI,
+                            aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed,
                             current_path)
             #file names:
             shared_data_actions_filename = current_path+'_shared_data_actions.npy'
