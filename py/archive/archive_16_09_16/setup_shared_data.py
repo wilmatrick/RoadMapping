@@ -5,7 +5,6 @@ import sys
 import multiprocessing
 import multiprocessing.sharedctypes
 import ctypes
-from setup_pot_and_sf import setup_SelectionFunction_object
 
 #=================================================================================
 
@@ -30,6 +29,8 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
         16-02-?? - Written. - Trick (MPIA)
         16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
     """
+
+    sys.exit('Find all occurences of shared_data_DFfit_only_MCMC and adapt input parameters.')
 
     #_____Reference scales_____
     _REFR0 = 8.                 #[kpc]
@@ -122,42 +123,4 @@ def shared_data_MCMC(R_data,vR_data,vT_data,z_data,vz_data,
     shared_data_filename = current_path+'_shared_data.npy'
     #write data into binary file:
     numpy.save(shared_data_filename,data_shared)
-
-#=================================================================================
-
-def shared_data_incompleteShell(sftype,sfPar_phys,ro,
-                                current_path):
-
-    #_____load pre-calculated incompleteness data_____
-    sf = setup_SelectionFunction_object(
-                sftype,
-                sfPar_phys,
-                ro,
-                df=None
-                )
-    SF_of_R_z = sf._incomp_SF_of_R_z
-    Rbin_kpc  = sf._incomp_Rbin_kpc
-    zbin_kpc  = sf._incomp_zbin_kpc
-
-    #_____setup shared memory for data_____
-    #define the shared memory array
-    nR = len(Rbin_kpc)
-    nz = len(zbin_kpc)
-    ndata = nR+nz+numpy.shape(SF_of_R_z)[0]*numpy.shape(SF_of_R_z)[1]+2
-    data_shared_base = multiprocessing.sharedctypes.RawArray(ctypes.c_double,ndata)
-    #copy values into the shared array
-    data_shared_base[0]            = nR
-    data_shared_base[1]            = nz
-    data_shared_base[2:nR+2]       = Rbin_kpc
-    data_shared_base[nR+2:nR+nz+2] = zbin_kpc
-    data_shared_base[nR+nz+2::]   = SF_of_R_z.flatten()
-    #this array is used to access the shared array
-    data_shared = numpy.frombuffer(data_shared_base)
-
-    #_____save shared data_____
-    #write current path into file:
-    shared_data_filename = current_path+'_shared_SF_incompleteShell.npy'
-    #write data into binary file:
-    numpy.save(shared_data_filename,data_shared)
-
 

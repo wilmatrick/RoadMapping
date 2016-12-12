@@ -14,11 +14,10 @@ from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_Selec
 #---------------------------------------------------------------------
 
 #____load shared memory_____
-data_shared               = None
-info_MCMC                 = None
-data_actions_shared       = None
-fiducial_actions_shared   = None
-incomp_shared = None
+data_shared             = None
+info_MCMC               = None
+data_actions_shared     = None
+fiducial_actions_shared = None
 
 #read current path
 current_path_filename = "temp/path_of_current_analysis.sav"
@@ -50,16 +49,11 @@ if os.path.exists(current_path_filename):
     if os.path.exists(shared_action_fiducial_filename):
         fiducial_actions_shared = numpy.load(shared_action_fiducial_filename)
 
-    #special case: sftype = 4, SF_incompleteShell
-    shared_data_SF_incompleteShell_filename = current_path+'_shared_SF_incompleteShell.npy'
-    if os.path.exists(shared_data_SF_incompleteShell_filename):
-        incomp_shared = numpy.load(shared_data_SF_incompleteShell_filename)
-
 #---------------------------------------------------------------------
 
 def logprob_MCMC(
             p,
-            def_param=(data_shared,info_MCMC,incomp_shared)
+            def_param=(data_shared,info_MCMC)
             ):
 
     """
@@ -72,7 +66,6 @@ def logprob_MCMC(
     OUTPUT:
     HISTORY:
         16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
-        16-09-25 - Added shared data parameter incomp_shared, that is used in precalc_pot_actions_sf(). - Trick (MPIA)
     """
     #zeit_start = time.time()
 
@@ -165,8 +158,7 @@ def logprob_MCMC(
                         ro_known,
                         _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
                         None,   #<-- _MULTI
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed,
-                        incomp_shared=incomp_shared)
+                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed)
     else:
         # the integration range for the density is set by the current QDF!
         pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,
@@ -177,8 +169,7 @@ def logprob_MCMC(
                         ro_known,
                         _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
                         None,   #<-- _MULTI
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed,
-                        incomp_shared=incomp_shared)
+                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed)
 
     if not pot_physical:
         #_____if potential is unphysical, return log(0)_____

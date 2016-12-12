@@ -166,8 +166,7 @@ def precalc_pot_actions_sf(pottype,sftype,
                         ro_known,
                         _N_SPATIAL_R,_N_SPATIAL_Z,_NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,
                         _MULTI,
-                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed,
-                        incomp_shared=None):
+                        aASG_accuracy,use_default_Delta,estimate_Delta,Delta_fixed):
 
     """
         NAME:
@@ -179,7 +178,6 @@ def precalc_pot_actions_sf(pottype,sftype,
            2015-11-30 - Started precalc_pot_actions_sf.py on the basis of BovyCode/py/precalc_pot_actions_sf.py - Trick (MPIA)
            2016-02-18 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object().
            2016-04-15 - Added options to estimate Staeckel Fudge Delta and or to set it by hand.
-           2016-09-25 - Added option to use pre-calculated incompleteness for selection function type 4.
     """
 
     #_____Reference scales_____
@@ -261,26 +259,11 @@ def precalc_pot_actions_sf(pottype,sftype,
 
     #_____initialize selection function_____
     if ro_known:
-        if (sftype == 4) and (incomp_shared is not None):
-            nR = incomp_shared[0]
-            nz = incomp_shared[1]
-            Rbin_kpc = incomp_shared[2:nR+2]
-            zbin_kpc = incomp_shared[nR+2:nR+nz+2]
-            SF_of_R_z = numpy.reshape(incomp_shared[nR+nz+2::],(nR,nz))
-            sf = setup_SelectionFunction_object(
-                            sftype,
-                            sfParEst_phys,
-                            ro,
-                            Rbin_kpc_precalc=Rbin_kpc,
-                            zbin_kpc_precalc=zbin_kpc,
-                            SF_of_R_z_precalc=SF_of_R_z
-                            )
-        else:
-            sf = setup_SelectionFunction_object(
-                            sftype,
-                            sfParEst_phys,
-                            ro
-                            )
+        sf = setup_SelectionFunction_object(
+                        sftype,
+                        sfParEst_phys,
+                        ro
+                        )
     else:
         sys.exit("Error in precalc_pot_actions_sf(): "+\
                  "How to deal with the selection function if ro is not known? To do: Implement.")

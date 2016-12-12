@@ -81,7 +81,7 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
                 plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
             elif ii < npot: #pot parameter
                 plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
-                plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
+                #plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
         plt.locator_params(nbins=5)
         if ii < nplots-1:
             ax.axes.get_xaxis().set_ticklabels([])

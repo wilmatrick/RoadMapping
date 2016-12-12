@@ -7,11 +7,8 @@ from galpy.util import bovy_conversion
 from SF_Sphere import SF_Sphere
 from SF_Wedge import SF_Wedge
 from SF_Cylinder import SF_Cylinder
-from SF_IncompleteShell import SF_IncompleteShell
 import numpy
 import sys
-import os
-import pickle
 
 def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
 
@@ -28,7 +25,6 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
            2016-02-15 - Added pottype 6,7,61,71 to the list and rewrote 5-7 to use the new function setup_DiskHaloBulge_potential().
            2016-04-03 - Changed default accuracy of actionAngleStaeckelGrid. From Rmax = 10, nE = 50, npsi = 50, nLz = 60 to Rmax =  5, nE = 70, npsi = 40, nLz = 50
            2016-04-15 - Added an option to return only the potential, and one option to set Delta by hand.
-           2016-09-24 - Added pottype 41, 42, 421 . - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -103,7 +99,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     returnrawpot=False,
                     ngrid=101
                     )
-    elif pottype == 4 or pottype == 41:
+    elif pottype == 4:
         #========== GALPY MW-POTENTIAL 2014 ===========
         #========== with StaeckelActions ==============
         #potParArr = [ro,vo]
@@ -113,16 +109,6 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #setup potential:
         from galpy.potential import MWPotential2014
         pot = MWPotential2014
-    elif pottype == 42 or pottype == 421:
-        #========== GALPY MW-POTENTIAL ===========
-        #========== with StaeckelActions ==============
-        #potParArr = [ro,vo]
-        #check, if parameters are physical:
-        if vo <= 0.:
-            raise RuntimeError("unphysical potential parameters")
-        #setup potential:
-        from galpy.potential import MWPotential
-        pot = MWPotential
     elif pottype == 5 or pottype == 51:
         #========== POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION ==========
         #========== Miyamoto-Nagai disk, Hernquist halo + bulge ========
@@ -198,7 +184,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         return pot
 
     #_____prepare ActionAngle object initialization and setup Delta_____
-    if (pottype in numpy.array([3,31,4,41,42,421,5,51,6,61,7,71],dtype=int)):
+    if (pottype in numpy.array([3,31,4,5,51,6,61,7,71],dtype=int)):
         if 'aAS_Delta' in kwargs: 
             Delta = kwargs['aAS_Delta']
         else: 
@@ -208,13 +194,13 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #print "Delta = ",Delta
 
 
-    if pottype in numpy.array([2,3,4,42,5,6,7],dtype=int):
+    if pottype in numpy.array([2,3,4,5,6,7],dtype=int):
         #==========StaeckelActions=======
         #initialize ActionAngle object:
         aA = actionAngleStaeckel(pot=pot,delta=Delta,c=True)
         #       c=True (default): use C implementation to speed up actionAngleStaeckel calculations, 
         #                         plus this is needed to calculate frequencies
-    elif pottype in numpy.array([21,31,41,421,51,61,71],dtype=int):
+    elif pottype in numpy.array([21,31,51,61,71],dtype=int):
         #==========StaeckelActions on a Grid=======
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
         else:                  numcores = 1
@@ -243,7 +229,9 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
 
 #--------------------------------------------------------------------
 
-def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
+def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None):
+
+
     """
         NAME:
            setup_SelectionFunction_object
@@ -252,8 +240,6 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
         OUTPUT:
         HISTORY:
            2015-11-30 - Started setup_SelectionFunction_object.py on the basis of BovyCode/py/setup_SelectionFunction_object.py - Trick (MPIA)
-           2016-09-20 - Incompleteness_function is now function of (R_galpy,phi_deg,z_galpy) in Galactocentric coordinates, and not anymore of r,z in solarcentric coordinates - Trick (MPIA)
-           2016-09-16 - Added **kwargs to allow pre-calculated incompleteness in sftype=4. - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -301,12 +287,10 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
         #size and position of sphere in galpy units
         sfTemp = numpy.array(sfPar_phys[0:2]) /_REFR0/ro
         r_obs  = sfTemp[0]
-        d_obs  = sfTemp[1]
-        degtorad = math.pi/180.
         #    SF_Sphere(rsun,dsun,df=None)
         sf = SF_Sphere(
                 r_obs,      #r_obs
-                d_obs,      #d_obs
+                sfTemp[1],      #d_obs
                 df=df
                 )
         #incompleteness function:
@@ -319,17 +303,10 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
             #no imcompleteness
             setup_incompleteness = False
         elif eps_z == 0. and eps_r != 0.:
-            sys.exit('Error in setup_SelectionFunction_object(), sf_type=31: the incompleteness function with (R,z,phi) input has not been tested yet.')
-            #incompleteness_function = lambda r, z: (1. - eps_r * r             / r_obs)    #obsolete as of 16-09-20
-            incompleteness_function = lambda R,p_deg,z: (1. - eps_r / r_obs * numpy.sqrt(
-                                                                                 (d_obs-R*numpy.cos(p_deg*degtorad))**2 +
-                                                                                 (      R*numpy.sin(p_deg*degtorad))**2 +
-                                                                                 z**2
-                                                                                 ))
+            incompleteness_function = lambda r, z: (1. - eps_r * r             / r_obs)
             setup_incompleteness = True
         elif eps_r == 0. and eps_z != 0.:
-            #incompleteness_function = lambda r, z: (1. - eps_z * numpy.fabs(z) / r_obs)    #obsolete as of 16-09-20
-            incompleteness_function = lambda R,p_deg,z: (1. - eps_z * numpy.fabs(z) / r_obs)
+            incompleteness_function = lambda r, z: (1. - eps_z * numpy.fabs(z) / r_obs)
             setup_incompleteness = True
         else:
             sys.exit("Error in setup_SelectionFunction_object(): "+\
@@ -338,8 +315,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
             # incompleteness_maximum = peak of completeness, used for 
             #         rejection sampling, as function does not 
             #         have to be normalized
-            #incompleteness_maximum  = incompleteness_function(0.,0.)   #obsolete as of 16-09-20
-            incompleteness_maximum  = incompleteness_function(d_obs,0.,0.)                              
+            incompleteness_maximum  = incompleteness_function(0.,0.)                              
             sf.set_incompleteness_function(
                     incompleteness_function,
                     incompleteness_maximum
@@ -359,118 +335,6 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                 df         =df
                 )
         #with size and position of sphere in galpy units...
-
-    elif sftype == 4: #incomplete shell selection function
-        # sfPar_phys = [dmin_kpc,dmax_kpc,
-        #               Rgc_sun_kpc,phigc_obs_deg,zgc_sun_kpc,
-        #               file_no]
-
-        #    SF_IncompleteShell(dmin,dmax,Rgc_Sun,
-        #                       zgc_Sun=0.,phigc_Sun_deg=0.,
-        #                       df=None,
-        #                       SF_of_hpID_dkpc=None,NSIDE=None,dbin_kpc=None,galpy_to_kpc=None,  
-        #                       SF_of_R_z=None,Rbin_kpc=None,zbin_kpc=None)
-
-        #check, if incompleteness data was precalculated:
-        SF_of_R_z = None
-        Rbin_kpc  = None
-        zbin_kpc  = None
-        if 'SF_of_R_z_precalc' in kwargs: SF_of_R_z = kwargs['SF_of_R_z_precalc']
-        if 'Rbin_kpc_precalc'  in kwargs: Rbin_kpc  = kwargs['Rbin_kpc_precalc']
-        if 'zbin_kpc_precalc'  in kwargs: zbin_kpc  = kwargs['zbin_kpc_precalc']
-
-        #use precalculated SF incompleteness data from keyword:
-        if (SF_of_R_z is not None) and (Rbin_kpc is not None) and (zbin_kpc is not None):
-            sf = SF_IncompleteShell(
-                    sfPar_phys[0]/_REFR0/ro,      #dmin [galpy]
-                    sfPar_phys[1]/_REFR0/ro,      #dmax [galpy]
-                    sfPar_phys[2]/_REFR0/ro,      #Rgc_Sun [galpy]
-                    zgc_Sun        =sfPar_phys[4]/_REFR0/ro, #zgc_Sun [galpy]
-                    phigc_Sun_deg  =sfPar_phys[3], #phigc_Sun [deg]
-                    df             =df,
-                    SF_of_hpID_dkpc=None,
-                    NSIDE          =None,
-                    dbin_kpc       =None,
-                    galpy_to_kpc   =_REFR0*ro,  
-                    SF_of_R_z      =SF_of_R_z,
-                    Rbin_kpc       =Rbin_kpc,
-                    zbin_kpc       =zbin_kpc
-                    )
-        else: #use precalculated SF incompleteness data from file:
-            file_no = int(sfPar_phys[5])
-            if file_no in [1,2]:    #file_no=1: TGAS_RAVE_footprint, file_no=2: TGAS_RAVE_red_clump_SF
-                if   file_no == 1: selection_function_name = 'TGAS_RAVE_footprint'
-                elif file_no == 2: selection_function_name = 'TGAS_RAVE_red_clump'
-                #1. Reading the SF as function of healpix_ID and distance from sun:
-                filename_SF_hpID_dkpc = '../data/'+selection_function_name+'_SF_of_hpID_dkpc.sav'
-                if os.path.exists(filename_SF_hpID_dkpc):
-                    savefile        = open(filename_SF_hpID_dkpc,'rb')
-                    NSIDE           = pickle.load(savefile)
-                    dbin_kpc        = pickle.load(savefile)
-                    SF_of_hpID_dkpc = pickle.load(savefile)
-                    savefile.close()
-                else:
-                    sys.exit("Error in setup_SelectionFunction_object: "+filename_SF_hpID_dkpc+" does not exist.")
-                dmin_kpc = str(sfPar_phys[0])
-                dmax_kpc = str(sfPar_phys[1])
-                Rsun_kpc = str(sfPar_phys[2])
-                zsun_kpc = str(sfPar_phys[4])
-                #2. Reading the SF as function of R and z:
-                filename_SF_R_z = '../data/'+selection_function_name+'_SF_of_R_z_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.sav'
-                if os.path.exists(filename_SF_R_z):
-                    savefile  = open(filename_SF_R_z,'rb')
-                    Rbin_kpc  = pickle.load(savefile)
-                    zbin_kpc  = pickle.load(savefile)
-                    SF_of_R_z = pickle.load(savefile)
-                    savefile.close()
-                else:
-                    #If the file does not exist, create it:
-                    print "..........File '"+filename_SF_R_z+"' does not exist yet."
-                    print "..........Now integrating over shell."
-                    sf = SF_IncompleteShell(
-                            sfPar_phys[0]/_REFR0/ro,      #dmin [galpy]
-                            sfPar_phys[1]/_REFR0/ro,      #dmax [galpy]
-                            sfPar_phys[2]/_REFR0/ro,      #Rgc_Sun [galpy]
-                            zgc_Sun        =sfPar_phys[4]/_REFR0/ro, #zgc_Sun [galpy]
-                            phigc_Sun_deg  =sfPar_phys[3], #phigc_Sun [deg]
-                            df             =df,
-                            SF_of_hpID_dkpc=SF_of_hpID_dkpc,
-                            NSIDE          =NSIDE,
-                            dbin_kpc       =dbin_kpc,
-                            galpy_to_kpc   =_REFR0*ro,  
-                            SF_of_R_z      =None,
-                            Rbin_kpc       =None,
-                            zbin_kpc       =None
-                            )
-                    SF_of_R_z, Rbin_kpc, zbin_kpc = sf._prepare_and_set_SF_of_R_z(
-                        nbin_R=400,nbin_z=400,border=0.1/_REFR0/ro,
-                        plotfilename='../out/'+selection_function_name+'_SF_preparation_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.png',
-                        savefilename=filename_SF_R_z
-                        )
-                    print "..........DONE!!!"
-            else:
-                sys.exit("Error in setup_SelectionFunction_object: file_no "+file_no+" is not known yet.")
-            #    SF_IncompleteShell(dmin,dmax,Rgc_Sun,
-            #                       zgc_Sun=0.,phigc_Sun_deg=0.,
-            #                       df=None,
-            #                       SF_of_hpID_dkpc=None,NSIDE=None,dbin_kpc=None,galpy_to_kpc=None,  
-            #                       SF_of_R_z=None,Rbin_kpc=None,zbin_kpc=None)
-            sf = SF_IncompleteShell(
-                    sfPar_phys[0]/_REFR0/ro,      #dmin [galpy]
-                    sfPar_phys[1]/_REFR0/ro,      #dmax [galpy]
-                    sfPar_phys[2]/_REFR0/ro,      #Rgc_Sun [galpy]
-                    zgc_Sun        =sfPar_phys[4]/_REFR0/ro, #zgc_Sun [galpy]
-                    phigc_Sun_deg  =sfPar_phys[3], #phigc_Sun [deg]
-                    df             =df,
-                    SF_of_hpID_dkpc=SF_of_hpID_dkpc,
-                    NSIDE          =NSIDE,
-                    dbin_kpc       =dbin_kpc,
-                    galpy_to_kpc   =_REFR0*ro,  
-                    SF_of_R_z      =SF_of_R_z,
-                    Rbin_kpc       =Rbin_kpc,
-                    zbin_kpc       =zbin_kpc
-                    )
-            
     else:
         sys.exit("Error in setup_SelectionFunction_object(): this selection "+\
                  "function type is not defined.")

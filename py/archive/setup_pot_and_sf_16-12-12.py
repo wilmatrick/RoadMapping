@@ -398,11 +398,9 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                     )
         else: #use precalculated SF incompleteness data from file:
             file_no = int(sfPar_phys[5])
-            if file_no in [1,2]:    #file_no=1: TGAS_RAVE_footprint, file_no=2: TGAS_RAVE_red_clump_SF
-                if   file_no == 1: selection_function_name = 'TGAS_RAVE_footprint'
-                elif file_no == 2: selection_function_name = 'TGAS_RAVE_red_clump'
+            if file_no == 1:    #TGAS_RAVE_footprint
                 #1. Reading the SF as function of healpix_ID and distance from sun:
-                filename_SF_hpID_dkpc = '../data/'+selection_function_name+'_SF_of_hpID_dkpc.sav'
+                filename_SF_hpID_dkpc = '../data/TGAS_RAVE_footprint_SF_of_hpID_dkpc.sav'
                 if os.path.exists(filename_SF_hpID_dkpc):
                     savefile        = open(filename_SF_hpID_dkpc,'rb')
                     NSIDE           = pickle.load(savefile)
@@ -416,7 +414,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                 Rsun_kpc = str(sfPar_phys[2])
                 zsun_kpc = str(sfPar_phys[4])
                 #2. Reading the SF as function of R and z:
-                filename_SF_R_z = '../data/'+selection_function_name+'_SF_of_R_z_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.sav'
+                filename_SF_R_z = '../data/TGAS_RAVE_footprint_SF_of_R_z_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.sav'
                 if os.path.exists(filename_SF_R_z):
                     savefile  = open(filename_SF_R_z,'rb')
                     Rbin_kpc  = pickle.load(savefile)
@@ -444,7 +442,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                             )
                     SF_of_R_z, Rbin_kpc, zbin_kpc = sf._prepare_and_set_SF_of_R_z(
                         nbin_R=400,nbin_z=400,border=0.1/_REFR0/ro,
-                        plotfilename='../out/'+selection_function_name+'_SF_preparation_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.png',
+                        plotfilename='../out/TGAS_RAVE_footprint_SF_preparation_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.png',
                         savefilename=filename_SF_R_z
                         )
                     print "..........DONE!!!"
