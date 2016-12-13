@@ -46,6 +46,7 @@ class SF_IncompleteShell(SelectionFunction):
             2016-09-20 - Started SF_IncompleteShell.py - Trick (MPIA)
         """
         SelectionFunction.__init__(self,df=df)
+        sys.exit('TO DO: Implement the function contains in the IncompleteShell Selection Function.')
 
         #Edges of the spherical shell:
         self._dmin = dmin
@@ -166,6 +167,7 @@ class SF_IncompleteShell(SelectionFunction):
         out = numpy.zeros(ndata)
         for ii in range(ndata):
             d_index = (d_kpc[ii] >= self._incomp_dbin_kpc[0:-1]) * (d_kpc[ii] < self._incomp_dbin_kpc[1::])
+            #??remove???print d_kpc[ii],self._dmax*self._galpy_to_kpc
             out[ii] = self._incomp_SF_of_hpID_dkpc[pixelIDs[ii],d_index]
         return out
 
@@ -476,6 +478,14 @@ class SF_IncompleteShell(SelectionFunction):
     #-----------------------------------------------------------------
 
     def _spatialSampleDF_complete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
+        """
+        NAME:
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+            2016-12-12 - Corrected a bug: now the sampling properly takes into account the vertical position of the Sun. - Trick (MPIA)
+        """
 
         #initialize interpolated density grid:
         if not quiet: print "Initialize interpolated density grid"
@@ -531,7 +541,7 @@ class SF_IncompleteShell(SelectionFunction):
                 #transformation to (R,phi,z):
                 x = self._Rsun - rc * math.cos(psi) * math.cos(theta)
                 y = rc * math.sin(psi) * math.cos(theta)
-                z = rc * math.sin(theta)
+                z = rc * math.sin(theta) + self._zsun
 
                 R = math.sqrt(x**2 + y**2)
                 phi = math.atan2(y,x)   #rad

@@ -16,8 +16,9 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation - Trick (MPIA)
            2016-02-15 - Added pottype 6,7,61,71, special Bulge + Disk + Halo potentials - Trick (MPIA)
            2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
-           2014-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
-           2014-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
+           2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
+           2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
+           2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -133,6 +134,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         random_seed_for_errors = int(round(out[nl,2]))
         errPar_obs       = numpy.array(out[nl+1,0:4],dtype=float)
         sunCoords_phys   = numpy.array(out[nl+2, : ],dtype=float)
+        sys.exit("Error in read_RoadMapping_parameters(), datatype=2: the code uses ANALYSIS['sunCoords_phys'] given as galactocentric cylindrical coordinates of the Sun for datatype=2. datatype=5 however uses ANALYSIS['sunCoords_phys'] given as galactocentric (x,y,z) coordinates. If I want to use datatye=2 again, the code should be changed analogous to datatype=5. For historical reasons I leave the original version of the code here, for the time being.")
 
         #next line:
         nl += 3    #3 more lines: number of data points + globar errors + position of sun
@@ -191,6 +193,27 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "              "+datasetname+"_POLL with",noStars[2]," stars"
             print "           * in total ",noStars[0]," stars"
             print "           * no measurement errors"
+
+    elif datatype == 5:
+
+        noStars          = int(round(out[nl,0]))
+        N_error_samples  = int(round(out[nl,1]))
+        random_seed_for_errors = int(round(out[nl,2]))
+        sunCoords_phys   = numpy.array(out[nl+1, : ],dtype=float)
+
+        #next line:
+        nl += 2    #2 more lines: number of data points + galactocentric (x,y,z) position & velocity of sun
+
+        if print_to_screen:
+            print "DATA TYPE: * TGAS/RAVE red clump stars"
+            print "           * ",noStars," stars"
+            print "           * observables with covariance error matrix"
+            print "           * APPROXIMATION: ignoring position errors in the analysis"
+            print "                  (except effect of position errors on velocities)"
+            print "           * Coordinates of the sun (heliocentric observables --> Galactocentric coordinates):"
+            print "                X_gc [kpc], Y_gc [kpc], Z_gc [kpc], vX_gc [km/s], vY_gc [km/s], vZ_gc [km/s]"
+            print "               ",sunCoords_phys 
+
     else:
         sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "data type "+str(datatype)+" is not defined.")
@@ -530,7 +553,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "           * Analysis uses FIDUCIAL qDF for fitting range also in the MCMC."
         else:
             print "           * Analysis uses CURRENT qDF for fitting range in the MCMC."
-        if datatype == 2:
+        if datatype in [2,5]:
             print "           * N_error_samples = ",N_error_samples,", random seed = ",random_seed_for_errors
         if estimate_Delta:
             print "           * Analysis uses the Staeckel fudge and ESTIMATES the focal length DELTA for each potential."

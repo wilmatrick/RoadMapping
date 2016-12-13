@@ -254,6 +254,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
            2015-11-30 - Started setup_SelectionFunction_object.py on the basis of BovyCode/py/setup_SelectionFunction_object.py - Trick (MPIA)
            2016-09-20 - Incompleteness_function is now function of (R_galpy,phi_deg,z_galpy) in Galactocentric coordinates, and not anymore of r,z in solarcentric coordinates - Trick (MPIA)
            2016-09-16 - Added **kwargs to allow pre-calculated incompleteness in sftype=4. - Trick (MPIA)
+           2016-12-12 - Added in sftype=4 (Incomplete Shell) the file_no=2 (red clump selection function). - Trick (MPIA)
     """
 
     #_____global constants_____

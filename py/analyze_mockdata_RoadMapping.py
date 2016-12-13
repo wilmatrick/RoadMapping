@@ -39,6 +39,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2016-02-16 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object() to speed up the ActionAngleStaeckelGrid. - Trick (MPIA)
            2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
            2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
+           2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
     """
 
     print "______________________________________________________________________"
@@ -91,7 +92,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
 
     #...for measurement errors: number of MC samples to marginalize over errors
     _N_ERROR_SAMPLES = 1
-    if ANALYSIS['datatype'] == 2:
+    if ANALYSIS['datatype'] in [2,5]:
         _N_ERROR_SAMPLES = ANALYSIS['N_error_samples']
 
     #...number of stars in the data set:
@@ -141,18 +142,18 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         ANALYSIS['ro']
                         )
 
-        if ANALYSIS['datatype'] == 2 and ANALYSIS['sftype'] == 3:   #measurement errors + sphere
+        if ANALYSIS['datatype'] in [2,5] and ANALYSIS['sftype'] in [3,4]:   #measurement errors + selection function (sphere or incompleteShell)
             # ... calculate sf(R,z,phi) for all points
             # to test if the data points that sample the error ellipses 
-            # around the osberved data points are inside the observed volume.
-            # This array is needed when convolving the likelihood with the 
-            # measurement errors.
+            # around the observed data points are inside the observed volume.
+            # Our error approximation assumes the positions are perfectly known,
+            # therefore nothing should be outside of the survey volume.
             in_sf_data = sf.contains(R_data/ANALYSIS['ro'],z_data/ANALYSIS['ro'],phi=phi_data)
             if numpy.sum(in_sf_data) < len(in_sf_data):
                 sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
                          "There are measured positions that are outside of "+\
                          "the observed volume. This should not be the case.")
-        elif ANALYSIS['datatype'] == 2:
+        elif ANALYSIS['datatype'] in [2,5]:
                 sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
                          "SelectionFunction.contains() is not yet implemented for sf type: "+str(ANALYSIS['sftype']))
     else:

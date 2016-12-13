@@ -643,7 +643,8 @@ def loglikelihood_dfPar(pot,aA,sf,
         HISTORY:
             2015-??-?? - Written - Trick (MPIA)
             2015-12-27 - Added simple outlier model. - Trick (MPIA)
-            2016-02-16 - Made outlier model optional. 
+            2016-02-16 - Made outlier model optional. - Trick (MPIA)
+            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
         """
     
     #_____initialize qdf_____
@@ -671,7 +672,7 @@ def loglikelihood_dfPar(pot,aA,sf,
     
     
     #_____calculate likelihood for given data type_____
-    if datatype == 1 or datatype == 4:   
+    if datatype in [1,4]:   
         #1: perfect mock data
         #4: perfect mock data (mix of 2 sets)
 
@@ -695,8 +696,9 @@ def loglikelihood_dfPar(pot,aA,sf,
         logunits = 3. * numpy.log(ro*vo)
         lnL_i -= logunits
 
-    elif datatype == 2:
+    elif datatype in [2,5]:
         #2: mock data with measurement errors
+        #5: TGAS data with covariance error matrix
 
         #_____calculate loglikelihood for each error sample_____
         # (*Note:* the likelihood of each of errors samples around the 
@@ -739,6 +741,8 @@ def loglikelihood_dfPar(pot,aA,sf,
         # and L(x|p) = qdf(x) * sf(x) / norm = L_err * insf_data
         # and in_sf_data = sf(x) is 0/1 when outside/inside of observed volume.
         # (*Note:* axis=0 means summing only over rows.)
+        # (*Note:* Our error approximation assumes the spatial position 
+        #          to be perfectly known. in_sf_data contains therefore only 1.)
         L_i = numpy.sum(L_err * in_sf_data,axis=0) / float(_N_ERROR_SAMPLES)
         # back to log likelihood:
         lnL_i = numpy.log(L_i)

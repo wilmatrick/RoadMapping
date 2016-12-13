@@ -40,6 +40,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
            2016-09-22 - Added pottype 4,41 MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42,421 MWPotential from galpy - Trick (MPIA)
+           2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -86,8 +87,9 @@ def write_RoadMapping_parameters(datasetname,testname=None,
 
     if   datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
     elif datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
-    elif datatype == 3:  f.write('# data               type: 3 = perfect mock data + likelihood marginalization over one coordinate')
+    elif datatype == 3:  f.write('# data               type: 3 = perfect mock data + likelihood marginalization over one coordinate\n')
     elif datatype == 4:  f.write('# data               type: 4 = mix of two perfect data sets\n')
+    elif datatype == 5:  f.write('# data               type: 5 = TGAS/RAVE red clump stars with covariance error matrix\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): data type "+str(datatype)+" is not defined.")
     if   pottype  == 1:  f.write('# potential          type: 1 = isochrone\n')
     elif pottype  == 2:  f.write('# potential          type: 2 = 2-component KK-Staeckel (Batsleer & Dejonghe 1994) + Staeckel actions\n')
@@ -214,6 +216,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(sunCoords_phys[0])+'\t'+str(sunCoords_phys[1])+'\t'+str(sunCoords_phys[2])+\
                     '\t'+str(sunCoords_phys[3])+'\t'+str(sunCoords_phys[4])+'\t'+str(sunCoords_phys[5])+'\n')
 
+        sys.exit("Error in write_RoadMapping_parameters(), datatype=2: the code uses ANALYSIS['sunCoords_phys'] given as galactocentric cylindrical coordinates of the Sun for datatype=2. datatype=5 however uses ANALYSIS['sunCoords_phys'] given as galactocentric (x,y,z) coordinates. If I want to use datatye=2 again, the code should be changed analogous to datatype=5. For historical reasons I leave the original version of the code here, for the time being.")
+
     elif datatype == 3:
         marginal_coord = None
         if update and (marginalize_over is None): 
@@ -244,6 +248,25 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# ***** MOCK DATA: MIX OF TWO PERFECT DATA SETS *****\n')
         f.write('# * total # of stars / # in main data set / # in pollution data set / --- / --- / ---\n')
         f.write('\t\t\t'+str(noStars[0])+'\t'+str(noStars[1])+'\t'+str(noStars[2])+'\t0\t0\t0\n')
+
+    elif datatype == 5:
+        if update and (N_error_samples  is None): N_error_samples  = out['N_error_samples']
+        elif           N_error_samples  is None : N_error_samples  = 200
+        if update and (sunCoords_phys  is None): sunCoords_phys  = out['sunCoords_phys']
+        elif           sunCoords_phys  is None :
+            sys.exit("Error in write_RoadMapping_parameters(): "+\
+             "position and velocity of sun (sunCoords_phys) in Galactocentric (x,y,z) frame must be set.")
+        if update and (random_seed_for_errors is None): random_seed_for_errors = out['random_seed_for_errors']
+        elif           random_seed_for_errors is None : random_seed_for_errors = numpy.random.random_integers(0,high=4294967295) 
+        f.write('#\n')
+        f.write('# ***** TGAS/RAVE DATA: RED CLUMP OBSERVABLES WITH COVARIANCE ERROR MATRIX *****\n')
+        f.write('# * # stars / # error MC samples / random seed for initialization / --- / --- / ---\n')
+        f.write('\t\t\t'+str(noStars)+'\t'+str(N_error_samples)+'\t'+str(random_seed_for_errors)+'\t0\t0\t0\n')
+        f.write('# * Position of the Sun:\n')
+        f.write('#   X_gc [kpc] / Y_gc [deg] / Z_gc [kpc] / vX_gc [km/s] / vY_gc [km/s] / vZ_gc [km/s]\n')
+        f.write('\t\t\t'+str(sunCoords_phys[0])+'\t'+str(sunCoords_phys[1])+'\t'+str(sunCoords_phys[2])+\
+                    '\t'+str(sunCoords_phys[3])+'\t'+str(sunCoords_phys[4])+'\t'+str(sunCoords_phys[5])+'\n')
+
     else:
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "data type "+str(datatype)+" is not defined.")
@@ -251,7 +274,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     #datatype 2: measurement errors
     #datatype 3: perfect + marginalize
     #datatype 4: perfect + mix of two sets
-    #datatype 5: measurement errors + marginalize
+    #datatype 5: TGAS/RAVE data + covariance error matrix
 
     #===================
     #=====POTENTIAL=====
@@ -676,9 +699,9 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "selection function type "+str(sftype)+" is not defined.")
 
-    if datatype == 2 and sftype == 4:
+    if datatype in [2,5] and sftype == 4:
         sys.exit("Error in write_RoadMapping_parameters(): "+\
-                 "If datatype = 2 and sftype = 4: Check that they use the same sun coordinates!")
+                 "If datatype = [2,5] and sftype = 4: Check that they use the same sun coordinates!")
 
     #_____close file_____
     f.close()
