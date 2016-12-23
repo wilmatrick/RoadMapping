@@ -348,9 +348,6 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
     elif sftype == 32: #spherical selection function, box completeness, variable center
                 # sfPar_phys = [d_max_kpc,R_cen_kpc,phi_cen_deg,z_cen_kpc]
 
-        if sfPar_phys[3] != 0.:
-            sys.exit("Error in setup_SelectionFunction_object: Nonzero zcen is not implemented in SF_Sphere() yet.")
-
         #    SF_Sphere(rsun,dsun,df=None)
         sf = SF_Sphere(
                 sfPar_phys[0]/_REFR0/ro,      #d_max

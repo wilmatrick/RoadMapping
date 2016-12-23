@@ -46,7 +46,6 @@ class SF_IncompleteShell(SelectionFunction):
             2016-09-20 - Started SF_IncompleteShell.py - Trick (MPIA)
         """
         SelectionFunction.__init__(self,df=df)
-        sys.exit('TO DO: Implement the function contains in the IncompleteShell Selection Function.')
 
         #Edges of the spherical shell:
         self._dmin = dmin
@@ -318,7 +317,16 @@ class SF_IncompleteShell(SelectionFunction):
     #-----------------------------------------------------------------------
 
     def _deltaphi_rad(self,R,z,rmax):
-        """largest possible phi at given radius and height at distance rmax from sun"""
+        """
+            NAME:
+               _deltaphi_rad
+            PURPOSE:
+                largest possible phi at given radius and height at distance rmax from sun
+            INPUT:
+            OUTPUT:
+            HISTORY:
+               2016-09-?? - Written. - Trick (MPIA)
+        """
 
         #scalar vs. array input:
         if isinstance(R,numpy.ndarray):
@@ -339,7 +347,7 @@ class SF_IncompleteShell(SelectionFunction):
             return 0.
 
         cosphi = (R**2 - rc**2 + self._Rsun**2) / (2. * self._Rsun * R) #law of cosines
-        phimax_rad = numpy.fabs(numpy.arccos(cosphi))  #rad
+        phimax_rad = numpy.fabs(numpy.arccos(cosphi))  #[rad]
         return phimax_rad
 
 
@@ -389,6 +397,7 @@ class SF_IncompleteShell(SelectionFunction):
                     print "phi: ",self._phisun_deg-dphi," <= ",phi[outside][0]," <= ",self._phisun_deg+dphi,"?"
                     sys.exit("Error in SF_IncompleteShell._densfunc(). If yes, something is wrong. Testing of code is required.")
                 if set_outside_zero:
+                    sys.exit("Error in SF_IncompleteShell._densfunc(): If set_outside_zero=True, taking care of array input is not implemented yet.")
                     return 0.
 
         if not isinstance(R,numpy.ndarray) or len(R) == 1:
@@ -541,7 +550,7 @@ class SF_IncompleteShell(SelectionFunction):
                 #transformation to (R,phi,z):
                 x = self._Rsun - rc * math.cos(psi) * math.cos(theta)
                 y = rc * math.sin(psi) * math.cos(theta)
-                z = rc * math.sin(theta) + self._zsun
+                z = rc * math.sin(theta) + self._zsun   #move sphere to sit on vertical position of the sun
 
                 R = math.sqrt(x**2 + y**2)
                 phi = math.atan2(y,x)   #rad

@@ -1,6 +1,7 @@
 #_____import packages_____
 import sys
 import math
+import pandas
 import pickle
 import os
 import numpy
@@ -332,9 +333,6 @@ def read_and_setup_data_set(datasetname,testname=None,mockdatapath=None):
         cov[:,5,3] = cov[:,3,5]
         cov[:,5,4] = cov[:,4,5]
 
-        print cov[0,:,:]
-        sys.exit()
-
         #_____sample error space:_____
         _N_ERROR_SAMPLES       = ANALYSIS['N_error_samples']
         random_seed_for_errors = ANALYSIS['random_seed_for_errors']
@@ -346,7 +344,7 @@ def read_and_setup_data_set(datasetname,testname=None,mockdatapath=None):
         #     for each star:
         err = numpy.zeros((6,_N_ERROR_SAMPLES,noStars))
         for ii in range(noStars):
-            err[:,:,ii] = numpy.random.multivariate_normal(mean[ii,:],cov[ii,:,:],_N_ERROR_SAMPLES)
+            err[:,:,ii] = numpy.random.multivariate_normal(mean[ii,:],cov[ii,:,:],_N_ERROR_SAMPLES).T
         
         
         # ... assign coordinates and unit conversion:
@@ -371,7 +369,6 @@ def read_and_setup_data_set(datasetname,testname=None,mockdatapath=None):
         sunCoords_phys = ANALYSIS['sunCoords_phys']
         Xsun_kpc, Ysun_kpc, Zsun_kpc = sunCoords_phys[0], sunCoords_phys[1], sunCoords_phys[2]
         vXsun_kms, vYsun_kms, vZsun_kms = sunCoords_phys[3],sunCoords_phys[4], sunCoords_phys[5]
-        sys.exit('Make sure that code is rewritten such that sunCoords_phys are given in galactocentric (X,Y,Z) frame coordinates rather than cylindrical coordinates.')
 
         # ... transform to galactocentric cylindrical coordinates
         # [R_kpc, phi_rad, z_kpc,vR_kms,vT_kms, vz_kms]

@@ -142,7 +142,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         ANALYSIS['ro']
                         )
 
-        if ANALYSIS['datatype'] in [2,5] and ANALYSIS['sftype'] in [3,4]:   #measurement errors + selection function (sphere or incompleteShell)
+        if ANALYSIS['datatype'] in [2,5] and ANALYSIS['sftype'] in [3,32,4]:   #measurement errors + selection function (sphere or incompleteShell)
             # ... calculate sf(R,z,phi) for all points
             # to test if the data points that sample the error ellipses 
             # around the observed data points are inside the observed volume.
