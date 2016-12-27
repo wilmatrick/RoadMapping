@@ -40,6 +40,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
            2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
            2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
+           2016-12-27 - The likelihood now takes also care of priors on the potential parameters. - Trick (MPIA)
     """
 
     print "______________________________________________________________________"
@@ -325,6 +326,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                                             _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,
                                             _MULTI,
                                             ANALYSIS['datatype'],noStars,
+                                            ANALYSIS['pottype'],ANALYSIS['priortype'],potPar_phys, #needed for calculating the prior
                                             marginal_coord=ANALYSIS['marginal_coord'],
                                             weights_marginal=weights_marginal,
                                             _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
@@ -379,6 +381,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         pottype       = ANALYSIS['pottype']
         sftype        = ANALYSIS['sftype']
         ro_known      = ANALYSIS['ro_known']
+        priortype     = ANALYSIS['priortype']
         #walker initialization:
         min_walkerpos = FITGRID['min_walkerpos']
         max_walkerpos = FITGRID['max_walkerpos']
@@ -429,6 +432,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'datatype':datatype,
                         'pottype':pottype,
                         'sftype':sftype,
+                        'priortype':priortype,
                         'noStars':noStars,
                         'marginal_coord':marginal_coord,
                         'xgl_marginal':xgl_marginal,

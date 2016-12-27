@@ -5,7 +5,7 @@ import os
 from read_RoadMapping_parameters import read_RoadMapping_parameters
 
 def write_RoadMapping_parameters(datasetname,testname=None,
-                            datatype=None,pottype=None,sftype=None,
+                            datatype=None,pottype=None,sftype=None,priortype=None,
                             noStars=None,
                             noMCMCsteps=None,noMCMCburnin=None,MCMC_use_fidDF=None,
                             N_spatial=None,N_velocity=None,N_sigma=None,vT_galpy_max=None,
@@ -41,6 +41,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-09-22 - Added pottype 4,41 MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42,421 MWPotential from galpy - Trick (MPIA)
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
+           2016-12-27 - Added priortype. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -68,9 +69,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     #=====GENERAL=====
     #=================
 
-    if update and (datatype is None): datatype = out['datatype']
-    if update and (pottype  is None): pottype  = out['pottype']
-    if update and (sftype   is None): sftype   = out['sftype']
+    if update and (datatype  is None): datatype  = out['datatype']
+    if update and (pottype   is None): pottype   = out['pottype']
+    if update and (sftype    is None): sftype    = out['sftype']
+    if update and (priortype is None): priortype = out['priortype']
 
     f.write('# =========================================\n')
     f.write('# ===== MODEL PARAMETERS FOR ANALYSIS =====\n')
@@ -82,8 +84,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('# \n')
     f.write('# ***** GENERAL SETUP *****\n')
     f.write('# * DATA & MODEL:\n')
-    f.write('# \t\t data type / potential type / selection function type / --- / --- / file version)\n')
-    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t0\t0\t2\n')
+    f.write('# \t\t data type / potential type / selection function type / priortype / --- / file version)\n')
+    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t'+str(priortype)+'\t0\t2\n')
 
     if   datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
     elif datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
@@ -113,6 +115,9 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
     elif sftype   == 4:  f.write('# selection function type: 4 = incomplete shell\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): selection function type "+str(sftype)+" is not defined.")
+    if   priortype == 0: f.write('# prior              type: 0 = flat priors on potential and log(DF) parameters.')
+    elif priortype == 1: f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.')
+    else: sys.exit("Error in write_RoadMapping_parameters(): prior type "+str(priortype)+" is not defined.")
 
     #MCMC accuracy parameters:
     if update and (noMCMCsteps    is None): noMCMCsteps  = out['noMCMCsteps']

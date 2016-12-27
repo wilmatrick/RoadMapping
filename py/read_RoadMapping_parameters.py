@@ -19,6 +19,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
+           2016-12-27 - Added priortype. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -45,6 +46,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     datatype    = int(round(out[0,0]))
     pottype     = int(round(out[0,1]))
     sftype      = int(round(out[0,2]))
+    priortype   = int(round(out[0,3]))
     fileversion = int(round(out[0,5]))
 
     #numerical precision of analysis:
@@ -545,6 +547,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
                  "selection function type "+str(sftype)+" is not defined.")
 
     if print_to_screen:
+
+        print "PRIORS:"
+        if priortype in [0,1]:
+            print "           * Flat priors on potential parameters (inside physical regime)."
+            print "           * Logarithmically flat priors on DF parameters."
+        if priortype == 1:
+            print "           * Bovy & Rix (2013), eq. (41), prior on slope of rotation curve."
+
         print "NUMERICAL PRECISION:"
         print "           * N_spatial = ",N_spatial,", N_velocity = ",N_velocity
         print "           * N_sigma   = ",N_sigma,", vT_max [galpy] = ",vT_galpy_max
@@ -570,6 +580,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             'datatype'  :datatype,
             'pottype'   :pottype,
             'sftype'    :sftype,
+            'priortype' :priortype,
             'noStars'   :noStars,
             'potParTrue_phys':potParTrue_phys,'dfParTrue_phys':dfParTrue_phys,'dfParTrue_fit':dfParTrue_fit,
             'potParEst_phys' :potParEst_phys , 'dfParEst_phys': dfParEst_phys, 'dfParEst_fit': dfParEst_fit,

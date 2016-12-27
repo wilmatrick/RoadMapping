@@ -10,6 +10,7 @@ from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
+from prior import calculate_logprior
 
 #---------------------------------------------------------------------
 
@@ -73,6 +74,7 @@ def logprob_MCMC(
     HISTORY:
         16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
         16-09-25 - Added shared data parameter incomp_shared, that is used in precalc_pot_actions_sf(). - Trick (MPIA)
+        16-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
     """
     #zeit_start = time.time()
 
@@ -99,6 +101,7 @@ def logprob_MCMC(
     datatype        = int(          info_MCMC['datatype'])
     pottype         = int(          info_MCMC['pottype'])
     sftype          = int(          info_MCMC['sftype'])
+    priortype       = int(          info_MCMC['priortype'])
     noStars         = int(          info_MCMC['noStars'])
     marginal_coord  = int(          info_MCMC['marginal_coord'])
     xgl_marginal    = numpy.array(  info_MCMC['xgl_marginal'],dtype='float64')
@@ -224,14 +227,11 @@ def logprob_MCMC(
     elif loglike < -1.7e+308:
         loglike = -numpy.inf
 
-    #_____priors_____
-    #potential parameters:
-    #       flat prior
-    #       zero outside the given grid limits and in unphysical regions (see above)
-    #df parameters:
-    #       logarithmically flat priors
-    #       (because the fit parameters are actually log(df parameters))
-    logprior = 0.
+    #_____priors on the model parameters_____
+    #priortype = 0: flat priors in potential parameters and 
+    #               logarithmically flat  priors in DF parameters
+    #priortype = 1: additionally: prior on flat rotation curve               
+    logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
 
     #_____measure time_____
     #zeit_t = time.time() - zeit_start
@@ -268,6 +268,7 @@ def logprob_MCMC_fitDF_only(
     HISTORY:
         16-02-18 - Written (based on logprob_MCMC()). - Trick (MPIA)
         16-04-15 - Added the parameter aAS_Delta to setup_potential_and_ActionAngle_object().
+        16-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
     """
 
     #_____Reference scales_____
@@ -293,6 +294,7 @@ def logprob_MCMC_fitDF_only(
     datatype        = int(          info_MCMC['datatype'])
     pottype         = int(          info_MCMC['pottype'])   #this might be a slim version of the pottype only
     sftype          = int(          info_MCMC['sftype'])
+    priortype       = int(          info_MCMC['priortype'])
     noStars         = int(          info_MCMC['noStars'])
     marginal_coord  = int(          info_MCMC['marginal_coord'])
     xgl_marginal    = numpy.array(  info_MCMC['xgl_marginal'],dtype='float64')
@@ -442,14 +444,17 @@ def logprob_MCMC_fitDF_only(
     elif loglike < -1.7e+308:
         loglike = -numpy.inf
 
-    #_____priors_____
-    #potential parameters:
-    #       flat prior
-    #       zero outside the given grid limits and in unphysical regions (see above)
-    #df parameters:
-    #       logarithmically flat priors
-    #       (because the fit parameters are actually log(df parameters))
-    logprior = 0.
+    #_____priors on the model parameters_____
+    #priortype = 0: flat priors in potential parameters and 
+    #               logarithmically flat  priors in DF parameters
+    #priortype = 1: additionally: prior on flat rotation curve 
+    #               (makes no sense to use it in a fit of the DF only)
+    if priortype in [0]:             
+        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
+    else:
+        sys.exit("Error in logprob_MCMC_fitDF_only(): It makes no sense "+\
+                 "to use priortype = "+str(priortype)+" because the "+\
+                 "potential is not fitted anyway.")
 
     #_____print current walker position to file_____
     if not chainfilename is None:
@@ -474,6 +479,7 @@ def loglikelihood_potPar(pot,aA,sf,
                          dfParFid_galpy,
                          _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,_MULTI,
                          datatype,noStars,
+                         pottype,priortype,potPar_phys, #needed for calculating the prior
                          marginal_coord=None,weights_marginal=None,
                          _N_ERROR_SAMPLES=None,in_sf_data=None):
 
@@ -521,6 +527,8 @@ def loglikelihood_potPar(pot,aA,sf,
 
     OUTPUT:
     HISTORY:
+        2013-??-?? - First version by Jo Bovy.
+        2016-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
     """
 
     #_____initialize likelihood grid_____
@@ -620,8 +628,23 @@ def loglikelihood_potPar(pot,aA,sf,
                                                _MULTI
                                                ])
                             )
+
+    #_____priors on the model parameters_____
+    #priortype = 0: flat priors in potential parameters and 
+    #               logarithmically flat  priors in DF parameters, i.e. logprior = 0.
+    #priortype = 1: additionally: prior on flat rotation curve
+    if priortype in [0,1]:               
+        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
+    else:
+        sys.exit("Error in loglikelihood_potPar(): For priortype=[0,1] "+\
+                 "the prior is independent of the values of the DF "+\
+                 "parameters. If priortype="+str(priortype)+" contains "+\
+                 "priors on the DF parameters, the code needs to be "+\
+                 "modified accordingly. Otherwise make sure that the "+\
+                 "code takes properly care of the new priortype.")
+
               
-    return loglike_out
+    return loglike_out + logprior
 
 #-------------------------------------------------------------------
 
@@ -645,7 +668,7 @@ def loglikelihood_dfPar(pot,aA,sf,
             2015-12-27 - Added simple outlier model. - Trick (MPIA)
             2016-02-16 - Made outlier model optional. - Trick (MPIA)
             2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
-        """
+    """
     
     #_____initialize qdf_____
     # set parameters of distribution function:
