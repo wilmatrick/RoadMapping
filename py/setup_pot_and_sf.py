@@ -29,6 +29,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
            2016-04-03 - Changed default accuracy of actionAngleStaeckelGrid. From Rmax = 10, nE = 50, npsi = 50, nLz = 60 to Rmax =  5, nE = 70, npsi = 40, nLz = 50
            2016-04-15 - Added an option to return only the potential, and one option to set Delta by hand.
            2016-09-24 - Added pottype 41, 42, 421 . - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -189,6 +190,32 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     M_bulge_1010Msun = None,
                     s_bulge          = 0.05 #analogous to galpy MWPotential
                     )
+    elif pottype == 8 or pottype == 81:
+        #========== MNdHbNFWh-POTENTIAL FOR FITTING TO GAIA DATA ==========
+        #========== Miyamoto-Nagai disk, NFW halo, Hernquist bulge ========
+        #========== with Staeckel actions ==============================
+        #potParArr = [ro,vo,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+        #transformation from physical to galpy units:
+        a_d = potPar_phys[2] / _REFR0 / ro # stellar disk scale length
+        b_d = potPar_phys[3] / _REFR0 / ro # stellar disk scale height
+        f_h = potPar_phys[4]               # halo contribution to the disk's v_c^2
+        a_h = potPar_phys[5] / _REFR0 / ro # dark matter halo scale length
+        #bulge parameters in physical units:
+        M_b_1010Msun = potPar_phys[6] # mass of hernquist bulge
+        a_b_kpc      = potPar_phys[7] # bulge scale length
+        #check, if parameters are physical:
+        if a_d <= 0. or b_d <= 0. or vo <= 0. or f_h <= 0. or \
+           f_h >= 1. or a_h <= 0. or M_b_1010Msun <= 0. or a_b_kpc <= 0.:
+            raise RuntimeError("unphysical potential parameters")
+        #setup potential:
+        pot = setup_DiskHaloBulge_potential(
+                    numpy.array([ro,vo,a_d,b_d,f_h,a_h]),
+                    Disk             = 'MiyamotoNagai',
+                    Halo             = 'NFW',
+                    a_bulge_kpc      = a_b_kpc,
+                    M_bulge_1010Msun = M_b_1010Msun,
+                    s_bulge          = None,
+                    )
     else:
         sys.exit("Error in setup_potential_and_action_object(): "+\
                  "potential type "+str(pottype)+" is not defined.")
@@ -198,7 +225,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         return pot
 
     #_____prepare ActionAngle object initialization and setup Delta_____
-    if (pottype in numpy.array([3,31,4,41,42,421,5,51,6,61,7,71],dtype=int)):
+    if (pottype in numpy.array([3,31,4,41,42,421,5,51,6,61,7,71,8,81],dtype=int)):
         if 'aAS_Delta' in kwargs: 
             Delta = kwargs['aAS_Delta']
         else: 
@@ -208,13 +235,13 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         #print "Delta = ",Delta
 
 
-    if pottype in numpy.array([2,3,4,42,5,6,7],dtype=int):
+    if pottype in numpy.array([2,3,4,42,5,6,7,8],dtype=int):
         #==========StaeckelActions=======
         #initialize ActionAngle object:
         aA = actionAngleStaeckel(pot=pot,delta=Delta,c=True)
         #       c=True (default): use C implementation to speed up actionAngleStaeckel calculations, 
         #                         plus this is needed to calculate frequencies
-    elif pottype in numpy.array([21,31,41,421,51,61,71],dtype=int):
+    elif pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int):
         #==========StaeckelActions on a Grid=======
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
         else:                  numcores = 1
@@ -644,6 +671,7 @@ def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist
         This function can be used to setup a simple Hernquist Bulge + Disk + Halo potential.
         Pottype 5 and 51 uses this function and sets up a Miyamoto-Nagai disk, 
         Hernquist halo + Hernquist bulge for the Elena D'Onghias Simulation.
+        I also use it to fit a MNdHbNFWh-Potential to Gaia data.
     INPUT:
         a_bulge_kpc - (float) - scale length of the Hernquist bulge in kpc. 
                                 For Pottype 5 and 51 use: a_bulge_kpc=0.25099812

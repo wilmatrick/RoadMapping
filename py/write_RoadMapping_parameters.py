@@ -36,12 +36,13 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                       - Added selection function type 32, SPHERE + BOX + FREE CENTER - Trick (MPIA)
            2016-01-18 - Added pottype 5 and 51, Miyamoto-Nagai disk, Hernquist halo + Hernquist bulge for Elena D'Onghias Simulation
            2016-02-09 - Corrected bug. dfParFid_fit was not written in the file. Instead the dfParEst_fit was used. Now it's dfParFid_fit. - Trick (MPIA)
-           2016-02-15 - Added pottype 6,7,61,72, Disk + Halo + Bulge potentials
+           2016-02-15 - Added pottype 6,7,61,71, Disk + Halo + Bulge potentials
            2016-04-11 - Upgrade to fileversion 2, which will be used for Dynamics Paper 2. This new version allows to control the actionAngleStaeckelGrid via the analysis input file.
            2016-09-22 - Added pottype 4,41 MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42,421 MWPotential from galpy - Trick (MPIA)
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - Added priortype. - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -108,6 +109,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif pottype  == 61: f.write("# potential          type: 61 = DoubleExponential disk, Hernquist halo & bulge (for D'Onghia simulation) + StaeckelGrid actions\n")
     elif pottype  == 7:  f.write("# potential          type: 7 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (galpy MWPotential like) + Staeckel actions\n")
     elif pottype  == 71: f.write("# potential          type: 71 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (galpy MWPotential like) + StaeckelGrid actions\n")
+    elif pottype  == 8:  f.write("# potential          type: 8 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (to fit to Gaia data) + Staeckel actions\n")
+    elif pottype  == 81: f.write("# potential          type: 81 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (to fit to Gaia data) + StaeckelGrid actions\n")
     else: sys.exit("Error in write_RoadMapping_parameters(): potential type "+str(pottype)+" is not defined.")
     if   sftype   == 1:  f.write('# selection function type: 1 = wedge (box completeness)\n')
     elif sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
@@ -154,7 +157,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                  "If the default Staeckel Delta (0.45) is used, "+\
                  "then it is required that estimate_Delta=0 and Delta_fixed=0.")
     #actionAngleStaeckelGrid accuracy parameters:
-    if pottype in numpy.array([21,31,41,421,51,61,71],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
+    if pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
     else                                                 : use_aASG     = 0    #False
     if   update        and (aASG_accuracy is     None): aASG_accuracy = out['aASG_accuracy']
     elif use_aASG == 1 and (aASG_accuracy is     None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
@@ -432,7 +435,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(potParTrue_phys[1])+'\t'+str(potParEst_phys[1])+'\t0\t'+\
                     str(potParMin_phys[1])+'\t'+str(potParMax_phys [1])+'\t'+str(potParFitNo [1])+'\n')
 
-    elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
+    elif pottype in numpy.array([5,6,7,8,51,61,71,81],dtype=int):
         f.write('#\n')
         if pottype in numpy.array([5,51],dtype=int):
             #MIYAMOTO-NAGAI DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
@@ -444,6 +447,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
             scalelength,scaleheight='hr_disk','hz_disk'
         elif pottype in numpy.array([7,71],dtype=int):
             #MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (analytic MWPotential(2014)-like potential)
+            f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (galpy MWPotential-like)*****\n")
+            scalelength,scaleheight='a_disk','b_disk'
+        elif pottype in numpy.array([8,81],dtype=int):
+            #MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (for fitting to Gaia data)
             f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (galpy MWPotential-like)*****\n")
             scalelength,scaleheight='a_disk','b_disk'
         f.write('# \t\t true value / estimate / --- / fit min / fit max / # grid points\n')
@@ -465,6 +472,13 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# a_halo   [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
+        if pottype in numpy.array([8,81],dtype=int):
+            f.write('# M_bulge [10^10Msun] =\n')
+            f.write('\t\t\t'+str(potParTrue_phys[6])+'\t'+str(potParEst_phys[6])+'\t0\t'+\
+                        str(potParMin_phys[6])+'\t'+str(potParMax_phys [6])+'\t'+str(potParFitNo [6])+'\n')
+            f.write('# a_bulge  [kpc]  =\n')
+            f.write('\t\t\t'+str(potParTrue_phys[7])+'\t'+str(potParEst_phys[7])+'\t0\t'+\
+                        str(potParMin_phys[7])+'\t'+str(potParMax_phys [7])+'\t'+str(potParFitNo [7])+'\n')
 
     else:
         sys.exit("Error in write_RoadMapping_parameters(): "+\

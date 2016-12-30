@@ -17,6 +17,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2015-02-16 - Added pottype 6,61,7,71, DISK+HALO+BULGE potentials. - Trick (MPIA)
            2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -138,7 +139,14 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             if   ii == 2: a_ds = xs
             elif ii == 3: b_ds = xs
             elif ii == 4: f_hs = xs
-            elif ii == 5: a_hs = xs    
+            elif ii == 5: a_hs = xs  
+        elif pottype in numpy.array([8,81],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+            if   ii == 2: a_ds = xs
+            elif ii == 3: b_ds = xs
+            elif ii == 4: f_hs = xs
+            elif ii == 5: a_hs = xs  
+            elif ii == 6: M_bs = xs
+            elif ii == 7: a_bs = xs   
         else:
             sys.exit("Error in setup_parameter_fit(): "+\
              "potential type "+str(pottype)+" is not defined.")
@@ -168,6 +176,14 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         potParArr_phys[:,3] = b_d1.flatten()
         potParArr_phys[:,4] = f_h1.flatten()
         potParArr_phys[:,5] = a_h1.flatten()
+    elif pottype in numpy.array([8,81],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+        r1,v1,a_d1,b_d1,f_h1,a_h1,M_b1,a_b1 = numpy.meshgrid(rs,vs,a_ds,b_ds,f_hs,a_hs,M_bs,a_bs,indexing='ij')
+        potParArr_phys[:,2] = a_d1.flatten()
+        potParArr_phys[:,3] = b_d1.flatten()
+        potParArr_phys[:,4] = f_h1.flatten()
+        potParArr_phys[:,5] = a_h1.flatten()
+        potParArr_phys[:,6] = M_b1.flatten()
+        potParArr_phys[:,7] = a_b1.flatten()
     else:
         sys.exit("Error in setup_parameter_fit(): "+\
              "potential type "+str(pottype)+\

@@ -453,7 +453,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #Setting up the StaeckelFudge ActionGrid is very slow. 
             #As we precalculate all actions anyway, we use the standard StaeckelFudge
             #to set up the potential in the MCMC chain.
-            if pottype in numpy.array([21,31,41,421,51,61,71]): 
+            if pottype in numpy.array([21,31,41,421,51,61,71,81]): 
                 pottype_slim = (pottype-1)/10
                 info_MCMC['pottype'] = pottype_slim
             #Set the Staeckel Fudge Delta once and for all:

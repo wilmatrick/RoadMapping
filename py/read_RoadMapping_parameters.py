@@ -20,6 +20,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - Added priortype. - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -83,7 +84,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         estimate_Delta    = False
         Delta_fixed       = 0
         #actionAngleStaeckelGrid:
-        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71],dtype=int))
+        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 3 #so far three lines: general setup + 2 lines numerical precision
     elif fileversion == 0:
@@ -101,7 +102,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         estimate_Delta    = False
         Delta_fixed       = 0
         #actionAngleStaeckelGrid:
-        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71],dtype=int))
+        use_aASG       = (pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int))
         aASG_accuracy  = numpy.zeros(4)+numpy.nan
         nl = 2 #so far two lines: general setup + numerical precision
 
@@ -338,7 +339,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             print "                R_sun [kpc], v_circ(R_sun) [km/s]"
             print "               ",potParTrue_phys
     
-    elif pottype in numpy.array([5,6,7,51,61,71],dtype=int):
+    elif pottype in numpy.array([5,6,7,8,51,61,71,81],dtype=int):
         if pottype == 5 or pottype == 51:
             #POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION
             #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
@@ -354,32 +355,46 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
             potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
             potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+        elif pottype == 8 or pottype == 81:
+            #POTENTIAL FOR FIT TO GAIA DATA WITH MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE
+            #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+            potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]','$M_{bulge}$ [$10^{10}$ M$_\odot$]','$a_{bulge}$ [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]','M_b [10^10 M_sun]','a_b [kpc]']
 
-        potParTrue_phys = numpy.array(out[nl:nl+6,0],dtype=float)
-        potParEst_phys  = numpy.array(out[nl:nl+6,1],dtype=float)
-        potParMin_phys  = numpy.array(out[nl:nl+6,3],dtype=float)
-        potParMax_phys  = numpy.array(out[nl:nl+6,4],dtype=float)
-        potParFitNo     = numpy.array(out[nl:nl+6,5],dtype=int)
+        if pottype in [5,6,7,51,61,71]:
+            npotpar = 6
+        elif pottype in [8,81]:
+            npotpar = 8
+
+        potParTrue_phys = numpy.array(out[nl:nl+npotpar,0],dtype=float)
+        potParEst_phys  = numpy.array(out[nl:nl+npotpar,1],dtype=float)
+        potParMin_phys  = numpy.array(out[nl:nl+npotpar,3],dtype=float)
+        potParMax_phys  = numpy.array(out[nl:nl+npotpar,4],dtype=float)
+        potParFitNo     = numpy.array(out[nl:nl+npotpar,5],dtype=int)
         potParFitBool   = numpy.array((potParFitNo > 1),dtype=bool)
 
         #physical boundaries:
-        potParLowerBound_phys = numpy.array([0.,0.,0.,0.,0.,0.])
-        potParUpperBound_phys = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,1.,numpy.inf])
+        potParLowerBound_phys = numpy.zeros(npotpar)
+        if   pottype in [5,6,7,51,61,71]: potParUpperBound_phys = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,1.,numpy.inf])
+        elif pottype in [8,81]:           potParUpperBound_phys = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,1.,numpy.inf,numpy.inf,numpy.inf])
 
         #next line:
-        nl += 6
+        nl += npotpar
 
         if print_to_screen:
             if   pottype in numpy.array([5,51]     ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge "
             elif pottype in numpy.array([6,61]     ,dtype=int): print "POTENTIAL: * potential with Double Exponential disk, Hernquist halo + bulge "
             elif pottype in numpy.array([7,71]     ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge "
+            elif pottype in numpy.array([8,81]     ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge "
             if   pottype in numpy.array([5,51,6,61],dtype=int): print "             (for simulation by Elena D'Onghia)"
             elif pottype in numpy.array([7,71]     ,dtype=int): print "             (galpy MWPotential like)"
-            if   pottype in numpy.array([5,6,7]    ,dtype=int): print "           * action calculation: actionAngleStaeckel"
-            elif pottype in numpy.array([51,61,71] ,dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
+            elif pottype in numpy.array([8,81]     ,dtype=int): print "             (for fitting to Gaia data)"
+            if   pottype in numpy.array([5,6,7,8]    ,dtype=int): print "           * action calculation: actionAngleStaeckel"
+            elif pottype in numpy.array([51,61,71,81] ,dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
             print "           * true parameters:"
             if   pottype in numpy.array([5,51,7,71],dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]"
             elif pottype in numpy.array([6,61]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc]"
+            elif pottype in numpy.array([8,81]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc], M_b [10^10 Msun], a_b [kpc]"
             print "               ",potParTrue_phys
     else:
         sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
