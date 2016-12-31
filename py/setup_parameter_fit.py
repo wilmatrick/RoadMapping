@@ -18,6 +18,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2016-12-31 - Removed d_potcoords, min_potcoords, max_potcoords. - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -41,7 +42,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     potParFitBool = out['potParFitBool']
     dfParFitNo    = out['dfParFitNo']
     dfParFitBool  = out['dfParFitBool']
-    gridPointNo     = numpy.append(potParFitNo[potParFitBool],dfParFitNo[dfParFitBool])
+    gridPointNo   = numpy.append(potParFitNo[potParFitBool],dfParFitNo[dfParFitBool])
     #this array gives start and end index of each axis in flattened array:   
     gridPointCumsum = numpy.cumsum(gridPointNo)
     gridAxesIndex = numpy.append([0],gridPointCumsum)
@@ -49,11 +50,6 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     #this array will contain all the axes within one flattened array:
     gridAxesPoints  = numpy.zeros(numpy.sum(gridPointNo))
     kk = 0  #index that counts the fit parameters
-
-    #width and min and max of potential grid:
-    d_potcoords   = []
-    min_potcoords = []
-    max_potcoords = []
 
     #min and max for initializing MCMC walkers:
     min_walkerpos = []
@@ -99,11 +95,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             #save axes in physical units:
             gridAxesPoints[ind[kk]:ind[kk+1]] = xs
             #width of grid in physical units:
-            dx = 0.5 * numpy.fabs(xs[1]-xs[0])      
-            d_potcoords.extend([dx])
-            #limits of the potential grid in physical units: 
-            min_potcoords.extend([(min(xs)-dx)])
-            max_potcoords.extend([(max(xs)+dx)])
+            dx = 0.5 * numpy.fabs(xs[1]-xs[0])
             #inital walker positions:
             mid = (len(xs)-1)/2
             min_walkerpos.extend([xs[mid]-dx])
@@ -194,11 +186,6 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     #shape tuple for potentials:
     potShape = numpy.squeeze(r1).shape
 
-    #transform to numpy arrays:
-    d_potcoords   = numpy.array(d_potcoords)
-    min_potcoords = numpy.array(min_potcoords)
-    max_potcoords = numpy.array(max_potcoords)
-
 
     #=============
     #=====QDF=====
@@ -278,7 +265,6 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
 
     return {'potParArr_phys':potParArr_phys, 'potShape':potShape,
             'dfParArr_fit'  :dfParArr_fit , 'dfShape' :dfShape,
-            'd_potcoords':d_potcoords,'min_potcoords':min_potcoords,'max_potcoords':max_potcoords,
             'min_walkerpos':min_walkerpos,'max_walkerpos':max_walkerpos,
             'fitParNamesLatex':fitParNamesLatex,'fitParNamesScreen':fitParNamesScreen,
             'gridAxesPoints':gridAxesPoints,'gridPointNo':gridPointNo,'gridAxesIndex':gridAxesIndex}

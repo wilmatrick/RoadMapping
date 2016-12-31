@@ -40,7 +40,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
            2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
            2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
-           2016-12-27 - The likelihood now takes also care of priors on the potential parameters. - Trick (MPIA)
     """
 
     print "______________________________________________________________________"
@@ -121,6 +120,18 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
     vT_data  = dataset[3]   #[km/s /_REFV0]
     z_data   = dataset[4]   #[kpc  /_REFR0]
     vz_data  = dataset[5]   #[km/s /_REFV0]
+
+    #???
+    #index = numpy.ones(len(R_data),dtype=bool)
+    #index[6062] = False
+    #R_data = numpy.array(R_data[index])
+    #vR_data = numpy.array(vR_data[index])
+    #phi_data = numpy.array(phi_data[index])
+    #vT_data = numpy.array(vT_data[index])
+    #z_data = numpy.array(z_data[index])
+    #vz_data = numpy.array(vz_data[index])
+    #print R_data*_REFR0, vR_data*_REFV0, phi_data, vT_data*_REFV0, z_data*_REFR0, vz_data*_REFV0
+    #???
 
     #_____initialize selection function_____
     in_sf_data = None
@@ -314,7 +325,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                                             _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,
                                             _MULTI,
                                             ANALYSIS['datatype'],noStars,
-                                            ANALYSIS['pottype'],ANALYSIS['priortype'],potPar_phys, #needed for calculating the prior
                                             marginal_coord=ANALYSIS['marginal_coord'],
                                             weights_marginal=weights_marginal,
                                             _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
@@ -369,7 +379,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         pottype       = ANALYSIS['pottype']
         sftype        = ANALYSIS['sftype']
         ro_known      = ANALYSIS['ro_known']
-        priortype     = ANALYSIS['priortype']
         #walker initialization:
         min_walkerpos = FITGRID['min_walkerpos']
         max_walkerpos = FITGRID['max_walkerpos']
@@ -420,7 +429,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'datatype':datatype,
                         'pottype':pottype,
                         'sftype':sftype,
-                        'priortype':priortype,
                         'noStars':noStars,
                         'marginal_coord':marginal_coord,
                         'xgl_marginal':xgl_marginal,
@@ -441,7 +449,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #Setting up the StaeckelFudge ActionGrid is very slow. 
             #As we precalculate all actions anyway, we use the standard StaeckelFudge
             #to set up the potential in the MCMC chain.
-            if pottype in numpy.array([21,31,41,421,51,61,71,81]): 
+            if pottype in numpy.array([21,31,41,421,51,61,71]): 
                 pottype_slim = (pottype-1)/10
                 info_MCMC['pottype'] = pottype_slim
             #Set the Staeckel Fudge Delta once and for all:
