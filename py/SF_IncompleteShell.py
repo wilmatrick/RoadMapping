@@ -474,8 +474,17 @@ class SF_IncompleteShell(SelectionFunction):
 
     def _Mtot_fastGL(self,xgl,wgl):
 
-        """integrate total mass inside effective volume by hand, analogous to Bovy, using Gauss Legendre quadrature.
-           The integration accounts for integration limits - we therefore do not have to set the density outside the sphere to zero."""
+        """
+            NAME:
+               _Mtot_fastGL
+            PURPOSE:
+                integrate total mass inside effective volume by hand, analogous to Bovy, using Gauss Legendre quadrature.
+                The integration accounts for integration limits - we therefore do not have to set the density outside the sphere to zero.
+            INPUT:
+            OUTPUT:
+            HISTORY:
+               2016-09-?? - Written. - Trick (MPIA)
+        """
 
         #define function func(R,z) to integrate:
         func = lambda rr,zz: self._densfunc(rr,zz,phi=None,set_outside_zero=False,throw_error_outside=False,consider_incompleteness=False)
@@ -483,6 +492,29 @@ class SF_IncompleteShell(SelectionFunction):
         #total mass in selection function:
         Mtot = self._fastGLint_IncompleteShell(func,xgl,wgl)
         return Mtot
+
+    #-----------------------------------------------------------------
+
+    def _sftot_fastGL(self,xgl,wgl):
+
+        """
+            NAME:
+               _sftot_fastGL
+            PURPOSE:
+                integrates the selection function over the volume using Gauss Legendre quadrature.
+                Needed for normalizing outlier model in dftype=12.
+            INPUT:
+            OUTPUT:
+            HISTORY:
+               2017-01-02 - Written. - Trick (MPIA)
+        """
+
+        #define function func(R,z) to integrate:
+        func = lambda rr,zz: 1.
+        
+        #total mass in selection function:
+        sf_tot = self._fastGLint_IncompleteShell(func,xgl,wgl)
+        return sf_tot
 
     #-----------------------------------------------------------------
 

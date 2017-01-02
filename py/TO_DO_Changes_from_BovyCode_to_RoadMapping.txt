@@ -1,4 +1,0 @@
-TO DO:
-
-* Renamed write_flexible_analysis_parameters.py to write_RoadMapping_parameters.py. Has to be changed everywhere.
-* Introduced sftype 32. Has to be done everywhere else.

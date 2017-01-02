@@ -11,6 +11,7 @@ from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
 from prior import calculate_logprior
+from outlier_model import scale_df_fit_parameters_to_galpy_units
 
 #---------------------------------------------------------------------
 
@@ -72,9 +73,10 @@ def logprob_MCMC(
           - current walker position in potential and qdf parameter space [potPar,dfPar]
     OUTPUT:
     HISTORY:
-        16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
-        16-09-25 - Added shared data parameter incomp_shared, that is used in precalc_pot_actions_sf(). - Trick (MPIA)
-        16-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
+        2016-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
+        2016-09-25 - Added shared data parameter incomp_shared, that is used in precalc_pot_actions_sf(). - Trick (MPIA)
+        2016-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
+        2017-01-02 - Now uses different dftypes with flexible number of parameters. Removed in_sf_data. - Trick (MPIA)
     """
     #zeit_start = time.time()
 
@@ -101,13 +103,14 @@ def logprob_MCMC(
     datatype        = int(          info_MCMC['datatype'])
     pottype         = int(          info_MCMC['pottype'])
     sftype          = int(          info_MCMC['sftype'])
+    dftype          = int(          info_MCMC['dftype'])
     priortype       = int(          info_MCMC['priortype'])
     noStars         = int(          info_MCMC['noStars'])
+    norm_outlier    = float(        info_MCMC['norm_outlier'])
     marginal_coord  = int(          info_MCMC['marginal_coord'])
     xgl_marginal    = numpy.array(  info_MCMC['xgl_marginal'],dtype='float64')
     wgl_marginal    = numpy.array(  info_MCMC['wgl_marginal'],dtype='float64')
     _N_ERROR_SAMPLES= int(          info_MCMC['_N_ERROR_SAMPLES'])
-    in_sf_data      = numpy.array(  info_MCMC['in_sf_data'],dtype='float64')
     MCMC_use_fidDF  = bool(         info_MCMC['MCMC_use_fidDF'])
     aASG_accuracy   = numpy.array(  info_MCMC['aASG_accuracy'],dtype='float64')
     use_default_Delta = bool(       info_MCMC['use_default_Delta'])
@@ -133,8 +136,7 @@ def logprob_MCMC(
     dfPar_fit               = dfParEst_fit
     #overwrite the free parameters with current parameter set
     dfPar_fit[dfParFitBool] = dfPar_fit_MCMC
-    traf                    = numpy.array([ro,vo,vo,ro,ro])
-    dfPar_galpy             = numpy.exp(dfPar_fit) / traf
+    dfPar_galpy = scale_df_fit_parameters_to_galpy_units(dftype,dfPar_fit)
 
     #_____rescale data to galpy units_____
     ndata = noStars*_N_ERROR_SAMPLES
@@ -156,6 +158,15 @@ def logprob_MCMC(
                      'marginalization over "'+marginal_coord+'" is not yet '+
                      "implemented. So far only the marginalization over 'vT' is "+
                      "implemented.")
+
+    #_____prepare data for outlier model_____
+    data_for_outlier_model = None
+    if dftype == 12:
+        data_for_outlier_model = numpy.zeros((4,len(R_galpy)))
+        data_for_outlier_model[0,:] = R_galpy
+        data_for_outlier_model[1,:] = vR_galpy
+        data_for_outlier_model[2,:] = vT_galpy
+        data_for_outlier_model[3,:] = vz_galpy
 
     #_____calculate actions: of data and for density calculation in SF_____
     if MCMC_use_fidDF:
@@ -201,11 +212,8 @@ def logprob_MCMC(
                                 pot,
                                 aA,
                                 sf,
-                                dfPar_galpy[0], #hr
-                                dfPar_galpy[1], #sr
-                                dfPar_galpy[2], #sz
-                                dfPar_galpy[3], #hsr
-                                dfPar_galpy[4], #hsz
+                                dftype,
+                                dfPar_galpy,
                                 ro,vo,
                                 jr_data,
                                 lz_data,
@@ -216,10 +224,11 @@ def logprob_MCMC(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
+                                data_for_outlier_model=data_for_outlier_model,
+                                normalisation_for_outlier_model=norm_outlier,
                                 marginal_coord=marginal_coord,
                                 weights_marginal=weights_marginal,
-                                _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
-                                in_sf_data=in_sf_data
+                                _N_ERROR_SAMPLES=_N_ERROR_SAMPLES
                                 )
 
     if numpy.isnan(loglike):
@@ -254,7 +263,7 @@ def logprob_MCMC(
 
 def logprob_MCMC_fitDF_only(
             p,
-            def_param=(data_actions_shared,fiducial_actions_shared,info_MCMC)
+            def_param=(data_actions_shared,fiducial_actions_shared,info_MCMC,data_shared)
             ):
 
     """
@@ -269,6 +278,7 @@ def logprob_MCMC_fitDF_only(
         16-02-18 - Written (based on logprob_MCMC()). - Trick (MPIA)
         16-04-15 - Added the parameter aAS_Delta to setup_potential_and_ActionAngle_object().
         16-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
+        2017-01-02 - Now uses different dftypes with flexible number of parameters. Removed in_sf_data. - Trick (MPIA)
     """
 
     #_____Reference scales_____
@@ -294,13 +304,14 @@ def logprob_MCMC_fitDF_only(
     datatype        = int(          info_MCMC['datatype'])
     pottype         = int(          info_MCMC['pottype'])   #this might be a slim version of the pottype only
     sftype          = int(          info_MCMC['sftype'])
+    dftype          = int(          info_MCMC['dftype'])
     priortype       = int(          info_MCMC['priortype'])
     noStars         = int(          info_MCMC['noStars'])
+    norm_outlier    = float(        info_MCMC['norm_outlier'])
     marginal_coord  = int(          info_MCMC['marginal_coord'])
     xgl_marginal    = numpy.array(  info_MCMC['xgl_marginal'],dtype='float64')
     wgl_marginal    = numpy.array(  info_MCMC['wgl_marginal'],dtype='float64')
     _N_ERROR_SAMPLES= int(          info_MCMC['_N_ERROR_SAMPLES'])
-    in_sf_data      = numpy.array(  info_MCMC['in_sf_data'],dtype='float64')
     MCMC_use_fidDF  = bool(         info_MCMC['MCMC_use_fidDF'])
     aAS_Delta_DFonly = float(       info_MCMC['aAS_Delta_DFfitonly'])
 
@@ -325,10 +336,9 @@ def logprob_MCMC_fitDF_only(
     dfPar_fit               = dfParEst_fit
     #overwrite the free parameters with current parameter set
     dfPar_fit[dfParFitBool] = dfPar_fit_MCMC
-    traf                    = numpy.array([ro,vo,vo,ro,ro])
-    dfPar_galpy             = numpy.exp(dfPar_fit) / traf
+    dfPar_galpy             = scale_df_fit_parameters_to_galpy_units(dftype,dfPar_fit)
     #fiducial DF parameters in galpy units:
-    dfParFid_galpy          = numpy.exp(dfParFid_fit) / traf
+    dfParFid_galpy          = scale_df_fit_parameters_to_galpy_units(dftype,dfParFid_fit)
 
     #_____load precalculated actions_____
     #data actions:
@@ -354,6 +364,16 @@ def logprob_MCMC_fitDF_only(
         sys.exit("Error in logprob_MCM_fitDF_only(): So far the "+\
                  "marginalization for this special case is not yet "+\
                  "implemented.")
+
+    #_____prepare data for outlier model_____
+    data_for_outlier_model = None
+    if dftype == 12:
+        data_for_outlier_model = numpy.zeros((4,len(jr_data)))
+        data_for_outlier_model[0,:] = data_shared[0,:]/ro # R_data/ro
+        data_for_outlier_model[1,:] = data_shared[1,:]/vo #vR_data/vo
+        data_for_outlier_model[2,:] = data_shared[2,:]/vo #vT_data/vo
+        data_for_outlier_model[3,:] = data_shared[4,:]/vo #vz_data/vo
+    
 
     #_____setup potential and actionAngle object_____
     #Attention: In case the actual potential uses a StaeckelFudgeGrid
@@ -418,11 +438,8 @@ def logprob_MCMC_fitDF_only(
                                 pot,
                                 aA,
                                 sf,
-                                dfPar_galpy[0], #hr
-                                dfPar_galpy[1], #sr
-                                dfPar_galpy[2], #sz
-                                dfPar_galpy[3], #hsr
-                                dfPar_galpy[4], #hsz
+                                dftype
+                                dfPar_galpy,
                                 ro,vo,
                                 jr_data,
                                 lz_data,
@@ -433,10 +450,11 @@ def logprob_MCMC_fitDF_only(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
+                                data_for_outlier_model=data_for_outlier_model,
+                                normalisation_for_outlier_model=norm_outlier,  
                                 marginal_coord=marginal_coord,
                                 weights_marginal=weights_marginal,
-                                _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
-                                in_sf_data=in_sf_data
+                                _N_ERROR_SAMPLES=_N_ERROR_SAMPLES
                                 )
 
     if numpy.isnan(loglike):
@@ -469,7 +487,7 @@ def logprob_MCMC_fitDF_only(
 #------------------------------------------------------------------------
 
 
-def loglikelihood_potPar(pot,aA,sf,
+def loglikelihood_potPar(pot,aA,sf,dftype,
                          _N_SPATIAL_R,_N_SPATIAL_Z,
                          ro,vo,
                          jr_data,lz_data,jz_data,
@@ -480,8 +498,9 @@ def loglikelihood_potPar(pot,aA,sf,
                          _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,_MULTI,
                          datatype,noStars,
                          pottype,priortype,potPar_phys, #needed for calculating the prior
+                         data_for_outlier_model=None,normalisation_for_outlier_model=None, #needed for outlier model
                          marginal_coord=None,weights_marginal=None,
-                         _N_ERROR_SAMPLES=None,in_sf_data=None):
+                         _N_ERROR_SAMPLES=None):
 
     """
     NAME:
@@ -529,7 +548,10 @@ def loglikelihood_potPar(pot,aA,sf,
     HISTORY:
         2013-??-?? - First version by Jo Bovy.
         2016-12-27 - Now makes use of function that calculates for a given priortype a non-flat prior for the model parameters. - Trick (MPIA)
+        2017-01-02 - Now uses different dftypes with flexible number of parameters. Removed in_sf_data. - Trick (MPIA)
     """
+
+    sys.exit("TO DO: Make sure that each instance of loglikelihood_potPar uses the correct input parameters.")
 
     #_____initialize likelihood grid_____
     ndfs = len(dfParArr_fit[:,0])  #number of qdfs to test
@@ -570,8 +592,8 @@ def loglikelihood_potPar(pot,aA,sf,
     sf.calculate_actions_on_vig_using_fid_pot(qdf_fid,_multi=_MULTI)"""
 
     #_____p_DF parameters in galpy units_____
-    traf = numpy.array([ro,vo,vo,ro,ro])
-    dfParArr_galpy = numpy.exp(dfParArr_fit) / traf
+    dfParArr_galpy = scale_df_fit_parameters_to_galpy_units(dftype,dfParArr_fit)
+
 
     #_____start iteration through distribution functions_____
     #print "   * iterate through qDFs"   
@@ -580,22 +602,19 @@ def loglikelihood_potPar(pot,aA,sf,
 
             #_____likelihood_____
             loglike_out[jj] = loglikelihood_dfPar(
-                                        pot,aA,sf,
-                                        dfParArr_galpy[jj,0], #hr
-                                        dfParArr_galpy[jj,1], #sr
-                                        dfParArr_galpy[jj,2], #sz
-                                        dfParArr_galpy[jj,3], #hsr
-                                        dfParArr_galpy[jj,4], #hsz
+                                        pot,aA,sf,dftype,
+                                        dfParArr_galpy[jj,:],#df and outlier parameters
                                         ro,vo,
                                         jr_data,lz_data,jz_data,
                                         rg_data,
                                         kappa_data,nu_data,Omega_data,
                                         _XGL,_WGL,
                                         datatype,noStars,
+                                        data_for_outlier_model=data_for_outlier_model,
+                                        normalisation_for_outlier_model=normalisation_for_outlier_model,
                                         marginal_coord=marginal_coord,
                                         weights_marginal=weights_marginal,
-                                        _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
-                                        in_sf_data=in_sf_data
+                                        _N_ERROR_SAMPLES=_N_ERROR_SAMPLES
                                         )
 
     elif _MULTI > 1:
@@ -604,22 +623,19 @@ def loglikelihood_potPar(pot,aA,sf,
         #    and calculate each on a separate core:
         loglike_out = multi.parallel_map(
                             (lambda x: loglikelihood_dfPar(
-                                            pot,aA,sf,
-                                            dfParArr_galpy[x,0], #hr
-                                            dfParArr_galpy[x,1], #sr
-                                            dfParArr_galpy[x,2], #sz
-                                            dfParArr_galpy[x,3], #hsr
-                                            dfParArr_galpy[x,4], #hsz
+                                            pot,aA,sf,dftype,
+                                            dfParArr_galpy[x,:], #df and outlier parameters
                                             ro,vo,
                                             jr_data,lz_data,jz_data,
                                             rg_data,
                                             kappa_data,nu_data,Omega_data,
                                             _XGL,_WGL,
                                             datatype,noStars,
+                                            data_for_outlier_model=data_for_outlier_model,
+                                            normalisation_for_outlier_model=normalisation_for_outlier_model,
                                             marginal_coord=marginal_coord,
                                             weights_marginal=weights_marginal,
-                                            _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
-                                            in_sf_data=in_sf_data
+                                            _N_ERROR_SAMPLES=_N_ERROR_SAMPLES
                                             )),
                             range(ndfs),
                             numcores=numpy.amin([
@@ -648,24 +664,23 @@ def loglikelihood_potPar(pot,aA,sf,
 
 #-------------------------------------------------------------------
 
-def loglikelihood_dfPar(pot,aA,sf,
-                        hr,sr,sz,hsr,hsz,
+def loglikelihood_dfPar(pot,aA,sf,dftype,
+                        dfPar_galpy,#[hr,sr,sz,hsr,hsz,outlier model parameters]
                         ro,vo,
                         jr_data,lz_data,jz_data,
                         rg_data,
                         kappa_data,nu_data,Omega_data,
                         _XGL,_WGL,
                         datatype,noStars,
-                        oltype,olPar_galpy,outlier_lnprob_i=None,   #used for outlier models
+                        data_for_outlier_model=None,normalisation_for_outlier_model=None,   #used for outlier model
                         marginal_coord=None,weights_marginal=None,  #used for marginalization over one coordinate
-                        _N_ERROR_SAMPLES=None,in_sf_data=None,return_likelihoods_of_stars=False):
+                        _N_ERROR_SAMPLES=None,return_likelihoods_of_stars=False):
     """
         NAME:
         PURPOSE:
         INPUT:
-            oltype - int scalar - defines the outlier model to use
-            olPar_galpy - float array - contains the parameters used for the outlier model
-            outlier_lnprob_i - float array - contains the outlier ln(probability) for each star, needed for oltype=2. This probability needs to be in units of [xv]^{-3}
+            dftype - int scalar - defines the DF (and outlier) model to use
+            dfPar_galpy - float array - contains the qDF parameters, and the parameters used for the outlier model
         OUTPUT:
         HISTORY:
             2015-??-?? - Written - Trick (MPIA)
@@ -673,23 +688,35 @@ def loglikelihood_dfPar(pot,aA,sf,
             2016-02-16 - Made outlier model optional. - Trick (MPIA)
             2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
             2016-12-31 - Allowed for different outlier models. Restructured the function concerning the different data types to make the code slimmer. - Trick (MPIA)
+            2017-01-02 - Removed in_sf_data keyword. Finished implementing outlier model dftype == 12. - Trick (MPIA)
     """
 
     sys.exit("TO DO: Make sure that each instance of loglikelihood_dfPar uses the correct input parameters.")
     
-    #_____initialize qdf_____
+    #_____initialize df_____
     # set parameters of distribution function:
-    qdf = quasiisothermaldf(
-                            hr,sr,sz,hsr,hsz,   
-                            pot=pot,aA=aA,
-                            cutcounter=True,
-                            ro=ro)
-    # (*Note:* if cutcounter=True, set counter-rotating stars' 
-    #          DF to zero)
+    if dftype in [1,11,12]:
+        #1:  single qDF, no outlier model
+        #11: single qDF, robust likelihood
+        #12: single qDF, mixture model for outliers
+        hr  = dfPar_galpy[0]
+        sr  = dfPar_galpy[1]
+        sz  = dfPar_galpy[2]
+        hsr = dfPar_galpy[3]
+        hsz = dfPar_galpy[4]
+        qdf = quasiisothermaldf(
+                                hr,sr,sz,hsr,hsz,   
+                                pot=pot,aA=aA,
+                                cutcounter=True,
+                                ro=ro)
+        # (*Note:* if cutcounter=True, set counter-rotating stars' 
+        #          DF to zero)
+    else:
+        sys.exit("Error in loglikelihood_dfPar(): dftype = "+str(dftype)+" is not defined.")
 
     #_____integrate density over effective volume_____
     # set distribution function in selection function:
-    sf.reset_df(qdf)
+    sf.reset_df(df)
     # setup density grid for interpolating the density 
     # (*Note 1:* we do not use evaluation on multiple cores here, 
     #            because we rather evaluate each qdf on a separate core)
@@ -702,7 +729,7 @@ def loglikelihood_dfPar(pot,aA,sf,
 
     #_____evaluate DF for each data point_____
     #this is log(likelihood) of all data points given p_DF and p_Phi:
-    lnL_i = qdf(
+    lnL_i = df(
                 (jr_data,lz_data,jz_data),
                 rg   =rg_data,
                 kappa=kappa_data,
@@ -714,34 +741,39 @@ def loglikelihood_dfPar(pot,aA,sf,
     #_____normalize likelihood_____
     # for current p_DF and p_Phi:
     lnL_i -= math.log(dens_norm)
+    # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
+    #          in the likelihood 
+    #          L({x,v}|p) = Sum_i sf(x_i) * df(x_i,v_v) / norm 
+    #          with norm = int sf(x) * df(x,v) dx dv 
+    #          and only evaluate L({x,v}|p) = Sum_i df(x_i,v_i) / norm)
 
     #_____units of the likelihood_____
     # [L_i dx^3 dv^3] = 1 --> [L_i] = [xv]^{-3}
     logunits = 3. * numpy.log(ro*vo)
     lnL_i -= logunits
 
-    #_____which outlier model to use?_____
-    if not oltype in [0,1,2]:
-        #0: no outlier model
-        #1: robust likelihood
-        #2: mixture model
-        sys.exit("Error in loglikelihood_dfPar: "+\
-                     "outlier type "+str(oltype)+" is not defined.")
-
-    if oltype == 2:
+    if dftype == 12:
         #_____apply outlier model: mixture model_____
-        if outlier_lnprob_i is None:
+        if data_for_outlier_model is None:
             sys.exit("Error in loglikelihood_dfPar: "+\
                  "To use the outlier mixture model (oltype = 2), the keyword "+\
-                 "outlier_prob needs to be set.")
-        #the outlier fraction p_ol is most of the time also a fit parameter:
-        p_ol     = olPar_galpy[0]
+                 "data_for_outlier_model needs to be set.")
+        #dfPar = [hr,sr,sz,hsr,hsz,p_out,sv_out,hv_out]
+        lnL_i_outl = calculate_outlier_model(
+                            dftype,dfPar_galpy,
+                            ro,vo,
+                            data_galpy=data_for_outlier_model,
+                            sf=sf,
+                            norm_out=normalisation_for_outlier_model
+                            )
+        #the outlier fraction p_out is most of the time also a fit parameter:
+        p_out     = dfPar_galpy[5]
         #likelihood according to physical model, units: [xv]^{-3}:
         L_i_phys = numpy.exp(lnL_i)
         #likelihood according to outlier model, units: [xv]^{-3}:
-        L_i_outl = numpy.exp(outlier_lnprob_i)
-        #mixture model (analogous to eq. 17 in Hogg, Bovy & Lang 2010):
-        L_i_tot  = (1.-p_ol) * L_i_phys + p_ol * L_i_outl
+        L_i_outl = numpy.exp(lnL_i_outl)
+        #mixture model (analogous to eq. 17 in Hogg, Bovy & Lang 2010, eq. 26 in Bovy & Rix (2013)):
+        L_i_tot  = (1.-p_out) * L_i_phys + p_out * L_i_outl
         #back to log:
         lnL_i    = numpy.log(L_i_tot)
         print "TO DO: Ask Jo, in which order to apply outlier model and units to likelihood."
@@ -771,19 +803,20 @@ def loglikelihood_dfPar(pot,aA,sf,
         # reshaping such that the error samples belonging to one real 
         # observed data point are again in the same row:
         L_err       = numpy.reshape(L_err     ,(_N_ERROR_SAMPLES,noStars))
-        in_sf_data  = numpy.reshape(in_sf_data,(_N_ERROR_SAMPLES,noStars))
         # the convolution integral of the likelihood with the error gaussian
         # is calculated in the following way:
         #       int L(x|p) * N[x_i,e_x](x) dx'
-        #               ~ 1/M * sum_j=1^M qdf(x_j) * sf(x_j) / norm
+        #               ~ 1/M * sum_j=1^M df(x_j) * sf(x_j) / norm
         # where x_j sample N[x_i,e_x](x_j), 
         # and M = _NERRSAMPLE,
-        # and L(x|p) = qdf(x) * sf(x) / norm = L_err * insf_data
-        # and in_sf_data = sf(x) is 0/1 when outside/inside of observed volume.
-        # (*Note:* axis=0 means summing only over rows.)
+        # and L(x|p) = df(x) * sf(x) / norm = L_err * sf(x)
         # (*Note:* Our error approximation assumes the spatial position 
-        #          to be perfectly known. in_sf_data contains therefore only 1.)
-        L_i = numpy.sum(L_err * in_sf_data,axis=0) / float(_N_ERROR_SAMPLES)
+        #          to be perfectly known and inside the survey volume. 
+        #          sf(x) is > 0 for each error sample.)
+        # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
+        #          in the likelihood and only evaluate L(x|p) = df(x) / norm)
+        # (*Note:* axis=0 means summing only over rows.)
+        L_i = numpy.sum(L_err,axis=0) / float(_N_ERROR_SAMPLES)
         # back to log likelihood:
         lnL_i = numpy.log(L_i)
         if len(lnL_i) != noStars: 
@@ -796,7 +829,9 @@ def loglikelihood_dfPar(pot,aA,sf,
         #3: perfect mock data, marginalization over one coordinate
 
         sys.exit("Error in loglikelihood_dfPar(): "+\
-                 "Not sure if code for datatype = 3 is still doing what it is supposed to. Check!")
+                 "Not sure if code for datatype = 3 is still doing "+\
+                 "what it is supposed to. It might not work together "+\
+                 "with dftype=12. Check!")
 
         #_____loglikelihood for each error sample_____
         lnL_j_all = lnL_i + logunits
@@ -837,13 +872,13 @@ def loglikelihood_dfPar(pot,aA,sf,
                  "data type "+str(datatype)+" is not defined.")    
 
 
-    if oltype == 1:
+    if dftype == 11:
         #_____simple outlier model: robust likelihood_____
         #all likelihoods have to be bigger than $\epsilon \cdot \bar{\mathscr{L}}$
         #analogous to what was used in Trick, Bovy, D'Onghia & Rix (2017)
         L_i      = numpy.exp(lnL_i)
         median_L = numpy.median(L_i)
-        epsilon  = olPar_galpy[0] #originally: 0.001 # = 0.1 %
+        epsilon  = 0.001 # = 0.1 %
         L_i      = numpy.maximum(L_i,epsilon*median_L)
         lnL_i    = numpy.log(L_i)
 

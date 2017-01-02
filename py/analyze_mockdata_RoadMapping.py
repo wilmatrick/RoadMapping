@@ -20,7 +20,7 @@ from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_Select
 from setup_parameter_fit import setup_parameter_fit
 from read_and_setup_data_set import read_and_setup_data_set
 import likelihood
-from likelihood import loglikelihood_potPar, loglikelihood_dfPar
+from likelihood import loglikelihood_potPar
 from emcee.interruptible_pool import InterruptiblePool as Pool
 from precalc_actions import setup_data_actions
 from setup_shared_data import shared_data_MCMC, shared_data_DFfit_only_MCMC, shared_data_incompleteShell
@@ -474,15 +474,13 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             info_MCMC
             )
         #write shared data into .npy binary files:
-        if not DF_fit_only:     
-            #...standard case: 
-            #                  write (R,vR,vT,z,vz) into file...
-            shared_data_MCMC(
-                     R_data,vR_data,vT_data,z_data,vz_data,
-                     current_path)
-            #file names:
-            shared_data_filename = current_path+'_shared_data.npy'
-        else:   
+        #write (R,vR,vT,z,vz) into file...
+        shared_data_MCMC(
+                 R_data,vR_data,vT_data,z_data,vz_data,
+                 current_path)
+        #file names:
+        shared_data_filename = current_path+'_shared_data.npy'
+        if DF_fit_only:   
             #...special case: potential is kept fixed: 
             #                 write all pre-calculated actions into file...
             shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
@@ -513,9 +511,8 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____3. delete files immediately_____
         os.remove(current_path_filename)
         os.remove(info_MCMC_filename)
-        if not DF_fit_only: #standard case
-            os.remove(shared_data_filename)
-        else:   #special case: potential is kept fixed
+        os.remove(shared_data_filename)
+        if DF_fit_only:   #special case: potential is kept fixed
             os.remove(shared_data_actions_filename)
             os.remove(shared_fiducial_actions_filename)
         if sftype == 4 and not DF_fit_only: #special case: SF_IncompleteShell

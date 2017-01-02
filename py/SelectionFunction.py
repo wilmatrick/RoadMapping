@@ -1509,14 +1509,33 @@ class SelectionFunction:
             2014-09-23 - Started - Wilma Trick (MPIA)
             2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
             2016-09-22 - Removed warning for incompleteness. The derived classes should take care of that.
+            2017-01-02 - Included error message, when xgl and wgl are not given.
         """
 
         #if Gauss-Legendre points and weights are already given, choose fast way of integration:
         if xgl is not None and wgl is not None:
             return self._Mtot_fastGL(xgl,wgl)
+        else:
+            sys.exit("Error in SelectionFunction.Mtot(): It appears that you want to calculate sf.Mencl(self._Rmax,ngl=ngl) instead of self._Mtot_fastGL(xgl,wgl). This is slower and more awkward. If this is indeed what you want to do, remove this error message.")
 
-        #otherwise integrate over each dimension separately:
-        return self.Mencl(self._Rmax,ngl=ngl)
+            #otherwise integrate over each dimension separately:
+            return self.Mencl(self._Rmax,ngl=ngl)
+
+   #----------------------------------------------------------------
+
+    def sftot(self,xgl=None,wgl=None):
+        """
+            NAME:
+               sftot
+            PURPOSE:
+                integrates the selection function over the volume using Gauss Legendre quadrature.
+                Needed for normalizing outlier model in dftype=12.
+            INPUT:
+            OUTPUT:
+            HISTORY:
+               2017-01-02 - Written. - Trick (MPIA)
+        """
+        return self._sftot_fastGL(xgl,wgl)
 
 
     #-------------------------------------------------------------------------------------

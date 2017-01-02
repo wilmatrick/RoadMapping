@@ -369,6 +369,34 @@ class SF_Sphere(SelectionFunction):
 
     #-----------------------------------------------------------------
 
+    def _sftot_fastGL(self,xgl,wgl):
+
+        """
+            NAME:
+               _sftot_fastGL
+            PURPOSE:
+                integrates the selection function over the volume using Gauss Legendre quadrature.
+            INPUT:
+            OUTPUT:
+            HISTORY:
+               2017-01-02 - Written. - Trick (MPIA)
+               Needed for normalizing outlier model in dftype=12.
+        """
+
+        if self._with_incompleteness:
+            sys.exit("Error in SF_Sphere._sftot_fastGL(): "+
+                     "Function not yet implemented to take care of imcompleteness.")
+
+        #define function func(R,z,phi) to integrate:
+        func = lambda rr,zz,pp: 1.
+        
+        #total mass in selection function:
+        sf_tot = self._fastGLint_sphere(func,xgl,wgl)
+        return sf_tot
+
+
+    #-----------------------------------------------------------------
+
     def _spatialSampleDF_complete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
 
         """
