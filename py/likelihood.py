@@ -11,7 +11,7 @@ from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
 from prior import calculate_logprior
-from outlier_model import scale_df_fit_parameters_to_galpy_units
+from outlier_model import scale_df_fit_to_galpy
 
 #---------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ def logprob_MCMC(
     dfPar_fit               = dfParEst_fit
     #overwrite the free parameters with current parameter set
     dfPar_fit[dfParFitBool] = dfPar_fit_MCMC
-    dfPar_galpy = scale_df_fit_parameters_to_galpy_units(dftype,dfPar_fit)
+    dfPar_galpy = scale_df_fit_to_galpy(dftype,ro,vo,dfPar_fit)
 
     #_____rescale data to galpy units_____
     ndata = noStars*_N_ERROR_SAMPLES
@@ -160,18 +160,18 @@ def logprob_MCMC(
                      "implemented.")
 
     #_____prepare data for outlier model_____
-    data_for_outlier_model = None
+    data_for_outlier_model_galpy = None
     if dftype == 12:
-        data_for_outlier_model = numpy.zeros((4,len(R_galpy)))
-        data_for_outlier_model[0,:] = R_galpy
-        data_for_outlier_model[1,:] = vR_galpy
-        data_for_outlier_model[2,:] = vT_galpy
-        data_for_outlier_model[3,:] = vz_galpy
+        data_for_outlier_model_galpy = numpy.zeros((4,len(R_galpy)))
+        data_for_outlier_model_galpy[0,:] = R_galpy
+        data_for_outlier_model_galpy[1,:] = vR_galpy
+        data_for_outlier_model_galpy[2,:] = vT_galpy
+        data_for_outlier_model_galpy[3,:] = vz_galpy
 
     #_____calculate actions: of data and for density calculation in SF_____
     if MCMC_use_fidDF:
         # the integration range for the density is set by the fiducial QDF!
-        pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,
+        pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,dftype,
                         potPar_phys,
                         dfParFid_fit, # <-- !!!
                         sfParEst_phys,
@@ -183,7 +183,7 @@ def logprob_MCMC(
                         incomp_shared=incomp_shared)
     else:
         # the integration range for the density is set by the current QDF!
-        pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,
+        pot,aA,sf,actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,dftype,
                         potPar_phys,
                         dfPar_fit, # <-- !!!
                         sfParEst_phys,
@@ -224,7 +224,7 @@ def logprob_MCMC(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
-                                data_for_outlier_model=data_for_outlier_model,
+                                data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                 normalisation_for_outlier_model=norm_outlier,
                                 marginal_coord=marginal_coord,
                                 weights_marginal=weights_marginal,
@@ -336,9 +336,9 @@ def logprob_MCMC_fitDF_only(
     dfPar_fit               = dfParEst_fit
     #overwrite the free parameters with current parameter set
     dfPar_fit[dfParFitBool] = dfPar_fit_MCMC
-    dfPar_galpy             = scale_df_fit_parameters_to_galpy_units(dftype,dfPar_fit)
+    dfPar_galpy             = scale_df_fit_to_galpy(dftype,ro,vo,dfPar_fit)
     #fiducial DF parameters in galpy units:
-    dfParFid_galpy          = scale_df_fit_parameters_to_galpy_units(dftype,dfParFid_fit)
+    dfParFid_galpy          = scale_df_fit_to_galpy(dftype,ro,vo,dfParFid_fit)
 
     #_____load precalculated actions_____
     #data actions:
@@ -366,13 +366,13 @@ def logprob_MCMC_fitDF_only(
                  "implemented.")
 
     #_____prepare data for outlier model_____
-    data_for_outlier_model = None
+    data_for_outlier_model_galpy = None
     if dftype == 12:
-        data_for_outlier_model = numpy.zeros((4,len(jr_data)))
-        data_for_outlier_model[0,:] = data_shared[0,:]/ro # R_data/ro
-        data_for_outlier_model[1,:] = data_shared[1,:]/vo #vR_data/vo
-        data_for_outlier_model[2,:] = data_shared[2,:]/vo #vT_data/vo
-        data_for_outlier_model[3,:] = data_shared[4,:]/vo #vz_data/vo
+        data_for_outlier_model_galpy = numpy.zeros((4,len(jr_data)))
+        data_for_outlier_model_galpy[0,:] = data_shared[0,:]/ro # R_data/ro
+        data_for_outlier_model_galpy[1,:] = data_shared[1,:]/vo #vR_data/vo
+        data_for_outlier_model_galpy[2,:] = data_shared[2,:]/vo #vT_data/vo
+        data_for_outlier_model_galpy[3,:] = data_shared[4,:]/vo #vz_data/vo
     
 
     #_____setup potential and actionAngle object_____
@@ -411,18 +411,22 @@ def logprob_MCMC_fitDF_only(
         # over vR and vz. (The actions at the grid points in between are
         # already precalculated, but for the pre-factor of the Gauss-Legendre
         # integration we need the integration limits again.)
-        qdf_fid = quasiisothermaldf(
-                    dfParFid_galpy[0],
-                    dfParFid_galpy[1],
-                    dfParFid_galpy[2],
-                    dfParFid_galpy[3],
-                    dfParFid_galpy[4],
-                    pot=pot,aA=aA,
-                    cutcounter=True, 
-                    ro=ro
-                    )
-        # (*Note:* if cutcounter=True, set counter-rotating stars' 
-        #          DF to zero)
+        if dftype in [0,11,12]:
+            qdf_fid = quasiisothermaldf(
+                        dfParFid_galpy[0],
+                        dfParFid_galpy[1],
+                        dfParFid_galpy[2],
+                        dfParFid_galpy[3],
+                        dfParFid_galpy[4],
+                        pot=pot,aA=aA,
+                        cutcounter=True, 
+                        ro=ro
+                        )
+            # (*Note:* if cutcounter=True, set counter-rotating stars' 
+            #          DF to zero)
+        else:
+            sys.exit("Error in logprob_MCMC_fitDF_only(): dftype = "+\
+                     str(dftype)+" is not defined.")
 
         # Now use the precalculated fiducial actions to set up the density
         # interpolation grid:
@@ -450,7 +454,7 @@ def logprob_MCMC_fitDF_only(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
-                                data_for_outlier_model=data_for_outlier_model,
+                                data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                 normalisation_for_outlier_model=norm_outlier,  
                                 marginal_coord=marginal_coord,
                                 weights_marginal=weights_marginal,
@@ -498,7 +502,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                          _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,_MULTI,
                          datatype,noStars,
                          pottype,priortype,potPar_phys, #needed for calculating the prior
-                         data_for_outlier_model=None,normalisation_for_outlier_model=None, #needed for outlier model
+                         data_for_outlier_model_galpy=None,normalisation_for_outlier_model=None, #needed for outlier model
                          marginal_coord=None,weights_marginal=None,
                          _N_ERROR_SAMPLES=None):
 
@@ -559,19 +563,24 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
 
     #_____setup fiducial qdf and calculate actions on velocity grid_____
     # velocity grid that corresponds to the sigmas of the fiducial qdf.
-    #print "   * calculate fiducial actions"   
-    qdf_fid = quasiisothermaldf(
-                dfParFid_galpy[0],
-                dfParFid_galpy[1],
-                dfParFid_galpy[2],
-                dfParFid_galpy[3],
-                dfParFid_galpy[4],
-                pot=pot,aA=aA,
-                cutcounter=True, 
-                ro=ro
-                )
-    # (*Note:* if cutcounter=True, set counter-rotating stars' 
-    #          DF to zero)
+    #print "   * calculate fiducial actions"
+    if dftype in [0,11,12]: 
+        qdf_fid = quasiisothermaldf(
+                    dfParFid_galpy[0],
+                    dfParFid_galpy[1],
+                    dfParFid_galpy[2],
+                    dfParFid_galpy[3],
+                    dfParFid_galpy[4],
+                    pot=pot,aA=aA,
+                    cutcounter=True, 
+                    ro=ro
+                    )
+        # (*Note:* if cutcounter=True, set counter-rotating stars' 
+        #          DF to zero)
+    else:
+        sys.exit("Error in loglikelihood_potPar(): dftype = "+\
+                 str(dftype)+" is not defined."
+
     sf.set_fiducial_df_actions_Bovy(
                qdf_fid,
                nrs=_N_SPATIAL_R,nzs=_N_SPATIAL_Z,
@@ -592,7 +601,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     sf.calculate_actions_on_vig_using_fid_pot(qdf_fid,_multi=_MULTI)"""
 
     #_____p_DF parameters in galpy units_____
-    dfParArr_galpy = scale_df_fit_parameters_to_galpy_units(dftype,dfParArr_fit)
+    dfParArr_galpy = scale_df_fit_to_galpy(dftype,ro,vo,dfParArr_fit)
 
 
     #_____start iteration through distribution functions_____
@@ -610,7 +619,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                                         kappa_data,nu_data,Omega_data,
                                         _XGL,_WGL,
                                         datatype,noStars,
-                                        data_for_outlier_model=data_for_outlier_model,
+                                        data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                         normalisation_for_outlier_model=normalisation_for_outlier_model,
                                         marginal_coord=marginal_coord,
                                         weights_marginal=weights_marginal,
@@ -631,7 +640,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                                             kappa_data,nu_data,Omega_data,
                                             _XGL,_WGL,
                                             datatype,noStars,
-                                            data_for_outlier_model=data_for_outlier_model,
+                                            data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                             normalisation_for_outlier_model=normalisation_for_outlier_model,
                                             marginal_coord=marginal_coord,
                                             weights_marginal=weights_marginal,
@@ -672,7 +681,7 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
                         kappa_data,nu_data,Omega_data,
                         _XGL,_WGL,
                         datatype,noStars,
-                        data_for_outlier_model=None,normalisation_for_outlier_model=None,   #used for outlier model
+                        data_for_outlier_model_galpy=None,normalisation_for_outlier_model=None,   #used for outlier model
                         marginal_coord=None,weights_marginal=None,  #used for marginalization over one coordinate
                         _N_ERROR_SAMPLES=None,return_likelihoods_of_stars=False):
     """
@@ -695,8 +704,8 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
     
     #_____initialize df_____
     # set parameters of distribution function:
-    if dftype in [1,11,12]:
-        #1:  single qDF, no outlier model
+    if dftype in [0,11,12]:
+        #0:  single qDF, no outlier model
         #11: single qDF, robust likelihood
         #12: single qDF, mixture model for outliers
         hr  = dfPar_galpy[0]
@@ -754,15 +763,15 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
 
     if dftype == 12:
         #_____apply outlier model: mixture model_____
-        if data_for_outlier_model is None:
+        if data_for_outlier_model_galpy is None:
             sys.exit("Error in loglikelihood_dfPar: "+\
                  "To use the outlier mixture model (oltype = 2), the keyword "+\
-                 "data_for_outlier_model needs to be set.")
+                 "data_for_outlier_model_galpy needs to be set.")
         #dfPar = [hr,sr,sz,hsr,hsz,p_out,sv_out,hv_out]
         lnL_i_outl = calculate_outlier_model(
                             dftype,dfPar_galpy,
                             ro,vo,
-                            data_galpy=data_for_outlier_model,
+                            data_galpy=data_for_outlier_model_galpy,
                             sf=sf,
                             norm_out=normalisation_for_outlier_model
                             )

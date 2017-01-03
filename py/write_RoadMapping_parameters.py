@@ -5,7 +5,7 @@ import os
 from read_RoadMapping_parameters import read_RoadMapping_parameters
 
 def write_RoadMapping_parameters(datasetname,testname=None,
-                            datatype=None,pottype=None,sftype=None,priortype=None,
+                            datatype=None,pottype=None,sftype=None,dftype=None,priortype=None,
                             noStars=None,
                             noMCMCsteps=None,noMCMCburnin=None,MCMC_use_fidDF=None,
                             N_spatial=None,N_velocity=None,N_sigma=None,vT_galpy_max=None,
@@ -43,6 +43,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - Added priortype. - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -73,6 +74,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (datatype  is None): datatype  = out['datatype']
     if update and (pottype   is None): pottype   = out['pottype']
     if update and (sftype    is None): sftype    = out['sftype']
+    if update and (dftype    is None): dftype    = out['dftype']
     if update and (priortype is None): priortype = out['priortype']
 
     f.write('# =========================================\n')
@@ -85,8 +87,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     f.write('# \n')
     f.write('# ***** GENERAL SETUP *****\n')
     f.write('# * DATA & MODEL:\n')
-    f.write('# \t\t data type / potential type / selection function type / priortype / --- / file version)\n')
-    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t'+str(priortype)+'\t0\t2\n')
+    f.write('# \t\t data type / potential type / selection function type / df type / prior type / file version)\n')
+    f.write('\t\t\t'+str(datatype)+'\t'+str(pottype)+'\t'+str(sftype)+'\t'+str(dftype)+'\t'+str(priortype)+'\t2\n')
 
     if   datatype == 1:  f.write('# data               type: 1 = perfect mock data\n')
     elif datatype == 2:  f.write('# data               type: 2 = mock data: observables with measurement errors\n')
@@ -118,6 +120,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif sftype   == 32: f.write('# selection function type: 32 = sphere (box completeness + free center)\n')
     elif sftype   == 4:  f.write('# selection function type: 4 = incomplete shell\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): selection function type "+str(sftype)+" is not defined.")
+    if   dftype   == 0:  f.write('# distribution funct type: 0 = quasiisothermal df (Binney & McMillan 2011)\n')
+    elif dftype   == 11: f.write('# distribution funct type: 11 = quasiisothermal df (Binney & McMillan 2011) + robust likelihood\n')
+    elif dftype   == 12: f.write('# distribution funct type: 12 = quasiisothermal df (Binney & McMillan 2011) + halo outlier model\n')
+    else: sys.exit("Error in write_RoadMapping_parameters(): distribution function type "+str(dftype)+" is not defined.")
     if   priortype == 0: f.write('# prior              type: 0 = flat priors on potential and log(DF) parameters.')
     elif priortype == 1: f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.')
     else: sys.exit("Error in write_RoadMapping_parameters(): prior type "+str(priortype)+" is not defined.")
@@ -531,25 +537,24 @@ def write_RoadMapping_parameters(datasetname,testname=None,
             if dfParFid_phys is None: dfParFid_phys  = out['dfParFid_phys ']      
 
     #_____default values_____
-    traf = numpy.array([_REFR0,_REFV0,_REFV0,_REFR0,_REFR0])
     #true values and estimate:
     if (dfParTrue_phys is None) and (dfParEst_phys is None): 
         sys.exit("Error in write_RoadMapping_parameters(): "+\
                  "either dfParTrue_phys or dfParEst_phys must be set.")
-    if dfParTrue_phys is None: dfParTrue_phys = numpy.zeros(5)
+    if dfParTrue_phys is None: dfParTrue_phys = numpy.zeros(len(dfParEst_phys))
     else:                      dfParTrue_phys = numpy.array(dfParTrue_phys,dtype=float)
     if dfParEst_phys  is None: dfParEst_phys  = numpy.array(dfParTrue_phys,copy=True)
     else:                      dfParEst_phys  = numpy.array(dfParEst_phys ,dtype=float)
-    dfParEst_fit   = numpy.log(numpy.array(dfParEst_phys) / traf)
-    dfParTrue_fit  = numpy.log(numpy.array(dfParTrue_phys) / traf)
+    dfParEst_fit   = scale_df_phys_to_fit(dftype,dfParEst_phys)
+    dfParTrue_fit  = scale_df_phys_to_fit(dftype,dfParTrue_phys)
 
     #which parameters will be fitted:
     if (dfParFitNo is None) and (dfParFitBool is None):
-        dfParFitNo   = numpy.array([1,1,1,1,1]).astype(int)
+        dfParFitNo   = numpy.ones(len(dfParEst_phys),dtype=int)
         dfParFitBool = numpy.zeros(len(dfParFitNo),dtype=bool)
     if dfParFitNo   is None:
         dfParFitBool = numpy.array(dfParFitBool,dtype=bool)
-        dfParFitNo = numpy.ones(5,dtype=int)
+        dfParFitNo = numpy.ones(len(dfParFitBool),dtype=int)
         dfParFitNo[dfParFitBool] = 3
     if dfParFitBool is None: dfParFitBool   = numpy.array((dfParFitNo > 1),dtype=bool)
     else:                    dfParFitBool   = numpy.array(dfParFitBool,dtype=bool)
@@ -560,66 +565,108 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         dfParMin_phys = numpy.array(dfParEst_phys,copy=True)
         Min_default = True
     else:
-        dfParMin_phys = numpy.exp(numpy.array(dfParMin_fit,dtype=float)) * traf
+        dfParMin_phys = scale_df_fit_to_phys(dftype,dfParMin_fit)
     if dfParMax_fit is None: 
         dfParMax_phys = numpy.array(dfParEst_phys,copy=True)
         Max_default = True
     else: 
-        dfParMax_phys = numpy.exp(numpy.array(dfParMax_fit,dtype=float)) * traf
-    for ii in range(5):
+        dfParMax_phys = scale_df_fit_to_phys(dftype,dfParMax_fit)
+    for ii in range(len(dfParFitNo)):
         if dfParFitBool[ii]:
             if Min_default: dfParMin_phys[ii] = 0.5*dfParEst_phys[ii]   # 50% of best estimate, all parameters > 0
             if Max_default: dfParMax_phys[ii] = 1.5*dfParEst_phys[ii]          
                 
-    if Min_default: dfParMin_fit  = numpy.log(dfParMin_phys / traf)
-    if Max_default: dfParMax_fit  = numpy.log(dfParMax_phys / traf)
+    if Min_default: dfParMin_fit  = scale_df_phys_to_fit(dftype,dfParMin_phys)
+    if Max_default: dfParMax_fit  = scale_df_phys_to_fit(dftype,dfParMax_phys)
 
     #fiducial qdf parameters:
     if dfParFid_phys is None: 
         dfParFid_fit = 0.5 * (dfParMin_fit + dfParMax_fit)  #default set by fitting range
-        dfParFid_phys = numpy.exp(dfParFid_fit) * traf
+        dfParFid_phys = scale_df_fit_to_phys(dftype,dfParFid_fit)
     else:
         dfParFid_phys = numpy.array(dfParFid_phys,dtype=float)
-        dfParFid_fit = numpy.log(dfParFid_phys / traf)
+        dfParFid_fit = scale_df_phys_to_fit(dftype,dfParFid_phys)
 
-    f.write('#\n')
-    f.write('# ***** QUASI-ISOTHERMAL DISTRIBUTION FUNCTION *****\n')
-    f.write('# * physical coordinates:\n')
-    f.write('# \t\t true value / estimate / fiducial / fit min / fit max / # grid points\n')
-    f.write('# \t\t                        (not used)(not used)(not used)   (not used)\n')
-    f.write('#   h_R       [kpc]  =\n')
-    f.write('\t\t\t'+str(dfParTrue_phys[0])+'\t'+str(dfParEst_phys[0])+'\t'+str(dfParFid_phys[0])+'\t'+\
-                 str(dfParMin_phys[0])+'\t'+str(dfParMax_phys [0])+'\t'+str(dfParFitNo      [0])+'\n')
-    f.write('#   sigma_R   [km/s] =\n')
-    f.write('\t\t\t'+str(dfParTrue_phys[1])+'\t'+str(dfParEst_phys[1])+'\t'+str(dfParFid_phys[1])+'\t'+\
-                 str(dfParMin_phys[1])+'\t'+str(dfParMax_phys [1])+'\t'+str(dfParFitNo      [1])+'\n')
-    f.write('#   sigma_z   [km/s] =\n')
-    f.write('\t\t\t'+str(dfParTrue_phys[2])+'\t'+str(dfParEst_phys[2])+'\t'+str(dfParFid_phys[2])+'\t'+\
-                 str(dfParMin_phys[2])+'\t'+str(dfParMax_phys [2])+'\t'+str(dfParFitNo      [2])+'\n')
-    f.write('#   h_sigma_R [kpc]  =\n')
-    f.write('\t\t\t'+str(dfParTrue_phys[3])+'\t'+str(dfParEst_phys[3])+'\t'+str(dfParFid_phys[3])+'\t'+\
-                 str(dfParMin_phys[3])+'\t'+str(dfParMax_phys [3])+'\t'+str(dfParFitNo      [3])+'\n')
-    f.write('#   h_sigma_z [kpc]  =\n')
-    f.write('\t\t\t'+str(dfParTrue_phys[4])+'\t'+str(dfParEst_phys[4])+'\t'+str(dfParFid_phys[4])+'\t'+\
-                 str(dfParMin_phys[4])+'\t'+str(dfParMax_phys [4])+'\t'+str(dfParFitNo      [4])+'\n')
-    f.write('# * galpy coordinates:\n')
-    f.write('# \t\t true value / estimate / fiducial / fit min / fit max / # grid points\n')
-    f.write('# \t\t (not used)  (not used)   \n')
-    f.write('#   ln( h_R     [_REFR0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[0])+'\t'+str(dfParEst_fit[0])+'\t'+str(dfParFid_fit[0])+'\t'+\
-                str(dfParMin_fit[0])+'\t'+str(dfParMax_fit [0])+'\t'+str(dfParFitNo       [0])+'\n')
-    f.write('#   ln( sigma_R [_REFV0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[1])+'\t'+str(dfParEst_fit[1])+'\t'+str(dfParFid_fit[1])+'\t'+\
-                str(dfParMin_fit[1])+'\t'+str(dfParMax_fit [1])+'\t'+str(dfParFitNo       [1])+'\n')
-    f.write('#   ln( sigma_z [_REFV0])   =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[2])+'\t'+str(dfParEst_fit[2])+'\t'+str(dfParFid_fit[2])+'\t'+\
-                str(dfParMin_fit[2])+'\t'+str(dfParMax_fit [2])+'\t'+str(dfParFitNo       [2])+'\n')
-    f.write('#   ln( h_sigma_R [_REFR0]) =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[3])+'\t'+str(dfParEst_fit[3])+'\t'+str(dfParFid_fit[3])+'\t'+\
-                str(dfParMin_fit[3])+'\t'+str(dfParMax_fit [3])+'\t'+str(dfParFitNo       [3])+'\n')
-    f.write('#   ln( h_sigma_z [_REFR0]) =\n')
-    f.write('\t\t\t'+str(dfParTrue_fit[4])+'\t'+str(dfParEst_fit[4])+'\t'+str(dfParFid_fit[4])+'\t'+\
-                str(dfParMin_fit[4])+'\t'+str(dfParMax_fit [4])+'\t'+str(dfParFitNo       [4])+'\n')
+    if dftype in [0,11,12]:
+        f.write('#\n')
+        if dftype == 0:
+            #QUASI-ISOTHERMAL DF:
+            #dfPar = [ln_hr,ln_sr,ln_sz,ln_hsr,ln_hsz]
+            f.write('# ***** QUASI-ISOTHERMAL DISTRIBUTION FUNCTION *****\n')
+        elif dftype == 11:
+            #QUASI-ISOTHERMAL DF + ROBUST LIKELIHOOD:
+            #dfPar = [ln_hr,ln_sr,ln_sz,ln_hsr,ln_hsz]
+            f.write('# ***** QUASI-ISOTHERMAL DISTRIBUTION FUNCTION + ROBUST LIKELIHOOD *****\n')
+        elif dftype == 12:
+            #QUASI-ISOTHERMAL DF + HALO OUTLIER MODEL:
+            #dfPar = [ln_hr,ln_sr,ln_sz,ln_hsr,ln_hsz,p_out,ln_sv_out,ln_hsv_out]
+            f.write('# ***** QUASI-ISOTHERMAL DISTRIBUTION FUNCTION + HALO OUTLIER MODEL *****\n')
+
+        f.write('# * physical coordinates:\n')
+        f.write('# \t\t true value / estimate / fiducial / fit min / fit max / # grid points\n')
+        f.write('# \t\t                        (not used)(not used)(not used)   (not used)\n')
+        f.write('#   h_R       [kpc]  =\n')
+        f.write('\t\t\t'+str(dfParTrue_phys[0])+'\t'+str(dfParEst_phys[0])+'\t'+str(dfParFid_phys[0])+'\t'+\
+                         str(dfParMin_phys [0])+'\t'+str(dfParMax_phys[0])+'\t'+str(dfParFitNo   [0])+'\n')
+        f.write('#   sigma_R   [km/s] =\n')
+        f.write('\t\t\t'+str(dfParTrue_phys[1])+'\t'+str(dfParEst_phys[1])+'\t'+str(dfParFid_phys[1])+'\t'+\
+                         str(dfParMin_phys [1])+'\t'+str(dfParMax_phys[1])+'\t'+str(dfParFitNo   [1])+'\n')
+        f.write('#   sigma_z   [km/s] =\n')
+        f.write('\t\t\t'+str(dfParTrue_phys[2])+'\t'+str(dfParEst_phys[2])+'\t'+str(dfParFid_phys[2])+'\t'+\
+                         str(dfParMin_phys [2])+'\t'+str(dfParMax_phys[2])+'\t'+str(dfParFitNo   [2])+'\n')
+        f.write('#   h_sigma_R [kpc]  =\n')
+        f.write('\t\t\t'+str(dfParTrue_phys[3])+'\t'+str(dfParEst_phys[3])+'\t'+str(dfParFid_phys[3])+'\t'+\
+                         str(dfParMin_phys [3])+'\t'+str(dfParMax_phys[3])+'\t'+str(dfParFitNo   [3])+'\n')
+        f.write('#   h_sigma_z [kpc]  =\n')
+        f.write('\t\t\t'+str(dfParTrue_phys[4])+'\t'+str(dfParEst_phys[4])+'\t'+str(dfParFid_phys[4])+'\t'+\
+                         str(dfParMin_phys [4])+'\t'+str(dfParMax_phys[4])+'\t'+str(dfParFitNo   [4])+'\n')
+
+        if dftype == 12:
+            f.write('#   p_out =\n')
+            f.write('\t\t\t'+str(dfParTrue_phys[5])+'\t'+str(dfParEst_phys[5])+'\t'+str(dfParFid_phys[5])+'\t'+\
+                             str(dfParMin_phys [5])+'\t'+str(dfParMax_phys[5])+'\t'+str(dfParFitNo   [5])+'\n')
+            f.write('#   sigma_vel_out [km/s] =\n')
+            f.write('\t\t\t'+str(dfParTrue_phys[6])+'\t'+str(dfParEst_phys[6])+'\t'+str(dfParFid_phys[6])+'\t'+\
+                             str(dfParMin_phys [6])+'\t'+str(dfParMax_phys[6])+'\t'+str(dfParFitNo   [6])+'\n')
+            f.write('#   h_sigma_vel_out [kpc] =\n')
+            f.write('\t\t\t'+str(dfParTrue_phys[7])+'\t'+str(dfParEst_phys[7])+'\t'+str(dfParFid_phys[7])+'\t'+\
+                             str(dfParMin_phys [7])+'\t'+str(dfParMax_phys[7])+'\t'+str(dfParFitNo   [7])+'\n')
+        
+
+
+        f.write('# * galpy coordinates:\n')
+        f.write('# \t\t true value / estimate / fiducial / fit min / fit max / # grid points\n')
+        f.write('# \t\t (not used)  (not used)   \n')
+        f.write('#   ln( h_R     [_REFR0])   =\n')
+        f.write('\t\t\t'+str(dfParTrue_fit[0])+'\t'+str(dfParEst_fit[0])+'\t'+str(dfParFid_fit[0])+'\t'+\
+                         str(dfParMin_fit [0])+'\t'+str(dfParMax_fit[0])+'\t'+str(dfParFitNo  [0])+'\n')
+        f.write('#   ln( sigma_R [_REFV0])   =\n')
+        f.write('\t\t\t'+str(dfParTrue_fit[1])+'\t'+str(dfParEst_fit[1])+'\t'+str(dfParFid_fit[1])+'\t'+\
+                         str(dfParMin_fit [1])+'\t'+str(dfParMax_fit[1])+'\t'+str(dfParFitNo  [1])+'\n')
+        f.write('#   ln( sigma_z [_REFV0])   =\n')
+        f.write('\t\t\t'+str(dfParTrue_fit[2])+'\t'+str(dfParEst_fit[2])+'\t'+str(dfParFid_fit[2])+'\t'+\
+                         str(dfParMin_fit [2])+'\t'+str(dfParMax_fit[2])+'\t'+str(dfParFitNo  [2])+'\n')
+        f.write('#   ln( h_sigma_R [_REFR0]) =\n')
+        f.write('\t\t\t'+str(dfParTrue_fit[3])+'\t'+str(dfParEst_fit[3])+'\t'+str(dfParFid_fit[3])+'\t'+\
+                         str(dfParMin_fit [3])+'\t'+str(dfParMax_fit[3])+'\t'+str(dfParFitNo  [3])+'\n')
+        f.write('#   ln( h_sigma_z [_REFR0]) =\n')
+        f.write('\t\t\t'+str(dfParTrue_fit[4])+'\t'+str(dfParEst_fit[4])+'\t'+str(dfParFid_fit[4])+'\t'+\
+                         str(dfParMin_fit [4])+'\t'+str(dfParMax_fit[4])+'\t'+str(dfParFitNo  [4])+'\n')
+
+        if dftype == 12:
+            f.write('#   p_out =\n')
+            f.write('\t\t\t'+str(dfParTrue_fit[5])+'\t'+str(dfParEst_fit[5])+'\t'+str(dfParFid_fit[5])+'\t'+\
+                             str(dfParMin_fit [5])+'\t'+str(dfParMax_fit[5])+'\t'+str(dfParFitNo  [5])+'\n')
+            f.write('#   ln( sigma_vel_out [_REFV0]) =\n')
+            f.write('\t\t\t'+str(dfParTrue_fit[6])+'\t'+str(dfParEst_fit[6])+'\t'+str(dfParFid_fit[6])+'\t'+\
+                             str(dfParMin_fit [6])+'\t'+str(dfParMax_fit[6])+'\t'+str(dfParFitNo  [6])+'\n')
+            f.write('#   ln( h_sigma_vel_out [_REFR0]) =\n')
+            f.write('\t\t\t'+str(dfParTrue_fit[7])+'\t'+str(dfParEst_fit[7])+'\t'+str(dfParFid_fit[7])+'\t'+\
+                             str(dfParMin_fit [7])+'\t'+str(dfParMax_fit[7])+'\t'+str(dfParFitNo  [7])+'\n')
+
+    else:
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
+                "distribution function type "+str(dftype)+" is not defined.")
 
     #============================
     #=====SELECTION FUNCTION=====

@@ -24,6 +24,15 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                                       method='MCMC_median'
                                       ):
 
+    """
+        NAME:
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+            2017-01-03 - Allowed for flexible number of df parameters, i.e. added dftype. - Trick (MPIA)
+    """
+
     #_____global constants_____
     _REFR0 = 8.     #spatial scaling
     _REFV0 = 220.   #velocity scaling
@@ -89,19 +98,15 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     dfPar_fit               = ANALYSIS['dfParEst_fit']
     #overwrite the free parameters with current parameter set
     dfPar_fit[ANALYSIS['dfParFitBool']] = dfPar_fit_MCMC
-    traf                    = numpy.array([ro,vo,vo,ro,ro])
-    dfPar_galpy             = numpy.exp(dfPar_fit) / traf
-    traf                    = numpy.array([ro*_REFR0,vo*_REFV0,vo*_REFV0,ro*_REFR0,ro*_REFR0])
-    dfPar_phys              = dfPar_galpy * traf
+    dfPar_galpy             = scale_df_fit_to_galpy( ANALYSIS['dftype'],ro,vo,dfPar_fit)
+    dfPar_phys              = scale_df_galpy_to_phys(ANALYSIS['dftype'],ro,vo,dfPar_galpy)
     print "qDF parameters: ",dfPar_phys
 
     #fiducial p_DF parameters in galpy units
     #load fiducial DF parameters
-    dfParFid_fit = ANALYSIS['dfParFid_fit']
-    traf                    = numpy.array([ro,vo,vo,ro,ro])
-    dfParFid_galpy             = numpy.exp(dfParFid_fit) / traf
-    traf                    = numpy.array([ro*_REFR0,vo*_REFV0,vo*_REFV0,ro*_REFR0,ro*_REFR0])
-    dfParFid_phys              = dfParFid_galpy * traf
+    dfParFid_fit   = ANALYSIS['dfParFid_fit']
+    dfParFid_galpy = scale_df_fit_to_galpy( ANALYSIS['dftype'],ro,vo,dfParFid_fit)
+    dfParFid_phys  = scale_df_galpy_to_phys(ANALYSIS['dftype'],ro,vo,dfParFid_galpy)
     print "Fiducial qDF: ",dfParFid_phys
 
     #_____setup galaxy_____
@@ -117,17 +122,21 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
 
 
         #set up distribution function (galpy units):
-        hr  = dfPar_galpy[0]
-        sr  = dfPar_galpy[1]
-        sz  = dfPar_galpy[2]
-        hsr = dfPar_galpy[3]
-        hsz = dfPar_galpy[4]
-        qdf = quasiisothermaldf(
-                hr,sr,sz,hsr,hsz,
-                pot=pot,aA=aA,
-                cutcounter=True, 
-                ro=ro
-                )
+        if ANALYSIS['dftype'] in [0,11,12]:
+            hr  = dfPar_galpy[0]
+            sr  = dfPar_galpy[1]
+            sz  = dfPar_galpy[2]
+            hsr = dfPar_galpy[3]
+            hsz = dfPar_galpy[4]
+            qdf = quasiisothermaldf(
+                    hr,sr,sz,hsr,hsz,
+                    pot=pot,aA=aA,
+                    cutcounter=True, 
+                    ro=ro
+                    )
+        else:
+            sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
+                     str(ANALYSIS['dftype'])+" is not defined."
 
         #selection function (physical units):
         sf = setup_SelectionFunction_object(ANALYSIS['sftype'],ANALYSIS['sfParEst_phys'],ro,df=qdf)
@@ -205,6 +214,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
 
             print "* Calculate actions *"
             actions = setup_data_actions(pot,aA,
+                               ANALYSIS['dftype'],
                                rs,vRs,vTs,zs,vzs,   #data in galpy units
                                dfParFid_galpy,ro,
                                _MULTI)
@@ -240,6 +250,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
 
             print "* Calculate actions for original data *"
             actions = setup_data_actions(pot,aA,
+                               ANALYSIS['dftype'],
                                rs,vRs,vTs,zs,vzs,   #data in galpy units
                                dfParFid_galpy,ro,
                                _MULTI)

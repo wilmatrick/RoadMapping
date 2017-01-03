@@ -10,7 +10,6 @@ import pickle
 import sys
 import time
 import scipy.optimize
-from galpy.df import quasiisothermaldf
 from galpy.potential import Potential
 from galpy.actionAngle import actionAngle
 from galpy.util import save_pickles, multi
@@ -41,6 +40,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
            2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - The likelihood now takes also care of priors on the potential parameters. - Trick (MPIA)
+           2017-01-03 - Added calculation of normalisation and data for oulier model (dftype = 12). Removed in_sf_data. - Trick (MPIA)
     """
 
     print "______________________________________________________________________"
@@ -123,7 +123,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
     vz_data  = dataset[5]   #[km/s /_REFV0]
 
     #_____initialize selection function_____
-    in_sf_data = None
     if ANALYSIS['ro_known']:
         sf = setup_SelectionFunction_object(
                         ANALYSIS['sftype'],
@@ -148,6 +147,21 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
     else:
         sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
                  "How to deal with the selection function if ro is not known? To do: Implement.")
+
+    #_____prepare data for outlier model_____
+    normalisation_for_outlier_model = None
+    data_for_outlier_model = None
+    if ANALYSIS['dftype'] == 12:
+        #Integrate the f(x)=1 over the selection function.
+        #Needed as normalisation for the outlier model.
+        normalisation_for_outlier_model = sf.sftot(xgl=_XGL,wgl=_WGL)
+        #store data later used for outlier model.
+        data_for_outlier_model = numpy.zeros((4,len(R_data)))
+        data_for_outlier_model[0,:] = R_data
+        data_for_outlier_model[1,:] = vR_data
+        data_for_outlier_model[2,:] = vT_data
+        data_for_outlier_model[3,:] = vz_data
+        
 
 
     if method == 'GRID':
@@ -248,10 +262,16 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
 
                 #_____rescale fiducial qdf parameters to galpy units_____
                 #these parameters are used to set the integration grid 
-                #of the qdf over velocities to get the density.
+                #of the df over velocities to get the density.
                 dfParFid_fit = ANALYSIS['dfParFid_fit']
-                traf = numpy.array([ro,vo,vo,ro,ro])
-                dfParFid_galpy = numpy.exp(dfParFid_fit) / traf
+                dfParFid_galpy = scale_df_fit_to_galpy(ANALYSIS['dftype'],ro,vo,dfParFid_fit)
+
+                #_____rescale data for outlier model to galpy units_____
+                if ANALYSIS['dftype'] == 12:
+                    traf = numpy.array([ro,vo,vo,vo]).reshape((4,1))
+                    data_for_outlier_model_galpy = data_for_outlier_model / traf
+                    print "rescale outlier data",numpy.shape(traf),numpy.shape(data_for_outlier_model),numpy.shape(data_for_outlier_model_galpy)
+                    sys.exit()
 
                 #print "   * calculate data actions"
                 #_____calculate actions and frequencies of the data_____
@@ -266,6 +286,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                 if ANALYSIS['pottype'] == 1 and ANALYSIS['datatype'] == 1:
                     #isochrone potential, perfect mock data: 1 core only
                     actions = setup_data_actions(pot,aA,
+                           ANALYSIS['dftype'],
                            R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                            dfParFid_galpy,ro,
                            1)
@@ -283,11 +304,13 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                                  "implemented. So far only the marginalization over 'vT' is "+
                                  "implemented.")
                     actions = setup_data_actions(pot,aA,
+                           ANALYSIS['dftype'],
                            R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                            dfParFid_galpy,ro,
                            _MULTI)
                 else:
                     actions = setup_data_actions(pot,aA,
+                           ANALYSIS['dftype'],
                            R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                            dfParFid_galpy,ro,
                            _MULTI)
@@ -303,23 +326,24 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                 # for the given p_Phi parameters
                 #print "   * calculate likelihood"
                 loglike_out[ii,:] = loglikelihood_potPar(
-                                            pot,aA,sf,
-                                            _N_SPATIAL_R,_N_SPATIAL_Z,
-                                            ro,vo,
-                                            jr_data,lz_data,jz_data,
-                                            rg_data,
-                                            kappa_data,nu_data,Omega_data,
-                                            dfParArr_fit,
-                                            dfParFid_galpy,
-                                            _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,
-                                            _MULTI,
-                                            ANALYSIS['datatype'],noStars,
-                                            ANALYSIS['pottype'],ANALYSIS['priortype'],potPar_phys, #needed for calculating the prior
-                                            marginal_coord=ANALYSIS['marginal_coord'],
-                                            weights_marginal=weights_marginal,
-                                            _N_ERROR_SAMPLES=_N_ERROR_SAMPLES,
-                                            in_sf_data=in_sf_data
-                                            )
+                                        pot,aA,sf,ANALYSIS['dftype'],
+                                        _N_SPATIAL_R,_N_SPATIAL_Z,
+                                        ro,vo,
+                                        jr_data,lz_data,jz_data,
+                                        rg_data,
+                                        kappa_data,nu_data,Omega_data,
+                                        dfParArr_fit,
+                                        dfParFid_galpy,
+                                        _NGL_VELOCITY,_N_SIGMA,_VT_GALPY_MAX,_XGL,_WGL,
+                                        _MULTI,
+                                        ANALYSIS['datatype'],noStars,
+                                        ANALYSIS['pottype'],ANALYSIS['priortype'],potPar_phys, #needed for calculating the prior
+                                        data_for_outlier_model_galpy=data_for_outlier_model_galpy, #needed for outlier model
+                                        normalisation_for_outlier_model=normalisation_for_outlier_model, #needed for outlier model
+                                        marginal_coord=ANALYSIS['marginal_coord'],
+                                        weights_marginal=weights_marginal,
+                                        _N_ERROR_SAMPLES=_N_ERROR_SAMPLES
+                                        )
 
 
 
@@ -347,7 +371,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____initialize parameter grid_____
         print "Parameter intervals to investigate with MCMC:"
         print "     * potential: central grid point only used for initial walker positions"#MCMC on grid"
-        print "     * QDF:       central grid point used for initial walker positions & fiducial QDF / fitting range"
+        print "     * DF:        central grid point used for initial walker positions & fiducial qDF / fitting range"
         FITGRID = setup_parameter_fit(
                     datasetname,testname=testname,
                     mockdatapath=mockdatapath,
@@ -368,6 +392,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         datatype      = ANALYSIS['datatype']
         pottype       = ANALYSIS['pottype']
         sftype        = ANALYSIS['sftype']
+        dftype        = ANALYSIS['dftype']
         ro_known      = ANALYSIS['ro_known']
         priortype     = ANALYSIS['priortype']
         #walker initialization:
@@ -420,13 +445,14 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         'datatype':datatype,
                         'pottype':pottype,
                         'sftype':sftype,
+                        'dftype':dftype,
                         'priortype':priortype,
                         'noStars':noStars,
+                        'norm_outlier':normalisation_for_outlier_model,
                         'marginal_coord':marginal_coord,
                         'xgl_marginal':xgl_marginal,
                         'wgl_marginal':wgl_marginal,
                         '_N_ERROR_SAMPLES':_N_ERROR_SAMPLES,
-                        'in_sf_data':in_sf_data,
                         'MCMC_use_fidDF':MCMC_use_fidDF,
                         'use_default_Delta':use_default_Delta,
                         'estimate_Delta':estimate_Delta,
@@ -483,7 +509,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         if DF_fit_only:   
             #...special case: potential is kept fixed: 
             #                 write all pre-calculated actions into file...
-            shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
+            shared_data_DFfit_only_MCMC(pottype,sftype,datatype,dftype,
                             potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_data,vR_data,vT_data,z_data,vz_data,
                             ro_known,

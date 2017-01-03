@@ -12,6 +12,7 @@ from galpy.actionAngle import estimateDeltaStaeckel
 #-------------------------------------------------------------------
 
 def setup_data_actions(pot,aA,
+                       dftype,
                        R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,   #data in galpy units
                        dfParFid_galpy,ro,
                        _MULTI):
@@ -24,6 +25,7 @@ def setup_data_actions(pot,aA,
         OUTPUT:
         HISTORY:
            2015-11-30 - Started setup_data_actions.py on the basis of BovyCode/py/setup_data_actions.py - Trick (MPIA)
+           2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
 
@@ -31,16 +33,20 @@ def setup_data_actions(pot,aA,
     # (the fiducial qdf is only used to calculate the actions 
     # and frequencies. The qdf parameters are not used in any way 
     # and are therefore arbitrarily set.)
-    qdf_fid = quasiisothermaldf(
-                        dfParFid_galpy[0], #hr
-                        dfParFid_galpy[1], #sr
-                        dfParFid_galpy[2], #sz
-                        dfParFid_galpy[3], #hsr
-                        dfParFid_galpy[4], #hsz   
-                        pot=pot,aA=aA,
-                        cutcounter=True, 
-                        ro=ro
-                        )
+    if dftype in [0,11,12]:
+        qdf_fid = quasiisothermaldf(
+                            dfParFid_galpy[0], #hr
+                            dfParFid_galpy[1], #sr
+                            dfParFid_galpy[2], #sz
+                            dfParFid_galpy[3], #hsr
+                            dfParFid_galpy[4], #hsz   
+                            pot=pot,aA=aA,
+                            cutcounter=True, 
+                            ro=ro
+                            )
+    else:
+        sys.exit("Error in setup_data_actions(): dftype = "+\
+                  str(dftype)+" is not defined.")
 
     #.....calculate actions and frequencies using the fiducial qdf.....
     # by evaluating the action angle object within the qdf for each 
@@ -160,7 +166,7 @@ def setup_data_actions(pot,aA,
 #------------------------------------------------------------------------------------------
 
 
-def precalc_pot_actions_sf(pottype,sftype,
+def precalc_pot_actions_sf(pottype,sftype,dftype,
                         potPar_phys,dfParFid_fit,sfParEst_phys,
                         R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                         ro_known,
@@ -177,9 +183,10 @@ def precalc_pot_actions_sf(pottype,sftype,
         OUTPUT:
         HISTORY:
            2015-11-30 - Started precalc_pot_actions_sf.py on the basis of BovyCode/py/precalc_pot_actions_sf.py - Trick (MPIA)
-           2016-02-18 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object().
-           2016-04-15 - Added options to estimate Staeckel Fudge Delta and or to set it by hand.
-           2016-09-25 - Added option to use pre-calculated incompleteness for selection function type 4.
+           2016-02-18 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object(). - Trick (MPIA)
+           2016-04-15 - Added options to estimate Staeckel Fudge Delta and or to set it by hand. - Trick (MPIA)
+           2016-09-25 - Added option to use pre-calculated incompleteness for selection function type 4. - Trick (MPIA)
+           2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
     #_____Reference scales_____
@@ -238,8 +245,7 @@ def precalc_pot_actions_sf(pottype,sftype,
     #_____rescale fiducial qdf parameters to galpy units_____
     #these parameters are used to set the integration grid 
     #of the qdf over velocities to get the density.
-    traf = numpy.array([ro,vo,vo,ro,ro])
-    dfParFid_galpy = numpy.exp(dfParFid_fit) / traf
+    dfParFid_galpy = scale_df_fit_to_galpy(dftype,ro,vo,dfParFid_fit)
 
     #_____calculate actions and frequencies of the data_____
     #before calculating the actions, the data is properly 
@@ -247,11 +253,13 @@ def precalc_pot_actions_sf(pottype,sftype,
     #start_2 = time.time()
     if pottype == 1: #isochrone
         actions = setup_data_actions(pot,aA,
+               dftype,
                R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                dfParFid_galpy,ro,
                1)  #somehow evaluation on only one core seems to be fastest with the isochrone
     else:
         actions = setup_data_actions(pot,aA,
+               dftype,
                R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                dfParFid_galpy,ro,
                _MULTI)
@@ -287,18 +295,23 @@ def precalc_pot_actions_sf(pottype,sftype,
 
     #_____setup fiducial qdf and calculate actions on velocity grid_____
     # velocity grid that corresponds to the sigmas of the fiducial qdf.
-    qdf_fid = quasiisothermaldf(
-                dfParFid_galpy[0],
-                dfParFid_galpy[1],
-                dfParFid_galpy[2],
-                dfParFid_galpy[3],
-                dfParFid_galpy[4],
-                pot=pot,aA=aA,
-                cutcounter=True, 
-                ro=ro
-                )
-    # (*Note:* if cutcounter=True, set counter-rotating stars' 
-    #          DF to zero)
+    if dftype in [0,11,12]:
+        qdf_fid = quasiisothermaldf(
+                    dfParFid_galpy[0],
+                    dfParFid_galpy[1],
+                    dfParFid_galpy[2],
+                    dfParFid_galpy[3],
+                    dfParFid_galpy[4],
+                    pot=pot,aA=aA,
+                    cutcounter=True, 
+                    ro=ro
+                    )
+        # (*Note:* if cutcounter=True, set counter-rotating stars' 
+        #          DF to zero)
+    else:
+        sys.exit("Error in precalc_pot_actions_sf(): dftype = "+\
+                  str(dftype)+" is not defined.")
+
     #start_3 = time.time()
     sf.set_fiducial_df_actions_Bovy(
                qdf_fid,

@@ -21,6 +21,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - Added priortype. - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2017-01-03 - Added dftype.
     """
 
     #analysis parameter file:
@@ -47,7 +48,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     datatype    = int(round(out[0,0]))
     pottype     = int(round(out[0,1]))
     sftype      = int(round(out[0,2]))
-    priortype   = int(round(out[0,3]))
+    dftype      = int(round(out[0,3]))
+    priortype   = int(round(out[0,4]))
     fileversion = int(round(out[0,5]))
 
     #numerical precision of analysis:
@@ -426,48 +428,105 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     #=============
     #=====QDF=====
     #=============
-    #dfPar_phys = [hr_kpc,sr_kms,sz_kms,hsr_kpc,hsz_kpc]
 
-    dfNamesLatex = ['ln($h_R$/8kpc)','ln($\sigma_{R,0}$/220km s$^-1$)','ln($\sigma_{z,0}$/220km s$^-1$)',\
-                    'ln($h_{\sigma,R}$/8kpc)','ln($h_{\sigma,z}$/8kpc)']
-    dfNamesScreen =  ['ln(h_R)','ln(s_R0)','ln(s_z0)',\
-                      'ln(h_s_R)','ln(h_s_z)']
+    if dftype in [0,11]:
+        #QUASI-ISOTHERMAL DF
+        #dfPar_phys = [hr_kpc,sr_kms,sz_kms,hsr_kpc,hsz_kpc]
 
-    dfParTrue_phys = numpy.array(out[nl:nl+5,0],dtype=float)
-    dfParEst_phys  = numpy.array(out[nl:nl+5,1],dtype=float)
-    dfParFid_phys  = numpy.array(out[nl:nl+5,2],dtype=float)
-    dfParMin_phys  = numpy.array(out[nl:nl+5,3],dtype=float)
-    dfParMax_phys  = numpy.array(out[nl:nl+5,4],dtype=float)
-    
-    #next line:
-    nl += 5
+        dfNamesLatex = ['ln($h_R$/8kpc)','ln($\sigma_{R,0}$/220km s$^-1$)','ln($\sigma_{z,0}$/220km s$^-1$)',\
+                        'ln($h_{\sigma,R}$/8kpc)','ln($h_{\sigma,z}$/8kpc)']
+        dfNamesScreen =  ['ln(h_R)','ln(s_R0)','ln(s_z0)',\
+                          'ln(h_s_R)','ln(h_s_z)']
 
-    dfParTrue_fit = numpy.array(out[nl:nl+5,0],dtype=float)
-    dfParEst_fit  = numpy.array(out[nl:nl+5,1],dtype=float)
-    dfParFid_fit  = numpy.array(out[nl:nl+5,2],dtype=float)
-    dfParMin_fit  = numpy.array(out[nl:nl+5,3],dtype=float)
-    dfParMax_fit  = numpy.array(out[nl:nl+5,4],dtype=float)
-    dfParFitNo    = numpy.array(out[nl:nl+5,5],dtype=int)
-    dfParFitBool  = numpy.array((dfParFitNo > 1),dtype=bool)
+        dfParTrue_phys = numpy.array(out[nl:nl+5,0],dtype=float)
+        dfParEst_phys  = numpy.array(out[nl:nl+5,1],dtype=float)
+        dfParFid_phys  = numpy.array(out[nl:nl+5,2],dtype=float)
+        dfParMin_phys  = numpy.array(out[nl:nl+5,3],dtype=float)
+        dfParMax_phys  = numpy.array(out[nl:nl+5,4],dtype=float)
+        
+        #next line:
+        nl += 5
 
-    #next line:
-    nl += 5
+        dfParTrue_fit = numpy.array(out[nl:nl+5,0],dtype=float)
+        dfParEst_fit  = numpy.array(out[nl:nl+5,1],dtype=float)
+        dfParFid_fit  = numpy.array(out[nl:nl+5,2],dtype=float)
+        dfParMin_fit  = numpy.array(out[nl:nl+5,3],dtype=float)
+        dfParMax_fit  = numpy.array(out[nl:nl+5,4],dtype=float)
+        dfParFitNo    = numpy.array(out[nl:nl+5,5],dtype=int)
+        dfParFitBool  = numpy.array((dfParFitNo > 1),dtype=bool)
 
-    if print_to_screen:
-        print "QUASI-ISOTHERMAL DISTRIBUTION FUNCTION:"
-        print "           * true parameters:"
-        print "                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc]"
-        print "               ",dfParTrue_phys
-        print "           * parameters kept fixed?"
-        print "               ",numpy.invert(dfParFitBool)
-        print "             at value"
-        print "               ",dfParEst_phys
-        print "           * fiducial qdf parameters:"
-        print "               ",dfParFid_phys
+        #next line:
+        nl += 5
 
-    #physical boundaries:
-    dfParLowerBound_fit = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf])
-    dfParUpperBound_fit = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,numpy.inf])
+        if print_to_screen:
+            print "QUASI-ISOTHERMAL DISTRIBUTION FUNCTION:"
+            if dftype == 11: print "           * with robust likelihood, L_i = max(L_i,0.001*median(L_i)"
+            print "           * true parameters:"
+            print "                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc]"
+            print "               ",dfParTrue_phys
+            print "           * parameters kept fixed?"
+            print "               ",numpy.invert(dfParFitBool)
+            print "             at value"
+            print "               ",dfParEst_phys
+            print "           * fiducial qdf parameters:"
+            print "               ",dfParFid_phys
+
+        #physical boundaries:
+        dfParLowerBound_fit = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf])
+        dfParUpperBound_fit = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,numpy.inf])
+
+    elif dftype == 12:
+        #QUASI-ISOTHERMAL DF + HALO OUTLIER MODEL
+        #dfPar_phys = [hr_kpc,sr_kms,sz_kms,hsr_kpc,hsz_kpc,p_out,sv_out_kms,hsv_out_kpc]
+
+        dfNamesLatex = ['ln($h_R$/8kpc)','ln($\sigma_{R,0}$/220km s$^-1$)','ln($\sigma_{z,0}$/220km s$^-1$)',\
+                        'ln($h_{\sigma,R}$/8kpc)','ln($h_{\sigma,z}$/8kpc)',\
+                        r'$p_{\rm out}$',r'ln($\sigma_{\rm v,out}$/220km s$^-1$)',r'ln($h_{\sigma,{\rm v,out}}$/8kpc)']
+        dfNamesScreen =  ['ln(h_R)','ln(s_R0)','ln(s_z0)',\
+                          'ln(h_s_R)','ln(h_s_z)',\
+                          'p_out','ln(s_v_out)','ln(h_sv_out)']
+
+        dfParTrue_phys = numpy.array(out[nl:nl+8,0],dtype=float)
+        dfParEst_phys  = numpy.array(out[nl:nl+8,1],dtype=float)
+        dfParFid_phys  = numpy.array(out[nl:nl+8,2],dtype=float)
+        dfParMin_phys  = numpy.array(out[nl:nl+8,3],dtype=float)
+        dfParMax_phys  = numpy.array(out[nl:nl+8,4],dtype=float)
+        
+        #next line:
+        nl += 8
+
+        dfParTrue_fit = numpy.array(out[nl:nl+8,0],dtype=float)
+        dfParEst_fit  = numpy.array(out[nl:nl+8,1],dtype=float)
+        dfParFid_fit  = numpy.array(out[nl:nl+8,2],dtype=float)
+        dfParMin_fit  = numpy.array(out[nl:nl+8,3],dtype=float)
+        dfParMax_fit  = numpy.array(out[nl:nl+8,4],dtype=float)
+        dfParFitNo    = numpy.array(out[nl:nl+8,5],dtype=int)
+        dfParFitBool  = numpy.array((dfParFitNo > 1),dtype=bool)
+
+        #next line:
+        nl += 8
+
+        if print_to_screen:
+            print "QUASI-ISOTHERMAL DISTRIBUTION FUNCTION + HALO OUTLIER MODEL:"
+            print "           * with halo outlier model, L_i = (1-p) * L_DF + p * L_out"
+            print "           * true parameters:"
+            print "                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc], pout, svout [km/s], hsvout [kpc]"
+            print "               ",dfParTrue_phys
+            print "           * parameters kept fixed?"
+            print "               ",numpy.invert(dfParFitBool)
+            print "             at value"
+            print "               ",dfParEst_phys
+            print "           * fiducial qdf parameters:"
+            print "               ",dfParFid_phys
+
+        #physical boundaries:
+        dfParLowerBound_fit = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,0.,-numpy.inf,-numpy.inf])
+        dfParUpperBound_fit = numpy.array([numpy.inf,numpy.inf,numpy.inf,numpy.inf,numpy.inf,1.,numpy.inf,numpy.inf])
+
+    else:
+        sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
+                 "df type "+str(dftype)+" is not defined.")
+
 
     #============================
     #=====SELECTION FUNCTION=====
@@ -595,6 +654,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             'datatype'  :datatype,
             'pottype'   :pottype,
             'sftype'    :sftype,
+            'dftype'    :dftype,
             'priortype' :priortype,
             'noStars'   :noStars,
             'potParTrue_phys':potParTrue_phys,'dfParTrue_phys':dfParTrue_phys,'dfParTrue_fit':dfParTrue_fit,

@@ -9,7 +9,7 @@ from setup_pot_and_sf import setup_SelectionFunction_object
 
 #=================================================================================
 
-def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
+def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,dftype,
                             potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_data,vR_data,vT_data,z_data,vz_data,
                             ro_known,
@@ -27,8 +27,9 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
           - current walker position in potential and qdf parameter space [potPar,dfPar]
     OUTPUT:
     HISTORY:
-        16-02-?? - Written. - Trick (MPIA)
-        16-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
+        2016-02-?? - Written. - Trick (MPIA)
+        2016-04-15 - Added the parameters governing the actionAngle Delta and accuracy to precalc_pot_actions_sf().
+        2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
     #_____Reference scales_____
@@ -51,7 +52,7 @@ def shared_data_DFfit_only_MCMC(pottype,sftype,datatype,
                  "uses only actions, no actual phase-space data.")
 
     #_____precalculate all actions_____
-    pot,aA,sf,data_actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,
+    pot,aA,sf,data_actions,pot_physical = precalc_pot_actions_sf(pottype,sftype,dftype,
                             potParEst_phys,dfParFid_fit,sfParEst_phys,
                             R_galpy,vR_galpy,vT_galpy,z_galpy,vz_galpy,
                             ro_known,

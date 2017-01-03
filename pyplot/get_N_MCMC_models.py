@@ -9,6 +9,15 @@ import scipy.stats
 
 def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/'):
 
+    """
+        NAME:
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+            2017-01-03 - Now uses scale_df_fit_to_phys to allow for flexible number of parameters. - Trick (MPIA)
+    """
+
     #_____reference scales_____
     _REFR0 = 8.     #[kpc]
     _REFV0 = 220.   #[km/s]
@@ -62,9 +71,10 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     ndfpar    = len(dfParEst_fit)
     ndffitpar = numpy.sum(dfParFitBool)
     dfParModels_fit = numpy.tile(dfParEst_fit,(N,1))
-    dfParModels_fit[:,dfParFitBool] = models[:,0:ndffitpar] 
-    traf = numpy.array([_REFR0,_REFV0,_REFV0,_REFR0,_REFR0])
-    dfParModels_phys = numpy.exp(dfParModels_fit) * traf
+    dfParModels_fit[:,dfParFitBool] = models[:,0:ndffitpar]
+    dfParModels_phys = scale_df_fit_to_phys(ANALYSIS['dftype'],dfParModels_fit)
+    print numpy.shape(dfParModels_fit),numpy.shape(dfParModels_phys)
+    sys.exit("Testing scale_df_fit_to_phys in get_N_MCMC_models.")
 
     return potParModels_phys, dfParModels_phys
     

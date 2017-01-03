@@ -19,6 +19,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
            2016-12-31 - Removed d_potcoords, min_potcoords, max_potcoords. - Trick (MPIA)
+           2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -192,6 +193,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     #=============
 
     #_____get fit limits_____
+    dftype       = out['dftype' ]
     dfParMin_fit = out['dfParMin_fit']
     dfParMax_fit = out['dfParMax_fit']
     dfParEst_fit = out['dfParEst_fit']
@@ -241,15 +243,34 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         elif N == 1:
             xs = numpy.array([dfParEst_fit[ii]])
         #assign arrays to quantities:
-        if ii == 0: lnhrs  = xs
-        if ii == 1: lnsrs  = xs
-        if ii == 2: lnszs  = xs
-        if ii == 3: lnhsrs = xs
-        if ii == 4: lnhszs = xs
+        if dftype in numpy.array([0,11,12],dtype=int):  #QUASIISOTHERMAL DF
+            if ii == 0: lnhrs  = xs
+            if ii == 1: lnsrs  = xs
+            if ii == 2: lnszs  = xs
+            if ii == 3: lnhsrs = xs
+            if ii == 4: lnhszs = xs
+            if dftype == 12:    #MIXTURE OUTLIER MODEL
+                if ii == 5: p_outs    = xs
+                if ii == 6: lnsv_outs = xs
+                if ii == 7: lnhv_outs = xs
+        else:
+            sys.exit("Error in setup_parameter_fit(): "+\
+             "dftype = "+str(dftype)+" is not defined.")
     #setup parameter grid:
-    lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1 = \
-               numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,indexing='ij')
     dfParArr_fit = numpy.zeros((numpy.prod(dfParFitNo),ndfpar))
+    if dftype in numpy.array([0,11],dtype=int): #QUASIISOTHERMAL DF, no additional parameters
+        lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1 = \
+                   numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,indexing='ij')
+    elif dftype in numpy.array([12],dtype=int): #QUASIISOTHERMAL DF, MIXTURE OUTLIER MODEL
+        lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1,p_outs1,lnsv_outs1,lnhv_outs1 = \
+                   numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,p_outs,lnsv_outs,lnhv_outs,indexing='ij')
+        dfParArr_fit[:,5] = p_outs1.flatten()
+        dfParArr_fit[:,6] = lnsv_outs1.flatten()
+        dfParArr_fit[:,7] = lnhv_outs1.flatten()
+    else:
+        sys.exit("Error in setup_parameter_fit(): "+\
+             "df type "+str(dftype)+\
+             " of data set "+datasetname+" in test "+testname+" is not defined.")
     dfParArr_fit[:,0] = lnhrs1.flatten()
     dfParArr_fit[:,1] = lnsrs1.flatten()
     dfParArr_fit[:,2] = lnszs1.flatten()
