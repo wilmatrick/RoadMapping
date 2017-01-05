@@ -346,22 +346,22 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
             #POTENTIAL 1 FOR ELENA D'ONGHIA SIMULATION
             #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
             potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
-            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km/s]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
         elif pottype == 6 or pottype == 61:
             #POTENTIAL 2 FOR ELENA D'ONGHIA SIMULATION
             #potPar = [R0_kpc,vc_kms,hr_disk_kpc,hz_disk_kpc,f_halo,a_halo_kpc]
             potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$h_{r,disk}$ [kpc]','$h_{z,disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
-            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','hr_d [kpc]','hz_d [kpc]','f_h','a_h [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km/s]','hr_d [kpc]','hz_d [kpc]','f_h','a_h [kpc]']
         elif pottype == 7 or pottype == 71:
             #GALPY MWPotential LIKE MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE
             #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc]
             potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]']
-            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km/s]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]']
         elif pottype == 8 or pottype == 81:
             #POTENTIAL FOR FIT TO GAIA DATA WITH MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE
             #potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
             potNamesLatex  = ['$R_\odot$ [kpc]','$v_{circ}(R_\odot)$ [km s$^-1$]','$a_{disk}$ [kpc]','$b_{disk}$ [kpc]','$f_{halo}$','$a_{halo}$ [kpc]','$M_{bulge}$ [$10^{10}$ M$_\odot$]','$a_{bulge}$ [kpc]']
-            potNamesScreen = ['R_sun [kpc]','v_c [km s$^-1$]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]','M_b [10^10 M_sun]','a_b [kpc]']
+            potNamesScreen = ['R_sun [kpc]','v_c [km/s]','a_d [kpc]','b_d [kpc]','f_h','a_h [kpc]','M_b [10^10 M_sun]','a_b [kpc]']
 
         if pottype in [5,6,7,51,61,71]:
             npotpar = 6
