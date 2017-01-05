@@ -8,6 +8,7 @@ from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object,setup_SelectionFunction_object
 from galpy.actionAngle import estimateDeltaStaeckel
+from outlier_model import scale_df_fit_to_galpy
 
 #-------------------------------------------------------------------
 
@@ -270,8 +271,8 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
     #_____initialize selection function_____
     if ro_known:
         if (sftype == 4) and (incomp_shared is not None):
-            nR = incomp_shared[0]
-            nz = incomp_shared[1]
+            nR = int(incomp_shared[0])
+            nz = int(incomp_shared[1])
             Rbin_kpc = incomp_shared[2:nR+2]
             zbin_kpc = incomp_shared[nR+2:nR+nz+2]
             SF_of_R_z = numpy.reshape(incomp_shared[nR+nz+2::],(nR,nz))

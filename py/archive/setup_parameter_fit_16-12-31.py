@@ -18,8 +18,6 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
-           2016-12-31 - Removed d_potcoords, min_potcoords, max_potcoords. - Trick (MPIA)
-           2017-01-03 - Added dftype. - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -43,7 +41,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     potParFitBool = out['potParFitBool']
     dfParFitNo    = out['dfParFitNo']
     dfParFitBool  = out['dfParFitBool']
-    gridPointNo   = numpy.append(potParFitNo[potParFitBool],dfParFitNo[dfParFitBool])
+    gridPointNo     = numpy.append(potParFitNo[potParFitBool],dfParFitNo[dfParFitBool])
     #this array gives start and end index of each axis in flattened array:   
     gridPointCumsum = numpy.cumsum(gridPointNo)
     gridAxesIndex = numpy.append([0],gridPointCumsum)
@@ -51,6 +49,11 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     #this array will contain all the axes within one flattened array:
     gridAxesPoints  = numpy.zeros(numpy.sum(gridPointNo))
     kk = 0  #index that counts the fit parameters
+
+    #width and min and max of potential grid:
+    d_potcoords   = []
+    min_potcoords = []
+    max_potcoords = []
 
     #min and max for initializing MCMC walkers:
     min_walkerpos = []
@@ -65,16 +68,6 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     potParMin_phys = out['potParMin_phys']
     potParMax_phys = out['potParMax_phys']
     potParEst_phys = out['potParEst_phys']
-    potParLowerBound_phys = out['potParLowerBound_phys']
-    potParUpperBound_phys = out['potParUpperBound_phys']
-    if numpy.any(potParMin_phys < potParLowerBound_phys):
-        print "potParMin_phys: ",potParMin_phys
-        print "potParLowerBound_phys: ",potParLowerBound_phys
-        sys.exit("Error in setup_parameter_fit(): The minimum of the potential fitting range is smaller than the physical lower boundary.")
-    elif numpy.any(potParMax_phys > potParUpperBound_phys):
-        print "potParMax_phys: ",potParMax_phys
-        print "potParUpperBound_phys: ",potParUpperBound_phys
-        sys.exit("Error in setup_parameter_fit(): The maximum of the potential fitting range is larger than the physical upper boundary.")
 
     #_____test if number of grid points is reasonable_____
     npotpar = len(potParFitNo)
@@ -106,7 +99,11 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             #save axes in physical units:
             gridAxesPoints[ind[kk]:ind[kk+1]] = xs
             #width of grid in physical units:
-            dx = 0.5 * numpy.fabs(xs[1]-xs[0])
+            dx = 0.5 * numpy.fabs(xs[1]-xs[0])      
+            d_potcoords.extend([dx])
+            #limits of the potential grid in physical units: 
+            min_potcoords.extend([(min(xs)-dx)])
+            max_potcoords.extend([(max(xs)+dx)])
             #inital walker positions:
             mid = (len(xs)-1)/2
             min_walkerpos.extend([xs[mid]-dx])
@@ -197,26 +194,20 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     #shape tuple for potentials:
     potShape = numpy.squeeze(r1).shape
 
+    #transform to numpy arrays:
+    d_potcoords   = numpy.array(d_potcoords)
+    min_potcoords = numpy.array(min_potcoords)
+    max_potcoords = numpy.array(max_potcoords)
+
 
     #=============
     #=====QDF=====
     #=============
 
     #_____get fit limits_____
-    dftype       = out['dftype' ]
     dfParMin_fit = out['dfParMin_fit']
     dfParMax_fit = out['dfParMax_fit']
     dfParEst_fit = out['dfParEst_fit']
-    dfParLowerBound_fit = out['dfParLowerBound_fit']
-    dfParUpperBound_fit = out['dfParUpperBound_fit']
-    if numpy.any(dfParMin_fit < dfParLowerBound_fit):
-        print "dfParMin_fit: ",dfParMin_fit
-        print "dfParLowerBound_fit: ",dfParLowerBound_fit
-        sys.exit("Error in setup_parameter_fit(): The minimum of the df fitting range is smaller than the physical lower boundary.")
-    elif numpy.any(dfParMax_fit > dfParUpperBound_fit):
-        print "dfParMax_fit: ",dfParMax_fit
-        print "dfParUpperBound_fit: ",dfParUpperBound_fit
-        sys.exit("Error in setup_parameter_fit(): The maximum of the df fitting range is larger than the physical upper boundary.")
 
     #_____test if number of grid points is reasonable_____
     ndfpar = len(dfParFitNo)
@@ -263,34 +254,15 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         elif N == 1:
             xs = numpy.array([dfParEst_fit[ii]])
         #assign arrays to quantities:
-        if dftype in numpy.array([0,11,12],dtype=int):  #QUASIISOTHERMAL DF
-            if ii == 0: lnhrs  = xs
-            if ii == 1: lnsrs  = xs
-            if ii == 2: lnszs  = xs
-            if ii == 3: lnhsrs = xs
-            if ii == 4: lnhszs = xs
-            if dftype == 12:    #MIXTURE OUTLIER MODEL
-                if ii == 5: p_outs    = xs
-                if ii == 6: lnsv_outs = xs
-                if ii == 7: lnhv_outs = xs
-        else:
-            sys.exit("Error in setup_parameter_fit(): "+\
-             "dftype = "+str(dftype)+" is not defined.")
+        if ii == 0: lnhrs  = xs
+        if ii == 1: lnsrs  = xs
+        if ii == 2: lnszs  = xs
+        if ii == 3: lnhsrs = xs
+        if ii == 4: lnhszs = xs
     #setup parameter grid:
+    lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1 = \
+               numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,indexing='ij')
     dfParArr_fit = numpy.zeros((numpy.prod(dfParFitNo),ndfpar))
-    if dftype in numpy.array([0,11],dtype=int): #QUASIISOTHERMAL DF, no additional parameters
-        lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1 = \
-                   numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,indexing='ij')
-    elif dftype in numpy.array([12],dtype=int): #QUASIISOTHERMAL DF, MIXTURE OUTLIER MODEL
-        lnhrs1,lnsrs1,lnszs1,lnhsrs1,lnhszs1,p_outs1,lnsv_outs1,lnhv_outs1 = \
-                   numpy.meshgrid(lnhrs,lnsrs,lnszs,lnhsrs,lnhszs,p_outs,lnsv_outs,lnhv_outs,indexing='ij')
-        dfParArr_fit[:,5] = p_outs1.flatten()
-        dfParArr_fit[:,6] = lnsv_outs1.flatten()
-        dfParArr_fit[:,7] = lnhv_outs1.flatten()
-    else:
-        sys.exit("Error in setup_parameter_fit(): "+\
-             "df type "+str(dftype)+\
-             " of data set "+datasetname+" in test "+testname+" is not defined.")
     dfParArr_fit[:,0] = lnhrs1.flatten()
     dfParArr_fit[:,1] = lnsrs1.flatten()
     dfParArr_fit[:,2] = lnszs1.flatten()
@@ -306,6 +278,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
 
     return {'potParArr_phys':potParArr_phys, 'potShape':potShape,
             'dfParArr_fit'  :dfParArr_fit , 'dfShape' :dfShape,
+            'd_potcoords':d_potcoords,'min_potcoords':min_potcoords,'max_potcoords':max_potcoords,
             'min_walkerpos':min_walkerpos,'max_walkerpos':max_walkerpos,
             'fitParNamesLatex':fitParNamesLatex,'fitParNamesScreen':fitParNamesScreen,
             'gridAxesPoints':gridAxesPoints,'gridPointNo':gridPointNo,'gridAxesIndex':gridAxesIndex}

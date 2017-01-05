@@ -53,7 +53,7 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='/home
 
     #_____format MCMC chain for plotting_____
     npos = len(out[:,0])
-    print npos
+    print numpy.shape(out)
     nsteps = npos / nwalkers
     chain  = out[0:nwalkers*nsteps,0:-1]
     steps = numpy.repeat(range(nsteps),nwalkers)
@@ -107,5 +107,4 @@ if __name__ == '__main__':
         if testname == 'None':
             plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=None,datapath=sys.argv[4]+'/',nwalkers=int(sys.argv[5]))
         else:
-            print "here"
             plot_progress_of_MCMC(sys.argv[1],sys.argv[2],testname=testname,datapath=sys.argv[4]+'/',nwalkers=int(sys.argv[5]))

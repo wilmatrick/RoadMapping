@@ -1,5 +1,6 @@
 #_____import packages_____
 from galpy import potential
+import numpy
 
 def calculate_logprior(priortype,pottype,potPar_phys,pot=None):
 
@@ -11,6 +12,7 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot=None):
         OUTPUT:
         HISTORY:
             2016-12-27 - Written - Trick (MPIA)
+            2017-01-05 - Corrected missing minus in d ln v_circ / d ln R. - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -61,10 +63,10 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot=None):
                 #    = 0.5 / (-F_R) * (-F_R + R * d^2Phi/dR^2)
                 #    = 0.5 * (F_R - R * d^2Phi/dR^2) / F_R
                 #
-                # 3. Evaluated at R = 1, where F_R = 1, according to galpy unit definition:
-                #    --> d (ln v_circ) / d (ln R) = 0.5 * (1 - d^2 Phi / d R^2|R=1)
+                # 3. Evaluated at R = 1, where F_R = -1, according to galpy unit definition:
+                #    --> d (ln v_circ) / d (ln R) = 0.5 * (1 + d^2 Phi / d R^2|R=1)
                 
-                dlnvc_dlnR = 0.5 * (1. - potential.evaluateR2derivs(pot,1.,0.))  #R=1, z=0
+                dlnvc_dlnR = 0.5 * (1. + potential.evaluateR2derivs(pot,1.,0.))  #R=1, z=0
 
                 #Prior following equation (41) in Bovy & Rix (2013):
                 if dlnvc_dlnR > 0.04: 
@@ -77,7 +79,11 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot=None):
                      " is not defined for potential type = "+str(pottype)+\
                      ".")
 
-        print "logprior = ", logprior
+        #print "potPar_phys = ",potPar_phys
+        #print "dlnvc_dlnR = ",dlnvc_dlnR 
+        #print "logprior = ", logprior
+        #print "\n"
+
         return logprior
     else:
         sys.exit("Error in logprior(): priortype = "+str(priortype)+" is not defined (yet).")

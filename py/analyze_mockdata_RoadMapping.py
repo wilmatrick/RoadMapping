@@ -11,7 +11,7 @@ import sys
 import time
 import scipy.optimize
 from galpy.potential import Potential
-from galpy.actionAngle import actionAngle
+from galpy.actionAngle import actionAngle, estimateDeltaStaeckel
 from galpy.util import save_pickles, multi
 from SelectionFunction import SelectionFunction
 from read_RoadMapping_parameters import read_RoadMapping_parameters
@@ -23,7 +23,7 @@ from likelihood import loglikelihood_potPar
 from emcee.interruptible_pool import InterruptiblePool as Pool
 from precalc_actions import setup_data_actions
 from setup_shared_data import shared_data_MCMC, shared_data_DFfit_only_MCMC, shared_data_incompleteShell
-from galpy.actionAngle import estimateDeltaStaeckel
+from outlier_model import scale_df_fit_to_galpy
 
 def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdatapath='../data/',redo_analysis=True,method='GRID'):
 
@@ -270,8 +270,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                 if ANALYSIS['dftype'] == 12:
                     traf = numpy.array([ro,vo,vo,vo]).reshape((4,1))
                     data_for_outlier_model_galpy = data_for_outlier_model / traf
-                    print "rescale outlier data",numpy.shape(traf),numpy.shape(data_for_outlier_model),numpy.shape(data_for_outlier_model_galpy)
-                    sys.exit()
 
                 #print "   * calculate data actions"
                 #_____calculate actions and frequencies of the data_____

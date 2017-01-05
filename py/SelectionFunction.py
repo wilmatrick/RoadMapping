@@ -1813,7 +1813,6 @@ class SelectionFunction:
             numpy.random.seed(seed=randomseed)
         
         #Determine the maximum of the velocity distribution
-        
         maxVR= 0.
         maxVz= 0.
         maxVT,fopt,direc,iterations,funcalls,warnflag= scipy.optimize.fmin_powell(_aux_sampleV,1.,args=(R,z,self._df),disp=False,full_output=True)#scipy.optimize.fmin_powell(lambda x: -df(R,0.,x,z,0.,log=True),1.)
@@ -1833,9 +1832,10 @@ class SelectionFunction:
             VDatprop= self._df(R+numpy.zeros(nmore),
                            propvR,propvT,z+numpy.zeros(nmore),
                            propvz,log=True)-logmaxVD
-            VDatprop-= -0.5*(propvR**2./4./self._df._sr**2.+propvz**2./4./self._df._sz**2.\
+            print VDatprop,
+            VDatprop -= -0.5*(propvR**2./4./self._df._sr**2.+propvz**2./4./self._df._sz**2.\
                                  +(propvT-maxVT)**2./4./self._df._sr**2.)
-            VDatprop= numpy.reshape(VDatprop,(nmore))
+            VDatprop = numpy.reshape(VDatprop,(nmore))
             indx= (VDatprop > numpy.log(numpy.random.random(size=nmore))) #accept
             vRs.extend(list(propvR[indx]))
             vTs.extend(list(propvT[indx]))

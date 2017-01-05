@@ -3,6 +3,7 @@ import numpy
 import sys
 import os
 from read_RoadMapping_parameters import read_RoadMapping_parameters
+from outlier_model import scale_df_phys_to_fit, scale_df_fit_to_phys
 
 def write_RoadMapping_parameters(datasetname,testname=None,
                             datatype=None,pottype=None,sftype=None,dftype=None,priortype=None,
@@ -124,8 +125,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif dftype   == 11: f.write('# distribution funct type: 11 = quasiisothermal df (Binney & McMillan 2011) + robust likelihood\n')
     elif dftype   == 12: f.write('# distribution funct type: 12 = quasiisothermal df (Binney & McMillan 2011) + halo outlier model\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): distribution function type "+str(dftype)+" is not defined.")
-    if   priortype == 0: f.write('# prior              type: 0 = flat priors on potential and log(DF) parameters.')
-    elif priortype == 1: f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.')
+    if   priortype == 0: f.write('# prior              type: 0 = flat priors on potential and log(DF) parameters.\n')
+    elif priortype == 1: f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): prior type "+str(priortype)+" is not defined.")
 
     #MCMC accuracy parameters:
@@ -170,6 +171,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif use_aASG == 1 and (aASG_accuracy is not None): aASG_accuracy = numpy.array(aASG_accuracy)
     else                                              : aASG_accuracy = numpy.zeros(4)
 
+    f.write('# \n')
     f.write('# * NUMERICAL PRECISION IN ANALYSIS:\n')
     #fileversion 0:
     #if vT_galpy_max == 1.5 or vT_galpy_max == 0.:   

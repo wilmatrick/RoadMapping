@@ -26,6 +26,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2015-12-10 - Included special treatment for case, where parameter is pegged at a limit. - Trick (MPIA)
            2016-01-12 - Removed conditions where "force_fine_grid=True" forced to fit a Gaussian. Does sometimes just not work. - Trick (MPIA)
            2016-08-08 - Included keyword testname_previous to be able to create a new analysis/test on basis of an older analysis/test
+           2017-01-04 - Now also the df parameter limits are checked if they are physical. - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -282,6 +283,17 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
         if (potParUpperBound_phys[ii] is not None) and \
            (potParMax_phys[ii] > potParUpperBound_phys[ii]):
             potParMax_phys[ii] = potParUpperBound_phys[ii]
+
+    #_____read and apply physical boundaries in DF parameters_____
+    dfParLowerBound_fit = out['dfParLowerBound_fit'][dfParFitBool]
+    dfParUpperBound_fit = out['dfParUpperBound_fit'][dfParFitBool]
+    for ii in range(len(dfParMin_fit)):
+        if (dfParLowerBound_fit[ii] is not None) and \
+           (dfParMin_fit[ii] < dfParLowerBound_fit[ii]):
+            dfParMin_fit[ii] = dfParLowerBound_fit[ii]
+        if (dfParUpperBound_fit[ii] is not None) and \
+           (dfParMax_fit[ii] > dfParUpperBound_fit[ii]):
+            dfParMax_fit[ii] = dfParUpperBound_fit[ii]
 
 
     ##################################################
