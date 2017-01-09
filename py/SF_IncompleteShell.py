@@ -326,7 +326,7 @@ class SF_IncompleteShell(SelectionFunction):
                2017-01-09 - Written. - Trick (MPIA)
         """
 
-        if phi is None: sys.exit("Error in SF_IncompleteShell._contains(): Always specify phi in case of the spherical selection function.")
+        if phi is None: sys.exit("Error in SF_IncompleteShell._contains(): Always specify phi in case of the shell selection function.")
 
         # Recursion if input is array:
         if isinstance(R,numpy.ndarray):
@@ -345,19 +345,36 @@ class SF_IncompleteShell(SelectionFunction):
             sys.exit("Error in SF_IncompleteShell._contains(): Input arrays do not have the same length.")
 
         # rotate x axis to go through center of sphere:
-        phip = phi - self._phicen_deg
+        phip = phi - self._phisun_deg
 
         # transform from cylindrical galactocentric coordinates
         # to rectangular coordinates around center of sphere:
-        xp = self._Rcen - R * numpy.cos(numpy.radians(phip))
+        xp = self._Rsun - R * numpy.cos(numpy.radians(phip))
         yp = R * numpy.sin(numpy.radians(phip))
-        zp = z - self._zcen
+        zp = z - self._zsun
+        rp2 = xp**2 + yp**2 + zp**2
 
         # Pythagorean theorem to test if this point 
         # is inside or outside of observed volume:
-        index_outside_SF = (xp**2 + yp**2 + zp**2) > self._dmax**2 
-        contains = numpy.ones_like(R)   #return 1 if inside
-        contains[index_outside_SF] = 0. #return 0 if outside
+        index_inside_SF = (rp2 <= self._dmax**2) * (rp2 >= self._dmin**2)
+
+        #Test if also completeness is larger than zero in selection function:
+        if self._with_incompleteness:
+            completeness = self._aux_incompleteness_function_shell(R,phi,z)
+            index_inside_SF *= (completeness > 0.)
+
+        contains = numpy.zeros_like(R)   #return 0 if outside
+        contains[index_inside_SF] = 1.   #return 1 if inside
+
+        print len(contains),numpy.sum(contains)  
+        sys.exit()
+
+        for ii in range(len(contains)):
+            if not contains[ii]:
+                print R[ii],z[ii],phi[ii],completeness[ii]
+        
+
+
         return contains
 
 
