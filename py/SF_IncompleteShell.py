@@ -311,7 +311,54 @@ class SF_IncompleteShell(SelectionFunction):
 
     def _contains(self,R,z,phi=None):
 
-        sys.exit("ERROR in SF_IncompleteShell._contains(): This function is not implemented yet.")
+        """
+            NAME:
+               _contains
+            PURPOSE:
+                Tests whether a list of points is inside the shell or not.
+            INPUT:
+                R - galactocentric radius in galpy units
+                z - height above plane in galpy units
+                phi - azimuth in galactocentric coordinates in [degrees]
+            OUTPUT:
+                contains - (float array) - 0 if outside of sphere, 1 if inside of sphere
+            HISTORY:
+               2017-01-09 - Written. - Trick (MPIA)
+        """
+
+        if phi is None: sys.exit("Error in SF_IncompleteShell._contains(): Always specify phi in case of the spherical selection function.")
+
+        # Recursion if input is array:
+        if isinstance(R,numpy.ndarray):
+            if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(R)
+            if not isinstance(phi,numpy.ndarray): phi = phi + numpy.zeros_like(R)
+        elif isinstance(z,numpy.ndarray):
+            if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(z)
+            if not isinstance(phi,numpy.ndarray): phi = phi + numpy.zeros_like(z)
+        elif isinstance(phi,numpy.ndarray):
+            if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(phi)
+            if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(phi)
+        else:
+            sys.exit("Error in SF_IncompleteShell._contains(): This function is not implemented for scalar input.")
+        if numpy.any(numpy.array([len(z),len(phi)]) != len(R)):
+            print numpy.shape(R),numpy.shape(z),numpy.shape(phi)
+            sys.exit("Error in SF_IncompleteShell._contains(): Input arrays do not have the same length.")
+
+        # rotate x axis to go through center of sphere:
+        phip = phi - self._phicen_deg
+
+        # transform from cylindrical galactocentric coordinates
+        # to rectangular coordinates around center of sphere:
+        xp = self._Rcen - R * numpy.cos(numpy.radians(phip))
+        yp = R * numpy.sin(numpy.radians(phip))
+        zp = z - self._zcen
+
+        # Pythagorean theorem to test if this point 
+        # is inside or outside of observed volume:
+        index_outside_SF = (xp**2 + yp**2 + zp**2) > self._dmax**2 
+        contains = numpy.ones_like(R)   #return 1 if inside
+        contains[index_outside_SF] = 0. #return 0 if outside
+        return contains
 
 
     #-----------------------------------------------------------------------

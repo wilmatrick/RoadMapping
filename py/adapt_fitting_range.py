@@ -13,7 +13,7 @@ def gauss(x, A, mu, sigma):
 
 #==================================================
 
-def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,n_sigma_range=3.,n_gridpoints_final=9,mockdatapath='../data/',force_fine_grid=False,method='GRID',fit_method='Gauss',testname_previous=None):
+def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,n_sigma_range=3.,n_gridpoints_final=9,mockdatapath='../data/',force_fine_grid=False,method='GRID',fit_method='Gauss',datasetname_previous=None,testname_previous=None):
 
     """
         NAME:
@@ -27,19 +27,24 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2016-01-12 - Removed conditions where "force_fine_grid=True" forced to fit a Gaussian. Does sometimes just not work. - Trick (MPIA)
            2016-08-08 - Included keyword testname_previous to be able to create a new analysis/test on basis of an older analysis/test
            2017-01-04 - Now also the df parameter limits are checked if they are physical. - Trick (MPIA)
+           2017-01-09 - Added keyword datasetname_previous, analogous to testname_previous. - Trick (MPIA)
     """
 
     #_____reference scales_____
     _REFR0 = 8.  #[kpc]
     _REFV0 = 220.   #[km/s]
 
-    #...testname-->the file to be created, testname_previous-->the analysis to be used to update:
-    if testname_previous is None: testname_previous=testname
+
 
     #_____load data from file_____
+    #...datasetname & testname-->the file to be created,
+    #datasetname_previous & testname_previous-->the analysis to be used to update:
+    if testname_previous    is None: testname_previous=testname
+    if datasetname_previous is None: datasetname_previous=datasetname
+
     if analysis_output_filename is None:
-        if testname_previous is None: analysis_output_filename = "../out/"+dataname+"_analysis_output_"+method+".sav"
-        else:                         analysis_output_filename = "../out/"+dataname+"_"+testname_previous+"_analysis_output_"+method+".sav"
+        if testname_previous is None: analysis_output_filename = "../out/"+dataname_previous+"_analysis_output_"+method+".sav"
+        else:                         analysis_output_filename = "../out/"+dataname_previous+"_"+testname_previous+"_analysis_output_"+method+".sav"
     if os.path.exists(analysis_output_filename):
         savefile= open(analysis_output_filename,'rb')
         if method == 'GRID':   
@@ -74,15 +79,11 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
         nquant = len(gridPointNo)
     elif method == 'MCMC':
         #_____burnin + bounds_____
-        ANALYSIS = read_RoadMapping_parameters(
-                datasetname,testname=testname_previous,
-                mockdatapath=mockdatapath
-                )
-        burnin_steps = ANALYSIS['noMCMCburnin']
-        lower_bounds = numpy.append(ANALYSIS['potParLowerBound_phys'][potParFitBool],
-                                    ANALYSIS['dfParLowerBound_fit'  ][dfParFitBool ])
-        upper_bounds = numpy.append(ANALYSIS['potParUpperBound_phys'][potParFitBool],
-                                    ANALYSIS['dfParUpperBound_fit'  ][dfParFitBool ])
+        ANALYSIS_PREVIOUS = read_RoadMapping_parameters(
+                        datasetname_previous,testname=testname_previous,
+                        mockdatapath=mockdatapath
+                        )
+        burnin_steps = ANALYSIS_PREVIOUS['noMCMCburnin']
         nquant    = numpy.shape(chain_out)[2]
         chain = chain_out[:, burnin_steps:, :].reshape((-1, nquant))
 
@@ -273,9 +274,9 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     dfParMax_fit   = qmax[npotpar::]
 
     #_____read and apply physical boundaries in potential parameters_____
-    out = read_RoadMapping_parameters(datasetname,testname=testname,mockdatapath=mockdatapath)
-    potParLowerBound_phys = out['potParLowerBound_phys'][potParFitBool]
-    potParUpperBound_phys = out['potParUpperBound_phys'][potParFitBool]
+    ANALYSIS = read_RoadMapping_parameters(datasetname,testname=testname,mockdatapath=mockdatapath)
+    potParLowerBound_phys = ANALYSIS['potParLowerBound_phys'][potParFitBool]
+    potParUpperBound_phys = ANALYSIS['potParUpperBound_phys'][potParFitBool]
     for ii in range(len(potParMin_phys)):
         if (potParLowerBound_phys[ii] is not None) and \
            (potParMin_phys[ii] < potParLowerBound_phys[ii]):
@@ -285,8 +286,8 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
             potParMax_phys[ii] = potParUpperBound_phys[ii]
 
     #_____read and apply physical boundaries in DF parameters_____
-    dfParLowerBound_fit = out['dfParLowerBound_fit'][dfParFitBool]
-    dfParUpperBound_fit = out['dfParUpperBound_fit'][dfParFitBool]
+    dfParLowerBound_fit = ANALYSIS['dfParLowerBound_fit'][dfParFitBool]
+    dfParUpperBound_fit = ANALYSIS['dfParUpperBound_fit'][dfParFitBool]
     for ii in range(len(dfParMin_fit)):
         if (dfParLowerBound_fit[ii] is not None) and \
            (dfParMin_fit[ii] < dfParLowerBound_fit[ii]):

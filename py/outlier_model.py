@@ -164,12 +164,12 @@ def scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy):
     #_____accounting for correct array shape of input_____
     npar = [5,8]
     transpose = False
-    if dfPar_fit.ndim == 1 and dfPar_fit.shape[0] in npar:
-        dfPar_fit = dfPar_fit.reshape((1,dfPar_fit.shape[0]))
-    if dfPar_fit.ndim == 2 and dfPar_fit.shape[1] in npar:
+    if dfPar_galpy.ndim == 1 and dfPar_galpy.shape[0] in npar:
+        dfPar_galpy = dfPar_galpy.reshape((1,dfPar_galpy.shape[0]))
+    if dfPar_galpy.ndim == 2 and dfPar_galpy.shape[1] in npar:
         pass    #all fine
-    elif dfPar_fit.ndim == 2 and dfPar_fit.shape[0] in npar:
-        dfPar_fit = dfPar_fit.T
+    elif dfPar_galpy.ndim == 2 and dfPar_galpy.shape[0] in npar:
+        dfPar_galpy = dfPar_galpy.T
         transpose = True
     else:
         sys.exit("Error in scale_df_galpy_to_phys(): Input array does not have the correct shape.")

@@ -11,7 +11,7 @@ from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
 from prior import calculate_logprior
-from outlier_model import calculate_outlier_model, scale_df_fit_to_galpy
+from outlier_model import calculate_outlier_model, scale_df_fit_to_galpy, scale_df_galpy_to_phys
 
 #---------------------------------------------------------------------
 
@@ -240,7 +240,7 @@ def logprob_MCMC(
     #priortype = 0: flat priors in potential parameters and 
     #               logarithmically flat  priors in DF parameters
     #priortype = 1: additionally: prior on flat rotation curve               
-    logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
+    logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
 
     #_____measure time_____
     #zeit_t = time.time() - zeit_start
@@ -472,7 +472,7 @@ def logprob_MCMC_fitDF_only(
     #priortype = 1: additionally: prior on flat rotation curve 
     #               (makes no sense to use it in a fit of the DF only)
     if priortype in [0]:             
-        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
+        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     else:
         sys.exit("Error in logprob_MCMC_fitDF_only(): It makes no sense "+\
                  "to use priortype = "+str(priortype)+" because the "+\
@@ -658,7 +658,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     #               logarithmically flat  priors in DF parameters, i.e. logprior = 0.
     #priortype = 1: additionally: prior on flat rotation curve
     if priortype in [0,1]:               
-        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot=pot)
+        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     else:
         sys.exit("Error in loglikelihood_potPar(): For priortype=[0,1] "+\
                  "the prior is independent of the values of the DF "+\
@@ -746,7 +746,15 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
 
     #_____normalize likelihood_____
     # for current p_DF and p_Phi:
-    lnL_i -= math.log(dens_norm)
+    if dens_norm > 0.: 
+        lnL_i -= math.log(dens_norm)
+    else:              
+        lnL_i = numpy.zeros_like(lnL_i) - numpy.inf
+        print "Warning in loglikelihood_dfPar(): normalization is <= 0"+\
+              " for df parameters: "
+        print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
+        print "normalization = ",dens_norm,"\n"
+
     # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
     #          in the likelihood 
     #          L({x,v}|p) = Sum_i sf(x_i) * df(x_i,v_v) / norm 

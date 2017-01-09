@@ -23,7 +23,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                             errPar_obs=None,sunCoords_phys=None,
                             use_default_Delta=None,estimate_Delta=None,Delta_fixed=None,
                             aASG_accuracy=None,
-                            mockdatapath='../data/',update=False
+                            mockdatapath='../data/',update=False,
+                            datasetname_testname_to_be_copied=None
                             ):
 
     """
@@ -45,6 +46,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-12-27 - Added priortype. - Trick (MPIA)
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
            2017-01-03 - Added dftype. - Trick (MPIA)
+           2017-01-09 - Added keyword datasetname_testname_to_be_copied to be able to copy an existing analysis file.
     """
 
     #analysis parameter file:
@@ -55,11 +57,20 @@ def write_RoadMapping_parameters(datasetname,testname=None,
 
     #if the file should only be updated, read existing file first:
     if update:
-        if os.path.exists(filename):
+        if datasetname_testname_to_be_copied is not None:
+            #if the file should be created as a copy & update from an existing but different analysis file:
+            datasetname_previous = datasetname_testname_to_be_copied[0]
+            testname_previous    = datasetname_testname_to_be_copied[1]
+            out = read_RoadMapping_parameters(datasetname_previous,testname=testname_previous,mockdatapath=mockdatapath)
+        elif os.path.exists(filename):
+            #if this file should be updated
             out = read_RoadMapping_parameters(datasetname,testname=testname,mockdatapath=mockdatapath)
         else:
             sys.exit("Error in write_RoadMapping_parameters(): file "+\
-                     filename+" does not exist.")
+                     filename+" does not exist and datasetname_testname_to_be_copied is not set.")
+
+
+        
 
     #now open file to write:
     f = open(filename, 'w')
@@ -768,8 +779,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                  "selection function type "+str(sftype)+" is not defined.")
 
     if datatype in [2,5] and sftype == 4:
-        sys.exit("Error in write_RoadMapping_parameters(): "+\
-                 "If datatype = [2,5] and sftype = 4: Check that they use the same sun coordinates!")
+        print "Warning in write_RoadMapping_parameters(): "+\
+              "If datatype = [2,5] and sftype = 4: Check that they use the same sun coordinates!"
 
     #_____close file_____
     f.close()

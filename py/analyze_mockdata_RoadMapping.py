@@ -41,6 +41,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - The likelihood now takes also care of priors on the potential parameters. - Trick (MPIA)
            2017-01-03 - Added calculation of normalisation and data for oulier model (dftype = 12). Removed in_sf_data. - Trick (MPIA)
+           2017-01-09 - Test now for all datatypes if all stars are inside the selection function. - Trick (MPIA)
     """
 
     print "______________________________________________________________________"
@@ -130,20 +131,16 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                         ANALYSIS['ro']
                         )
 
-        if ANALYSIS['datatype'] in [2,5] and ANALYSIS['sftype'] in [3,32,4]:   #measurement errors + selection function (sphere or incompleteShell)
-            # ... calculate sf(R,z,phi) for all points
-            # to test if the data points that sample the error ellipses 
-            # around the observed data points are inside the observed volume.
-            # Our error approximation assumes the positions are perfectly known,
-            # therefore nothing should be outside of the survey volume.
-            in_sf_data = sf.contains(R_data/ANALYSIS['ro'],z_data/ANALYSIS['ro'],phi=phi_data)
-            if numpy.sum(in_sf_data) < len(in_sf_data):
-                sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
-                         "There are measured positions that are outside of "+\
-                         "the observed volume. This should not be the case.")
-        elif ANALYSIS['datatype'] in [2,5]:
-                sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
-                         "SelectionFunction.contains() is not yet implemented for sf type: "+str(ANALYSIS['sftype']))
+        #Test if all stars are inside the survey volume and in regions 
+        #with completeness > 0:
+        in_sf_data = sf.contains(R_data/ANALYSIS['ro'],z_data/ANALYSIS['ro'],phi=phi_data)
+        if numpy.sum(in_sf_data) < len(in_sf_data):
+            sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
+                     "There are measured positions that are outside of "+\
+                     "the observed volume. This should not be the case.")
+        #In case of measurement errors (datatype in [2,5]), our error 
+        #approximation assumes the positions are perfectly known,
+        #therefore nothing should be outside of the survey volume.
     else:
         sys.exit("Error in analyze_mockdata_RoadMapping(): "+\
                  "How to deal with the selection function if ro is not known? To do: Implement.")

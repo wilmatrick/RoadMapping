@@ -90,10 +90,6 @@ class SelectionFunction:
             2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
 
-        if self._with_incompleteness:
-            sys.exit("Error in SelectionFunction.contains(): "+
-                     "Function not yet implemented to take care of imcompleteness.")
-
         return self._contains(R,z,phi=phi)
 
     #----------------------------------------------------------------
