@@ -366,15 +366,10 @@ class SF_IncompleteShell(SelectionFunction):
         contains = numpy.zeros_like(R)   #return 0 if outside
         contains[index_inside_SF] = 1.   #return 1 if inside
 
-        print len(contains),numpy.sum(contains)  
-        sys.exit()
-
-        for ii in range(len(contains)):
-            if not contains[ii]:
-                print R[ii],z[ii],phi[ii],completeness[ii]
-        
-
-
+        #print len(contains),numpy.sum(contains)  
+        #for ii in range(len(contains)):
+        #    if not contains[ii]:
+        #        print R[ii],z[ii],phi[ii],completeness[ii]
         return contains
 
 

@@ -43,8 +43,8 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     if datasetname_previous is None: datasetname_previous=datasetname
 
     if analysis_output_filename is None:
-        if testname_previous is None: analysis_output_filename = "../out/"+dataname_previous+"_analysis_output_"+method+".sav"
-        else:                         analysis_output_filename = "../out/"+dataname_previous+"_"+testname_previous+"_analysis_output_"+method+".sav"
+        if testname_previous is None: analysis_output_filename = "../out/"+datasetname_previous+"_analysis_output_"+method+".sav"
+        else:                         analysis_output_filename = "../out/"+datasetname_previous+"_"+testname_previous+"_analysis_output_"+method+".sav"
     if os.path.exists(analysis_output_filename):
         savefile= open(analysis_output_filename,'rb')
         if method == 'GRID':   

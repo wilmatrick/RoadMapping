@@ -206,6 +206,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                     xtemp = numpy.linspace(x_range[0],x_range[1],200)
                     gtemp = gauss(xtemp, A, mu, sigma)
                     plt.plot(xtemp,gtemp,color='k',linestyle='dashed',linewidth=2)
+                    print labels[ix]," = ",numpy.round(mu,2)," +/- ",numpy.round(sigma,2)
 
 
                 #_____format_____

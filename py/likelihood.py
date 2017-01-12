@@ -657,7 +657,8 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     #priortype = 0: flat priors in potential parameters and 
     #               logarithmically flat  priors in DF parameters, i.e. logprior = 0.
     #priortype = 1: additionally: prior on flat rotation curve
-    if priortype in [0,1]:               
+    if priortype in [0,1]:
+        pot_physical = True #any potential which is passed to this function is physical
         logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     else:
         sys.exit("Error in loglikelihood_potPar(): For priortype=[0,1] "+\
