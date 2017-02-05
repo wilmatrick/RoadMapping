@@ -233,7 +233,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                     #x axis:
                     ax.xaxis.tick_top()
                     plt.xticks(rotation=45) 
-                    ax.set_xlabel(labels[ix])
+                    ax.set_xlabel(labels[ix],fontsize=fontsize)
                     ax.xaxis.set_label_position('top')
                     #y axis:
                     plt.tick_params(\
@@ -381,7 +381,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                 #_____plot contours_____
                 if color:
                     if   xpotflag and ypotflag:         ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('lightskyblue','cornflowerblue','royalblue'))
-                    elif not xpotflag and not ypotflag: ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('lightsage','limegreen','seagreen'))
+                    elif not xpotflag and not ypotflag: ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('lightgreen','limegreen','seagreen'))
                     elif xpotflag or ypotflag:          ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('mediumpurple','darkorchid','indigo'))
                 else:
                     ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('0.7','0.5','0.3'))

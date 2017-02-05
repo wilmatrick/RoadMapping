@@ -10,6 +10,7 @@ import pickle
 import sys
 import time
 import scipy.optimize
+import galpy
 from galpy.potential import Potential
 from galpy.actionAngle import actionAngle, estimateDeltaStaeckel
 from galpy.util import save_pickles, multi
@@ -43,6 +44,9 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2017-01-03 - Added calculation of normalisation and data for oulier model (dftype = 12). Removed in_sf_data. - Trick (MPIA)
            2017-01-09 - Test now for all datatypes if all stars are inside the selection function. - Trick (MPIA)
     """
+
+    if galpy.__version__ != 1.2:
+        sys.exit("Error in analyze_mockdata_RoadMapping(): RoadMapping works currently with galpy.__version__ = 1.2 only.")
 
     print "______________________________________________________________________"
     print "_____Analyse mock data set: ",datasetname
@@ -176,7 +180,6 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         potParArr_phys = FITGRID['potParArr_phys']
         dfParArr_fit   = FITGRID['dfParArr_fit']
 
-
         #_____initialize likelihood grid_____
         likelihood_shapetuple = FITGRID['potShape']+FITGRID['dfShape']
         npots = len(potParArr_phys[:,0])
@@ -206,11 +209,14 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         print " *** Start running the GRID analysis *** "
             
         #_____start iteration through potentials_____
+        start = time.time()
         while ii < npots:
             if True:
                 #print "\r",
                 #print "Working on potential ",ii+1," / ",npots,
                 #print "Working on potential ",ii+1," / ",npots
+                #print "time of one potential: ", time.time() - start
+                #start = time.time()
         
                 #_____setup potential / Action object_____
                 #print "   * setup potential"
@@ -264,6 +270,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                 dfParFid_galpy = scale_df_fit_to_galpy(ANALYSIS['dftype'],ro,vo,dfParFid_fit)
 
                 #_____rescale data for outlier model to galpy units_____
+                data_for_outlier_model_galpy = None
                 if ANALYSIS['dftype'] == 12:
                     traf = numpy.array([ro,vo,vo,vo]).reshape((4,1))
                     data_for_outlier_model_galpy = data_for_outlier_model / traf

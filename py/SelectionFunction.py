@@ -1828,7 +1828,6 @@ class SelectionFunction:
             VDatprop= self._df(R+numpy.zeros(nmore),
                            propvR,propvT,z+numpy.zeros(nmore),
                            propvz,log=True)-logmaxVD
-            print VDatprop,
             VDatprop -= -0.5*(propvR**2./4./self._df._sr**2.+propvz**2./4./self._df._sz**2.\
                                  +(propvT-maxVT)**2./4./self._df._sr**2.)
             VDatprop = numpy.reshape(VDatprop,(nmore))
@@ -2596,6 +2595,7 @@ class SelectionFunction:
         HISTORY:
             2016-02-26 - Renamed dsun --> Rcen
             2016-09-20 - incompleteness_function is now a function of galactocentric coordinates (R,p_deg,z)
+            2017-01-17 - debugged code for special case that the initial find is just one single position. - Trick (MPIA)
         """
 
         #_____is incompleteness function initializeed?_____
@@ -2668,6 +2668,10 @@ class SelectionFunction:
             index = (comptest <= comp_at_dz)
             if numpy.sum(index) == 0:
                 pass
+            elif len(Rarr) == 0 and numpy.sum(index) == 1:
+                Rarr.extend(Rs[index])
+                zarr.extend(zs[index])
+                phiarr.extend(phis_deg[index])                
             elif numpy.sum(index) == 1:
                 Rarr.extend([Rs[index]])
                 zarr.extend([zs[index]])

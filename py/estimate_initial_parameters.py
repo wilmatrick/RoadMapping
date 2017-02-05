@@ -216,7 +216,7 @@ def estimate_fiducial_qdf(R_kpc=None,vR_kms=None,
     #...fitting the tracer density...
 
     #boundary conditions:
-    bounds = [(1.2,20.)]
+    bounds = [(1.2,16.)]
     #initial guess:
     x0 = [0.5*(1.6+4.85)] #[kpc]
     #   this comes from fig. 6 in Bovy & Rix 2013, first panel
@@ -293,7 +293,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
         #initial guess:
         x0 = [0.5*(30.+60.)/_REFV0,8./_REFR0] #[km/s/_REFV0,kpc/_REFR0]
         #boundary conditions:
-        bounds = ((10./_REFV0,70./_REFV0),(1./_REFR0,20./_REFR0))
+        bounds = ((10./_REFV0,70./_REFV0),(1./_REFR0,16./_REFR0))
         #   this comes from fig. 6 in Bovy & Rix 2013, second panel
         #   and p.10, second column, hsr = 8 kpc.
         
@@ -332,7 +332,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
         #initial guess:
         x0 = [0.5*(16.+80.)/_REFV0,5./_REFR0] #[km/s/_REFV0,kpc/_REFR0]
         #boundary conditions:
-        bounds = ((1./_REFV0,90./_REFV0),(1./_REFR0,20./_REFR0))
+        bounds = ((1./_REFV0,90./_REFV0),(1./_REFR0,16./_REFR0))
         #   this comes from fig. 6 in Bovy & Rix 2013, third panel
         #   and p.10, second column for the fitting limits of hsr
         
@@ -368,7 +368,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
     print "    ... fitting double exponential disk"
 
     #boundary conditions:
-    bounds = [(1.2/_REFR0,20./_REFR0),(0.001/_REFR0,5./_REFR0)]
+    bounds = [(1.2/_REFR0,16./_REFR0),(0.001/_REFR0,5./_REFR0)]
     #initial guess:
     x0 = [0.5*(1.6+4.85)/_REFR0,0.3/_REFR0] #[kpc/_REFR0]
     #   this comes from fig. 6 in Bovy & Rix 2013, first panel
@@ -394,7 +394,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
     x0 = [h_R_disk/_REFR0,h_z_disk/_REFR0] #[kpc/_REFR0]
 
     #boundary conditions:
-    bounds = [(0.5/_REFR0,20./_REFR0),(0.0001/_REFR0,10./_REFR0)]
+    bounds = [(0.5/_REFR0,16./_REFR0),(0.0001/_REFR0,10./_REFR0)]
 
    
     #minimize:

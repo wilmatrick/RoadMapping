@@ -10,6 +10,7 @@ from galpy.df import quasiisothermaldf
 from galpy.util import save_pickles
 from precalc_actions import setup_data_actions
 import sys
+from outlier_model import scale_df_fit_to_galpy, scale_df_galpy_to_phys
 
 
 def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference,
@@ -21,7 +22,8 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                                       _N_SPAT=20,_NGL_VEL=40,_N_SIGMA=5.,
                                       with_actions=False,
                                       redo_everything=False,
-                                      method='MCMC_median'
+                                      method='MCMC_median',
+                                      originalmockdatafilename=None
                                       ):
 
     """
@@ -30,7 +32,9 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         INPUT:
         OUTPUT:
         HISTORY:
+            201?-??-?? - Written. - Trick (MPIA)
             2017-01-03 - Allowed for flexible number of df parameters, i.e. added dftype. - Trick (MPIA)
+            2017-01-18 - Added optional keyword originalmockdatafilename. - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -100,6 +104,12 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     dfPar_fit[ANALYSIS['dfParFitBool']] = dfPar_fit_MCMC
     dfPar_galpy             = scale_df_fit_to_galpy( ANALYSIS['dftype'],ro,vo,dfPar_fit)
     dfPar_phys              = scale_df_galpy_to_phys(ANALYSIS['dftype'],ro,vo,dfPar_galpy)
+    #only use qDF parameters and ignore outlier model parameters:
+    if ANALYSIS['dftype'] in [0,11,12]:
+        dfPar_phys = dfPar_phys[0:5]
+    else:
+        sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
+                 str(ANALYSIS['dftype'])+" is not defined.")
     print "qDF parameters: ",dfPar_phys
 
     #fiducial p_DF parameters in galpy units
@@ -107,7 +117,21 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     dfParFid_fit   = ANALYSIS['dfParFid_fit']
     dfParFid_galpy = scale_df_fit_to_galpy( ANALYSIS['dftype'],ro,vo,dfParFid_fit)
     dfParFid_phys  = scale_df_galpy_to_phys(ANALYSIS['dftype'],ro,vo,dfParFid_galpy)
+    #only use qDF parameters and ignore outlier model parameters:
+    if ANALYSIS['dftype'] in [0,11,12]:
+        dfParFid_phys = dfParFid_phys[0:5]
+    else:
+        sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
+                 str(ANALYSIS['dftype'])+" is not defined.")
     print "Fiducial qDF: ",dfParFid_phys
+
+    #only use qDF parameters and ignore outlier model parameters:
+    dfParFitBool = ANALYSIS['dfParFitBool']
+    if ANALYSIS['dftype'] in [0,11,12]:
+        dfParFitBool = dfParFitBool[0:5]
+    else:
+        sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
+                 str(ANALYSIS['dftype'])+" is not defined.")
 
     #_____setup galaxy_____
     print "* Setup Galaxy *"
@@ -136,7 +160,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                     )
         else:
             sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
-                     str(ANALYSIS['dftype'])+" is not defined."
+                     str(ANALYSIS['dftype'])+" is not defined.")
 
         #selection function (physical units):
         sf = setup_SelectionFunction_object(ANALYSIS['sftype'],ANALYSIS['sfParEst_phys'],ro,df=qdf)
@@ -177,12 +201,14 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                 datatype        = _DATATYPE,
                 pottype         = ANALYSIS['pottype'],
                 sftype          = ANALYSIS['sftype'],
+                dftype          = 0,    #quasiisothermal df (Binney & McMillan 2011), no outlier model
+                priortype       = 0,    #flat priors
                 noStars         = _NSTARS,
                 potParTrue_phys = potPar_phys,
                 potParFitBool   = ANALYSIS['potParFitBool'],
                 dfParTrue_phys  = dfPar_phys,
                 dfParEst_phys   = dfPar_phys,
-                dfParFitBool    = ANALYSIS['dfParFitBool'],
+                dfParFitBool    = dfParFitBool,
                 sfParTrue_phys  = ANALYSIS['sfParEst_phys'],
                 mockdatapath    = mockdata_path,
                 N_spatial       = 20,
@@ -235,10 +261,13 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
             originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_mockdata_actions.sav'
         else:
             originalactiondatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+'_'+testname_original+'_mockdata_actions.sav'
+
+        if originalmockdatafilename is None:
+            originalmockdatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+"_mockdata.sav"
+
         if (not os.path.exists(originalactiondatafilename)) or redo_everything:
 
             #_____load data from file_____
-            originalmockdatafilename = mockdata_path+datasetname_original+"/"+datasetname_original+"_mockdata.sav"
             savefile= open(originalmockdatafilename,'rb')
             rs    = pickle.load(savefile)/_REFR0/ro   #R   [kpc] or actually now galpy
             vRs   = pickle.load(savefile)/_REFV0/vo   #vR  [km/s] or actually now galpy

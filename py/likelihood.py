@@ -699,6 +699,8 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
             2016-12-31 - Allowed for different outlier models. Restructured the function concerning the different data types to make the code slimmer. - Trick (MPIA)
             2017-01-02 - Removed in_sf_data keyword. Finished implementing outlier model dftype == 12. - Trick (MPIA)
     """
+
+    #start = time.time()
     
     #_____initialize df_____
     # set parameters of distribution function:
@@ -733,6 +735,10 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
     # integrate density over effective volume, i.e. the selection 
     # function. Use a fast GL integration analogous to Bovy:
     dens_norm = sf.Mtot(xgl=_XGL,wgl=_WGL)
+
+    #stop = time.time()
+    #print "normalisation: ",stop-start
+    #start = time.time()
 
     #_____evaluate DF for each data point_____
     #this is log(likelihood) of all data points given p_DF and p_Phi:
@@ -902,6 +908,8 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
         epsilon  = 0.001 # = 0.1 %
         L_i      = numpy.maximum(L_i,epsilon*median_L)
         lnL_i    = numpy.log(L_i)
+
+    #print "likelihood: ",time.time()-start
 
     #_____sum logL for final loglikelihood_____
     # sum up contributions for all data points: 

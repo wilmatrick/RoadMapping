@@ -6,6 +6,7 @@ from read_RoadMapping_parameters import read_RoadMapping_parameters
 import numpy
 import scipy
 import scipy.stats
+from outlier_model import scale_df_fit_to_phys
 
 def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/'):
 
@@ -73,8 +74,6 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     dfParModels_fit = numpy.tile(dfParEst_fit,(N,1))
     dfParModels_fit[:,dfParFitBool] = models[:,0:ndffitpar]
     dfParModels_phys = scale_df_fit_to_phys(ANALYSIS['dftype'],dfParModels_fit)
-    print numpy.shape(dfParModels_fit),numpy.shape(dfParModels_phys)
-    sys.exit("Testing scale_df_fit_to_phys in get_N_MCMC_models.")
 
     return potParModels_phys, dfParModels_phys
     

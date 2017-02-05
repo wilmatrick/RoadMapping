@@ -17,9 +17,10 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
            2015-02-16 - Added pottype 6,61,7,71, DISK+HALO+BULGE potentials. - Trick (MPIA)
            2016-09-22 - Added pottype 4 and 41, MWPotential2014 by Bovy (2015) - Trick (MPIA)
            2016-09-25 - Added pottype 42 and 421, MWPotential from galpy - Trick (MPIA)
-           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data; with MN disk). - Trick (MPIA)
            2016-12-31 - Removed d_potcoords, min_potcoords, max_potcoords. - Trick (MPIA)
            2017-01-03 - Added dftype. - Trick (MPIA)
+           2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
     """
 
     #read analysis parameters:
@@ -143,7 +144,9 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             elif ii == 3: b_ds = xs
             elif ii == 4: f_hs = xs
             elif ii == 5: a_hs = xs  
-        elif pottype in numpy.array([8,81],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+        elif pottype in numpy.array([8,81,82,821],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+            #8: single Miyamoto-Nagai disk
+            #82: 3x Miyamoto-Nagai disk (to model exp-sech-disk; Smith et al 2015); (here a_disk_kpc = hr_disk_kpc, b_disk_kpc = hz_disk_kpc)
             if   ii == 2: a_ds = xs
             elif ii == 3: b_ds = xs
             elif ii == 4: f_hs = xs
@@ -179,7 +182,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         potParArr_phys[:,3] = b_d1.flatten()
         potParArr_phys[:,4] = f_h1.flatten()
         potParArr_phys[:,5] = a_h1.flatten()
-    elif pottype in numpy.array([8,81],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+    elif pottype in numpy.array([8,81,82,821],dtype=int): #MN-DISK+NFW-HALO+H-BULGE POTENTIAL, potPar = [R0_kpc,vc_kms,a_disk_kpc,b_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
         r1,v1,a_d1,b_d1,f_h1,a_h1,M_b1,a_b1 = numpy.meshgrid(rs,vs,a_ds,b_ds,f_hs,a_hs,M_bs,a_bs,indexing='ij')
         potParArr_phys[:,2] = a_d1.flatten()
         potParArr_phys[:,3] = b_d1.flatten()

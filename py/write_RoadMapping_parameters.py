@@ -44,9 +44,10 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2016-09-25 - Added pottype 42,421 MWPotential from galpy - Trick (MPIA)
            2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - Added priortype. - Trick (MPIA)
-           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data; with MN disk). - Trick (MPIA)
            2017-01-03 - Added dftype. - Trick (MPIA)
            2017-01-09 - Added keyword datasetname_testname_to_be_copied to be able to copy an existing analysis file.
+           2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -89,6 +90,9 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (dftype    is None): dftype    = out['dftype']
     if update and (priortype is None): priortype = out['priortype']
 
+    if dftype    is None: dftype    = 0
+    if priortype is None: priortype = 0
+
     f.write('# =========================================\n')
     f.write('# ===== MODEL PARAMETERS FOR ANALYSIS =====\n')
     f.write('# =========================================\n')
@@ -125,6 +129,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif pottype  == 71: f.write("# potential          type: 71 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (galpy MWPotential like) + StaeckelGrid actions\n")
     elif pottype  == 8:  f.write("# potential          type: 8 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (to fit to Gaia data) + Staeckel actions\n")
     elif pottype  == 81: f.write("# potential          type: 81 = Miyamoto-Nagai disk, NFW halo & Hernquist bulge (to fit to Gaia data) + StaeckelGrid actions\n")
+    elif pottype  == 82: f.write("# potential          type: 82 = 3xMN disk (Smith et al. 2015), NFW halo & Hernquist bulge (to fit to Gaia data) + Staeckel actions\n")
+    elif pottype  == 821:f.write("# potential          type: 812 = 3xMN disk (Smith et al. 2015), NFW halo & Hernquist bulge (to fit to Gaia data) + StaeckelGrid actions\n")
     else: sys.exit("Error in write_RoadMapping_parameters(): potential type "+str(pottype)+" is not defined.")
     if   sftype   == 1:  f.write('# selection function type: 1 = wedge (box completeness)\n')
     elif sftype   == 3:  f.write('# selection function type: 3 = sphere (box completeness)\n')
@@ -175,7 +181,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                  "If the default Staeckel Delta (0.45) is used, "+\
                  "then it is required that estimate_Delta=0 and Delta_fixed=0.")
     #actionAngleStaeckelGrid accuracy parameters:
-    if pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
+    if pottype in numpy.array([21,31,41,421,51,61,71,81,821],dtype=int): use_aASG     = 1    #True for potentials that use the actionAngleStaeckelGrid
     else                                                 : use_aASG     = 0    #False
     if   update        and (aASG_accuracy is     None): aASG_accuracy = out['aASG_accuracy']
     elif use_aASG == 1 and (aASG_accuracy is     None): aASG_accuracy = numpy.array([5.,70.,40.,50.]) #Rmax=5.,nE=70,npsi=40,nLz=50
@@ -454,7 +460,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('\t\t\t'+str(potParTrue_phys[1])+'\t'+str(potParEst_phys[1])+'\t0\t'+\
                     str(potParMin_phys[1])+'\t'+str(potParMax_phys [1])+'\t'+str(potParFitNo [1])+'\n')
 
-    elif pottype in numpy.array([5,6,7,8,51,61,71,81],dtype=int):
+    elif pottype in numpy.array([5,6,7,8,82,51,61,71,81,821],dtype=int):
         f.write('#\n')
         if pottype in numpy.array([5,51],dtype=int):
             #MIYAMOTO-NAGAI DISK + HERNQUIST HALO + HERNQUIST BULGE (for Elena D'Onghia simulation)
@@ -472,6 +478,13 @@ def write_RoadMapping_parameters(datasetname,testname=None,
             #MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (for fitting to Gaia data)
             f.write("# ***** POTENTIAL: MIYAMOTO-NAGAI DISK + NFW HALO + HERNQUIST BULGE (galpy MWPotential-like)*****\n")
             scalelength,scaleheight='a_disk','b_disk'
+        elif pottype in numpy.array([82,821],dtype=int):
+            #3xMN DISK (Smith et al. 2015) + NFW HALO + HERNQUIST BULGE (for fitting to Gaia data)
+            f.write("# ***** POTENTIAL: 3xMN-EXP-SECH DISK + NFW HALO + HERNQUIST BULGE (galpy MWPotential-like)*****\n")
+            scalelength,scaleheight='hr_disk','hz_disk'
+        else:
+            sys.exit("Error in write_RoadMapping_parameters(): "+\
+                     "pottype = "+str(pottype)+" is not defined in the disk+halo+bulge section.")
         f.write('# \t\t true value / estimate / --- / fit min / fit max / # grid points\n')
         f.write('# R_0      [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[0])+'\t'+str(potParEst_phys[0])+'\t0\t'+\
@@ -491,7 +504,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
         f.write('# a_halo   [kpc]  =\n')
         f.write('\t\t\t'+str(potParTrue_phys[5])+'\t'+str(potParEst_phys[5])+'\t0\t'+\
                     str(potParMin_phys[5])+'\t'+str(potParMax_phys [5])+'\t'+str(potParFitNo [5])+'\n')
-        if pottype in numpy.array([8,81],dtype=int):
+        if pottype in numpy.array([8,81,82,821],dtype=int):
             f.write('# M_bulge [10^10Msun] =\n')
             f.write('\t\t\t'+str(potParTrue_phys[6])+'\t'+str(potParEst_phys[6])+'\t0\t'+\
                         str(potParMin_phys[6])+'\t'+str(potParMax_phys [6])+'\t'+str(potParFitNo [6])+'\n')
@@ -542,7 +555,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
             if numpy.sum(dfParFitBool) == len(dfParFitNo_new):
                 dfParFitNo[dfParFitBool] = dfParFitNo_new
             elif len(dfParFitNo_new) == len(dfParTrue_phys):
-                dfParFitNo == dfParFitNo_new
+                dfParFitNo = dfParFitNo_new
         #fiducial qdf:
         if default_dfParFid:
             dfParFid_phys = None    #reset fiducial qdf

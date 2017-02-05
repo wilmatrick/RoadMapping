@@ -29,7 +29,8 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
            2016-04-03 - Changed default accuracy of actionAngleStaeckelGrid. From Rmax = 10, nE = 50, npsi = 50, nLz = 60 to Rmax =  5, nE = 70, npsi = 40, nLz = 50
            2016-04-15 - Added an option to return only the potential, and one option to set Delta by hand.
            2016-09-24 - Added pottype 41, 42, 421 . - Trick (MPIA)
-           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data). - Trick (MPIA)
+           2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data; with MN disk). - Trick (MPIA)
+           2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -216,6 +217,33 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
                     M_bulge_1010Msun = M_b_1010Msun,
                     s_bulge          = None,
                     )
+    elif pottype == 82 or pottype == 821:
+        #========== 3MNdHbNFWh-POTENTIAL FOR FITTING TO GAIA DATA ==========
+        #========== 3xMiyamoto-Nagai disk approximation (Smith et al. 2015),
+        #========== NFW halo, Hernquist bulge ========
+        #========== with Staeckel actions ==============================
+        #potParArr = [ro,vo,hr_disk_kpc,hz_disk_kpc,f_halo,a_halo_kpc,M_bulge_1010Msun,a_bulge_kpc]
+        #transformation from physical to galpy units:
+        hr_d = potPar_phys[2] / _REFR0 / ro # stellar disk scale length
+        hz_d = potPar_phys[3] / _REFR0 / ro # stellar disk scale height
+        f_h  = potPar_phys[4]               # halo contribution to the disk's v_c^2
+        a_h  = potPar_phys[5] / _REFR0 / ro # dark matter halo scale length
+        #bulge parameters in physical units:
+        M_b_1010Msun = potPar_phys[6] # mass of hernquist bulge
+        a_b_kpc      = potPar_phys[7] # bulge scale length
+        #check, if parameters are physical:
+        if hr_d <= 0. or hz_d <= 0. or vo <= 0. or f_h <= 0. or \
+           f_h >= 1. or a_h <= 0. or M_b_1010Msun <= 0. or a_b_kpc <= 0.:
+            raise RuntimeError("unphysical potential parameters")
+        #setup potential:
+        pot = setup_DiskHaloBulge_potential(
+                    numpy.array([ro,vo,hr_d,hz_d,f_h,a_h]),
+                    Disk             = 'MN3_ExponentialSechDisk',
+                    Halo             = 'NFW',
+                    a_bulge_kpc      = a_b_kpc,
+                    M_bulge_1010Msun = M_b_1010Msun,
+                    s_bulge          = None,
+                    )
     else:
         sys.exit("Error in setup_potential_and_action_object(): "+\
                  "potential type "+str(pottype)+" is not defined.")
@@ -225,7 +253,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
         return pot
 
     #_____prepare ActionAngle object initialization and setup Delta_____
-    if (pottype in numpy.array([3,31,4,41,42,421,5,51,6,61,7,71,8,81],dtype=int)):
+    if (pottype in numpy.array([3,31,4,41,42,421,5,51,6,61,7,71,8,81,82,821],dtype=int)):
         if 'aAS_Delta' in kwargs: 
             Delta = kwargs['aAS_Delta']
         else: 
@@ -233,15 +261,22 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
             #delta=0.45 * R0 is a good estimate for the Milky Way's 
             #Staeckel approximation (cf. Bovy&Rix 2013)
         #print "Delta = ",Delta
+    elif (pottype in numpy.array([1,2],dtype=int)):
+        pass #no Delta needed
+    else:
+        sys.exit("Error in setup_potential_and_action_object(): "+\
+                 "potential type "+str(pottype)+" is not defined yet for "+\
+                 "the Delta (yes/no) setup.")
 
 
-    if pottype in numpy.array([2,3,4,42,5,6,7,8],dtype=int):
+
+    if pottype in numpy.array([2,3,4,42,5,6,7,8,82],dtype=int):
         #==========StaeckelActions=======
         #initialize ActionAngle object:
         aA = actionAngleStaeckel(pot=pot,delta=Delta,c=True)
         #       c=True (default): use C implementation to speed up actionAngleStaeckel calculations, 
         #                         plus this is needed to calculate frequencies
-    elif pottype in numpy.array([21,31,41,421,51,61,71,81],dtype=int):
+    elif pottype in numpy.array([21,31,41,421,51,61,71,81,821],dtype=int):
         #==========StaeckelActions on a Grid=======
         if '_MULTI' in kwargs: numcores = kwargs['_MULTI']
         else:                  numcores = 1
@@ -265,6 +300,10 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
             #This accuracy should be slightly better (for Paper 1 - potential test, and for Paper 2):
             aA = actionAngleStaeckelGrid(pot=pot,delta=Delta,Rmax=5.,
                      nE=70,npsi=40,nLz=50,numcores=numcores,c=True)
+    else:
+        sys.exit("Error in setup_potential_and_action_object(): "+\
+                 "potential type "+str(pottype)+" is not defined yet for "+\
+                 "the action object creation.")
 
     return pot,aA
 
@@ -683,6 +722,7 @@ def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist
     HISTORY:
         2016-01-18 - written - Trick (MPIA)
         2016-02-15 - rewrote and renamed this function to make it more flexible and to use different combinations of disks, halos and bulges. - Trick (MPIA)
+        2017-01-17 - Added MN3_ExponentialSechDisk. - Trick (MPIA)
     """
 
     #_____potential parameters_____
@@ -746,6 +786,16 @@ def setup_DiskHaloBulge_potential(potparams,Disk='MiyamotoNagai',Halo='Hernquist
                         hr        =a_d, 
                         hz        =b_d, 
                         normalize=s_disk)
+    elif Disk == 'MN3_ExponentialSechDisk':
+        #_____disk potential: 3xMiyamoto-Nagai approximation to ExponentialSechDisk_____
+        #Smith et al. 2015 <http://adsabs.harvard.edu/abs/2015arXiv150200627S>
+        diskpot = potential.MN3ExponentialDiskPotential(
+                        hr        =a_d, 
+                        hz        =b_d, 
+                        normalize =s_disk,
+                        sech      =True,
+                        posdens   =True
+                        )
     else:
         sys.exit("Error in setup_DiskHaloBulge_potential(): "+\
                  "Disk type "+Disk+" is not known. So far "+\

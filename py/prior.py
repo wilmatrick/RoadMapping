@@ -44,7 +44,7 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
 
             #_____potenial parameters_____ 
             #prior on d (ln v_circ(R0)) / d (ln R) analogous to Bovy & Rix (2013), equation (41)
-            if pottype in [8,81]:
+            if pottype in [8,81,82,821]:
                 if pot is None:
                     sys.exit("Error in logprior(): pot keyword needs to "+\
                              "be set with potential object for priortype = "+str(priortype)+\
