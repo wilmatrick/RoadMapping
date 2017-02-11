@@ -2,12 +2,13 @@
 from galpy import potential
 import numpy
 import sys
+from outlier_model import scale_df_galpy_to_phys
 
-def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
+def calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=None):
 
     """
         NAME:
-            calculate_logprior
+            calculate_logprior_potential
         PURPOSE:
         INPUT:
         OUTPUT:
@@ -15,6 +16,7 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
             2016-12-27 - Written - Trick (MPIA)
             2017-01-05 - Corrected missing minus in d ln v_circ / d ln R. - Trick (MPIA)
             2017-01-08 - Added flag pot_physical. - Trick (MPIA)
+            2017-02-10 - Added priortype 11, which is flat rotation curve + boundaries in hR. - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -35,23 +37,21 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
             #flat prior
             #zero outside the given grid limits and in unphysical regions 
             #(taken care of in likelhood function with keyword pot_physical)
-            #_____df parameters_____
-            #logarithmically flat priors
-            #(because the fit parameters are actually log(df parameters))
-            logprior = 0.
-        elif priortype == 1:
             logprior = 0.
 
-            #_____potenial parameters_____ 
+        elif priortype in [1,11]:
+            logprior = 0.
+
+            #_____potential parameters_____ 
             #prior on d (ln v_circ(R0)) / d (ln R) analogous to Bovy & Rix (2013), equation (41)
             if pottype in [8,81,82,821]:
                 if pot is None:
-                    sys.exit("Error in logprior(): pot keyword needs to "+\
+                    sys.exit("Error in calculate_logprior_potential(): pot keyword needs to "+\
                              "be set with potential object for priortype = "+str(priortype)+\
                              " and potential type = "+str(pottype)+\
                              ".")
                 elif ro != 1.:
-                    sys.exit("Error in logprior(): In priortype = "+str(priortype)+\
+                    sys.exit("Error in calculate_logprior_potential(): In priortype = "+str(priortype)+\
                              " and potential type = "+str(pottype)+". Prior on rotation curve "+\
                              "slope is evaluated at R=1 [galpy units]. If this "+\
                              "is not what is required, then the code needs to "+\
@@ -82,7 +82,7 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
                         W = (1. - 1./0.04 * dlnvc_dlnR)
                         logprior += numpy.log(W) - W
             else: 
-                sys.exit("Error in logprior(): priortype = "+str(priortype)+\
+                sys.exit("Error in calculate_logprior_potential(): priortype = "+str(priortype)+\
                          " is not defined for potential type = "+str(pottype)+\
                          ".")
 
@@ -95,6 +95,58 @@ def calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=None):
             sys.exit("Error in logprior(): priortype = "+str(priortype)+" is not defined (yet).")
 
     return logprior
+
+#-----------------------------------------------------------------
+
+def calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo):
+
+    """
+        NAME:
+            calculate_logprior_df
+        PURPOSE:
+        INPUT:
+        OUTPUT:
+        HISTORY:
+            2017-02-10 - Written - Trick (MPIA)
+    """
+
+    #_____global constants_____
+    _REFR0 = 8.
+    _REFV0 = 220.
+
+    if priortype in [0,1]:
+
+        #_____df parameters_____
+        #logarithmically flat priors
+        #(because the fit parameters are actually log(df parameters))
+        logprior = 0.
+
+    elif priortype == 11:
+
+        #_____df parameters_____
+        #logarithmically flat priors
+        #but h_r is limited to the range [0.5kpc,20kpc]
+
+        if dftype in [0,11,12]:
+
+            #transform to physical units and pick only hr parameter:
+            dfPar_phys = scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
+            hr_kpc     = dfPar_phys[0]
+
+            if (hr_kpc < 0.5) or (hr_kpc > 20.):
+                logprior = -numpy.inf
+            else:
+                logprior = 0.
+  
+        else:
+            sys.exit("Error in calculate_logprior_df(): priortype = "+str(priortype)+\
+                     " is not defined for df type = "+str(dftype)+\
+                     ".")
+
+    else:
+        sys.exit("Error in calculate_logprior_df(): priortype = "+str(priortype)+" is not defined (yet).")
+
+    return logprior   
 
 
 

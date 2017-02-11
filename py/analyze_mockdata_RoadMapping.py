@@ -45,7 +45,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
            2017-01-09 - Test now for all datatypes if all stars are inside the selection function. - Trick (MPIA)
     """
 
-    if galpy.__version__ != 1.2:
+    if galpy.__version__ != '1.2':
         sys.exit("Error in analyze_mockdata_RoadMapping(): RoadMapping works currently with galpy.__version__ = 1.2 only.")
 
     print "______________________________________________________________________"

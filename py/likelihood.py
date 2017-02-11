@@ -10,7 +10,7 @@ from galpy.df import quasiisothermaldf
 from galpy.util import multi
 from precalc_actions import precalc_pot_actions_sf
 from setup_pot_and_sf import setup_Potential_and_ActionAngle_object, setup_SelectionFunction_object
-from prior import calculate_logprior
+from prior import calculate_logprior_potential, calculate_logprior_df
 from outlier_model import calculate_outlier_model, scale_df_fit_to_galpy, scale_df_galpy_to_phys
 
 #---------------------------------------------------------------------
@@ -224,6 +224,7 @@ def logprob_MCMC(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
+                                priortype,
                                 data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                 normalisation_for_outlier_model=norm_outlier,
                                 marginal_coord=marginal_coord,
@@ -237,10 +238,12 @@ def logprob_MCMC(
         loglike = -numpy.inf
 
     #_____priors on the model parameters_____
-    #priortype = 0: flat priors in potential parameters and 
-    #               logarithmically flat  priors in DF parameters
-    #priortype = 1: additionally: prior on flat rotation curve               
-    logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+    #priortype = 0:  flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters
+    #priortype = 1:  additionally: prior on flat rotation curve
+    #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
+    #                (--> taken care of in loglikelihood_dfPar)
+    logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
 
     #_____measure time_____
     #zeit_t = time.time() - zeit_start
@@ -253,10 +256,10 @@ def logprob_MCMC(
         f = open(chainfilename, "a")
         for k in range(len(p)):
             f.write("%3.5f " % (p[k]))
-        f.write("%3.5f \n" % (loglike + logprior))
+        f.write("%3.5f \n" % (loglike + logprior_pot))
         f.close()
 
-    return loglike + logprior
+    return loglike + logprior_pot
 
 
 #------------------------------------------------------------------------
@@ -454,6 +457,7 @@ def logprob_MCMC_fitDF_only(
                                 Omega_data,
                                 _XGL,_WGL,
                                 datatype,noStars,
+                                priortype,
                                 data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                 normalisation_for_outlier_model=norm_outlier,  
                                 marginal_coord=marginal_coord,
@@ -467,13 +471,14 @@ def logprob_MCMC_fitDF_only(
         loglike = -numpy.inf
 
     #_____priors on the model parameters_____
-    #priortype = 0: flat priors in potential parameters and 
-    #               logarithmically flat  priors in DF parameters
-    #priortype = 1: additionally: prior on flat rotation curve 
-    #               (makes no sense to use it in a fit of the DF only)
-    if priortype in [0]:             
-        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
-    else:
+    #priortype = 0:  flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters
+    #priortype = 1:  additionally: prior on flat rotation curve 
+    #                (makes no sense to use it in a fit of the DF only)
+    #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc
+    #                (--> taken care of in loglikelihood_dfPar)
+    logprior_pot = calculate_logprior_pot(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+    if priortype in [1,11]:
         sys.exit("Error in logprob_MCMC_fitDF_only(): It makes no sense "+\
                  "to use priortype = "+str(priortype)+" because the "+\
                  "potential is not fitted anyway.")
@@ -483,7 +488,7 @@ def logprob_MCMC_fitDF_only(
         f = open(chainfilename, "a")
         for k in range(len(p)):
             f.write("%3.5f " % (p[k]))
-        f.write("%3.5f \n" % (loglike + logprior))
+        f.write("%3.5f \n" % (loglike + logprior_pot))
         f.close()
 
     return loglike + logprior
@@ -617,6 +622,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                                         kappa_data,nu_data,Omega_data,
                                         _XGL,_WGL,
                                         datatype,noStars,
+                                        priortype,
                                         data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                         normalisation_for_outlier_model=normalisation_for_outlier_model,
                                         marginal_coord=marginal_coord,
@@ -638,6 +644,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                                             kappa_data,nu_data,Omega_data,
                                             _XGL,_WGL,
                                             datatype,noStars,
+                                            priortype,
                                             data_for_outlier_model_galpy=data_for_outlier_model_galpy,
                                             normalisation_for_outlier_model=normalisation_for_outlier_model,
                                             marginal_coord=marginal_coord,
@@ -654,22 +661,19 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     loglike_out = numpy.array(loglike_out)
 
     #_____priors on the model parameters_____
-    #priortype = 0: flat priors in potential parameters and 
-    #               logarithmically flat  priors in DF parameters, i.e. logprior = 0.
-    #priortype = 1: additionally: prior on flat rotation curve
-    if priortype in [0,1]:
+    #priortype = 0:  flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters, i.e. logprior = 0.
+    #priortype = 1:  additionally: prior on flat rotation curve
+    #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc
+    #                (--> taken care of in loglikelihood_dfPar)
+    if priortype in [0,1,11]:
         pot_physical = True #any potential which is passed to this function is physical
-        logprior = calculate_logprior(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+        logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     else:
-        sys.exit("Error in loglikelihood_potPar(): For priortype=[0,1] "+\
-                 "the prior is independent of the values of the DF "+\
-                 "parameters. If priortype="+str(priortype)+" contains "+\
-                 "priors on the DF parameters, the code needs to be "+\
-                 "modified accordingly. Otherwise make sure that the "+\
-                 "code takes properly care of the new priortype.")
+        sys.exit("Error in loglikelihood_potPar(): priortype = "+str(priortype)+" is not defined (yet).")
 
               
-    return loglike_out + logprior
+    return loglike_out + logprior_pot
 
 #-------------------------------------------------------------------
 
@@ -681,6 +685,7 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
                         kappa_data,nu_data,Omega_data,
                         _XGL,_WGL,
                         datatype,noStars,
+                        priortype,
                         data_for_outlier_model_galpy=None,normalisation_for_outlier_model=None,   #used for outlier model
                         marginal_coord=None,weights_marginal=None,  #used for marginalization over one coordinate
                         _N_ERROR_SAMPLES=None,return_likelihoods_of_stars=False):
@@ -698,12 +703,15 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
             2016-12-13 - Added datatype 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
             2016-12-31 - Allowed for different outlier models. Restructured the function concerning the different data types to make the code slimmer. - Trick (MPIA)
             2017-01-02 - Removed in_sf_data keyword. Finished implementing outlier model dftype == 12. - Trick (MPIA)
+            2017-02-05 - Included exception for case that there is an error in setting up the qDF. - Trick (MPIA)
+            2017-02-10 - Added priortype for priors on df parameters. - Trick (MPIA)
     """
 
     #start = time.time()
     
     #_____initialize df_____
     # set parameters of distribution function:
+    df_works = True
     if dftype in [0,11,12]:
         #0:  single qDF, no outlier model
         #11: single qDF, robust likelihood
@@ -713,65 +721,77 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
         sz  = dfPar_galpy[2]
         hsr = dfPar_galpy[3]
         hsz = dfPar_galpy[4]
-        df = quasiisothermaldf(
+        try:
+            df = quasiisothermaldf(
                                 hr,sr,sz,hsr,hsz,   
                                 pot=pot,aA=aA,
                                 cutcounter=True,
                                 ro=ro)
-        # (*Note:* if cutcounter=True, set counter-rotating stars' 
-        #          DF to zero)
+            # (*Note:* if cutcounter=True, set counter-rotating stars' 
+            #          DF to zero)
+        except Exception as e:
+            df_works = False
+            print "Warning in loglikelihood_dfPar(): df cannot be initialized"+\
+                  " for df parameters: "
+            print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
+            print e
+            print "\n"
     else:
         sys.exit("Error in loglikelihood_dfPar(): dftype = "+str(dftype)+" is not defined.")
 
-    #_____integrate density over effective volume_____
-    # set distribution function in selection function:
-    sf.reset_df(df)
-    # setup density grid for interpolating the density 
-    # (*Note 1:* we do not use evaluation on multiple cores here, 
-    #            because we rather evaluate each qdf on a separate core)
-    # (*Note 2:* The order of GL integration is set by ngl when setting 
-    #            up the fiducial qdf.)
-    sf.densityGrid(_multi=None)
-    # integrate density over effective volume, i.e. the selection 
-    # function. Use a fast GL integration analogous to Bovy:
-    dens_norm = sf.Mtot(xgl=_XGL,wgl=_WGL)
+    if df_works:
+        #_____integrate density over effective volume_____
+        # set distribution function in selection function:
+        sf.reset_df(df)
+        # setup density grid for interpolating the density 
+        # (*Note 1:* we do not use evaluation on multiple cores here, 
+        #            because we rather evaluate each qdf on a separate core)
+        # (*Note 2:* The order of GL integration is set by ngl when setting 
+        #            up the fiducial qdf.)
+        sf.densityGrid(_multi=None)
+        # integrate density over effective volume, i.e. the selection 
+        # function. Use a fast GL integration analogous to Bovy:
+        dens_norm = sf.Mtot(xgl=_XGL,wgl=_WGL)
 
-    #stop = time.time()
-    #print "normalisation: ",stop-start
-    #start = time.time()
+        #stop = time.time()
+        #print "normalisation: ",stop-start
+        #start = time.time()
 
-    #_____evaluate DF for each data point_____
-    #this is log(likelihood) of all data points given p_DF and p_Phi:
-    lnL_i = df(
-                (jr_data,lz_data,jz_data),
-                rg   =rg_data,
-                kappa=kappa_data,
-                nu   =nu_data,
-                Omega=Omega_data,
-                log  =True
-                )
+        #_____evaluate DF for each data point_____
+        #this is log(likelihood) of all data points given p_DF and p_Phi:
+        lnL_i = df(
+                    (jr_data,lz_data,jz_data),
+                    rg   =rg_data,
+                    kappa=kappa_data,
+                    nu   =nu_data,
+                    Omega=Omega_data,
+                    log  =True
+                    )
 
-    #_____normalize likelihood_____
-    # for current p_DF and p_Phi:
-    if dens_norm > 0.: 
-        lnL_i -= math.log(dens_norm)
-    else:              
-        lnL_i = numpy.zeros_like(lnL_i) - numpy.inf
-        print "Warning in loglikelihood_dfPar(): normalization is <= 0"+\
-              " for df parameters: "
-        print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
-        print "normalization = ",dens_norm,"\n"
+        #_____normalize likelihood_____
+        # for current p_DF and p_Phi:
+        if dens_norm > 0.: 
+            lnL_i -= math.log(dens_norm)
+        else:              
+            lnL_i = numpy.zeros_like(lnL_i) - numpy.inf
+            print "Warning in loglikelihood_dfPar(): normalization is <= 0"+\
+                  " for df parameters: "
+            print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
+            print "normalization = ",dens_norm,"\n"
 
-    # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
-    #          in the likelihood 
-    #          L({x,v}|p) = Sum_i sf(x_i) * df(x_i,v_v) / norm 
-    #          with norm = int sf(x) * df(x,v) dx dv 
-    #          and only evaluate L({x,v}|p) = Sum_i df(x_i,v_i) / norm)
+        # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
+        #          in the likelihood 
+        #          L({x,v}|p) = Sum_i sf(x_i) * df(x_i,v_v) / norm 
+        #          with norm = int sf(x) * df(x,v) dx dv 
+        #          and only evaluate L({x,v}|p) = Sum_i df(x_i,v_i) / norm)
 
-    #_____units of the likelihood_____
-    # [L_i dx^3 dv^3] = 1 --> [L_i] = [xv]^{-3}
-    logunits = 3. * numpy.log(ro*vo)
-    lnL_i -= logunits
+        #_____units of the likelihood_____
+        # [L_i dx^3 dv^3] = 1 --> [L_i] = [xv]^{-3}
+        logunits = 3. * numpy.log(ro*vo)
+        lnL_i -= logunits
+
+    elif not df_works:
+        lnL_i = numpy.zeros_like(jr_data) - numpy.inf
 
     if dftype == 12:
         #_____apply outlier model: mixture model_____
@@ -915,9 +935,17 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
     # sum up contributions for all data points: 
     loglike_out = numpy.sum(lnL_i)  
 
+    #_____priors on the model parameters_____
+    #priortype = 0:  flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters
+    #priortype = 1:  additionally: prior on flat rotation curve
+    #                (--> taken care of in function setting up the potential)
+    #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
+    logprior_df = calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo)
+
     if return_likelihoods_of_stars:
-        return lnL_i
+        return lnL_i + logprior_df
     else:
-        return loglike_out
+        return loglike_out + logprior_df
 
 

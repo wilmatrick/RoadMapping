@@ -23,6 +23,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2016-12-30 - Added pottype 8, 81 (for fitting to Gaia data; with MN disk). - Trick (MPIA)
            2017-01-03 - Added dftype.
            2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
+           2017-02-10 - Added priortype 11 (flat rotation curve + bounded hr). - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -631,11 +632,13 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     if print_to_screen:
 
         print "PRIORS:"
-        if priortype in [0,1]:
+        if priortype in [0,1,11]:
             print "           * Flat priors on potential parameters (inside physical regime)."
             print "           * Logarithmically flat priors on DF parameters."
-        if priortype == 1:
+        if priortype in [1,11]:
             print "           * Bovy & Rix (2013), eq. (41), prior on slope of rotation curve."
+        if priortype == 11:
+            print "           * qdf parameter hr limited to be inside [0.5,20] kpc."
 
         print "NUMERICAL PRECISION:"
         print "           * N_spatial = ",N_spatial,", N_velocity = ",N_velocity
