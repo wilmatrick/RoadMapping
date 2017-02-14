@@ -28,6 +28,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2016-08-08 - Included keyword testname_previous to be able to create a new analysis/test on basis of an older analysis/test
            2017-01-04 - Now also the df parameter limits are checked if they are physical. - Trick (MPIA)
            2017-01-09 - Added keyword datasetname_previous, analogous to testname_previous. - Trick (MPIA)
+           2017-02-12 - Now takes into account priortype = 11 (limits on hr). - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -273,10 +274,35 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     dfParMin_fit   = qmin[npotpar::]
     dfParMax_fit   = qmax[npotpar::]
 
-    #_____read and apply physical boundaries in potential parameters_____
+    #_____read physical boundaries_____
     ANALYSIS = read_RoadMapping_parameters(datasetname,testname=testname,mockdatapath=mockdatapath)
     potParLowerBound_phys = ANALYSIS['potParLowerBound_phys'][potParFitBool]
     potParUpperBound_phys = ANALYSIS['potParUpperBound_phys'][potParFitBool]
+    dfParLowerBound_fit = ANALYSIS['dfParLowerBound_fit'][dfParFitBool]
+    dfParUpperBound_fit = ANALYSIS['dfParUpperBound_fit'][dfParFitBool]
+
+    #_____take care of boundaries set by prior_____
+    priortype = ANALYSIS['priortype']
+    if priortype in [0,1,11]:
+        #priortype = 0:  flat priors in potential parameters and 
+        #                logarithmically flat  priors in DF parameters
+        #priortype = 1:  additionally: prior on flat rotation curve
+        #                (--> taken care of in function setting up the potential)
+        #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
+        if priortype in [0,1]:
+            pass
+        elif priortype in [11]:
+            dftype = ANALYSIS['dftype']
+            if dftype in [0,11,12]:
+                dfParLowerBound_fit[0] = numpy.log(0.5/_REFR0)
+                dfParUpperBound_fit[0] = numpy.log(20./_REFR0)
+            else:
+                sys.exit("Error in adapt_fitting_range(): priortype = "+str(priortype)+\
+                         " is not defined for df type = "+str(dftype)+".")
+    else:
+        sys.exit("Error in adapt_fitting_range(): priortype = "+str(priortype)+" is not defined (yet).")
+
+    #_____apply physical boundaries in potential parameters_____
     for ii in range(len(potParMin_phys)):
         if (potParLowerBound_phys[ii] is not None) and \
            (potParMin_phys[ii] < potParLowerBound_phys[ii]):
@@ -286,8 +312,6 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
             potParMax_phys[ii] = potParUpperBound_phys[ii]
 
     #_____read and apply physical boundaries in DF parameters_____
-    dfParLowerBound_fit = ANALYSIS['dfParLowerBound_fit'][dfParFitBool]
-    dfParUpperBound_fit = ANALYSIS['dfParUpperBound_fit'][dfParFitBool]
     for ii in range(len(dfParMin_fit)):
         if (dfParLowerBound_fit[ii] is not None) and \
            (dfParMin_fit[ii] < dfParLowerBound_fit[ii]):
@@ -295,7 +319,6 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
         if (dfParUpperBound_fit[ii] is not None) and \
            (dfParMax_fit[ii] > dfParUpperBound_fit[ii]):
             dfParMax_fit[ii] = dfParUpperBound_fit[ii]
-
 
     ##################################################
 
