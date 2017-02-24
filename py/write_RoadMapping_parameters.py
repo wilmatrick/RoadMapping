@@ -145,6 +145,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if   priortype == 0:  f.write('# prior              type: 0 = flat priors on potential and log(DF) parameters.\n')
     elif priortype == 1:  f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.\n')
     elif priortype == 11: f.write('# prior              type: 11 = flat priors on parameters + Bovy & Rix (2013), eq. (41), flat rotation curve + hr in [0.5,20] kpc.\n')
+    elif priortype == 12: f.write('# prior              type: 12 = flat priors on parameters + Bovy & Rix (2013), eq. (41), flat rotation curve + hr,hsR,hsz in [0.5,20] kpc.\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): prior type "+str(priortype)+" is not defined.")
 
     #MCMC accuracy parameters:

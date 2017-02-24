@@ -16,7 +16,7 @@ def calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=
             2016-12-27 - Written - Trick (MPIA)
             2017-01-05 - Corrected missing minus in d ln v_circ / d ln R. - Trick (MPIA)
             2017-01-08 - Added flag pot_physical. - Trick (MPIA)
-            2017-02-10 - Added priortype 11, which is flat rotation curve + boundaries in hR. - Trick (MPIA)
+            2017-02-10 - Added priortype 11, which is flat rotation curve + boundaries in h_R. - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -39,7 +39,7 @@ def calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=
             #(taken care of in likelhood function with keyword pot_physical)
             logprior = 0.
 
-        elif priortype in [1,11]:
+        elif priortype in [1,11,12]:
             logprior = 0.
 
             #_____potential parameters_____ 
@@ -108,6 +108,7 @@ def calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo):
         OUTPUT:
         HISTORY:
             2017-02-10 - Written - Trick (MPIA)
+            2017-02-24 - Added priortype 12 (flat rotation curve + bounded h_R,h_s_R,h_s_z). - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -129,14 +130,41 @@ def calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo):
 
         if dftype in [0,11,12]:
 
-            #transform to physical units and pick only hr parameter:
+            #transform to physical units and pick only h_R parameter:
             dfPar_phys = scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
-            hr_kpc     = dfPar_phys[0]
+            h_R_kpc     = dfPar_phys[0]
 
-            if (hr_kpc < 0.5) or (hr_kpc > 20.):
+            if (h_R_kpc < 0.5) or (h_R_kpc > 20.):
                 logprior = -numpy.inf
             else:
                 logprior = 0.
+  
+        else:
+            sys.exit("Error in calculate_logprior_df(): priortype = "+str(priortype)+\
+                     " is not defined for df type = "+str(dftype)+\
+                     ".")
+
+    elif priortype == 12:
+
+        #_____df parameters_____
+        #logarithmically flat priors
+        #but h_R, h_s_R, h_s_z are limited to the range [0.5kpc,20kpc]
+
+        if dftype in [0,11,12]:
+
+            #transform to physical units and pick only h_R parameter:
+            dfPar_phys = scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
+            h_R_kpc       = dfPar_phys[0]
+            h_sigma_R_kpc = dfPar_phys[3]
+            h_sigma_z_kpc = dfPar_phys[4]
+
+            logprior = 0.
+            if (h_R_kpc       < 0.5) or (h_R_kpc       > 20.): logprior = logprior - numpy.inf
+            else:                                              logprior = logprior + 0.
+            if (h_sigma_R_kpc < 0.5) or (h_sigma_R_kpc > 20.): logprior = logprior - numpy.inf
+            else:                                              logprior = logprior + 0.
+            if (h_sigma_z_kpc < 0.5) or (h_sigma_z_kpc > 20.): logprior = logprior - numpy.inf
+            else:                                              logprior = logprior + 0.
   
         else:
             sys.exit("Error in calculate_logprior_df(): priortype = "+str(priortype)+\

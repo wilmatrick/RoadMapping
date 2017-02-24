@@ -243,7 +243,11 @@ def logprob_MCMC(
     #priortype = 1:  additionally: prior on flat rotation curve
     #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
     #                (--> taken care of in loglikelihood_dfPar)
+    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
+    #                (--> taken care of in loglikelihood_dfPar)
     logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+    if numpy.isnan(logprior_pot):
+        logprior_pot = -numpy.inf
 
     #_____measure time_____
     #zeit_t = time.time() - zeit_start
@@ -477,8 +481,12 @@ def logprob_MCMC_fitDF_only(
     #                (makes no sense to use it in a fit of the DF only)
     #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc
     #                (--> taken care of in loglikelihood_dfPar)
+    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
+    #                (--> taken care of in loglikelihood_dfPar)
     logprior_pot = calculate_logprior_pot(priortype,pottype,potPar_phys,pot_physical,pot=pot)
-    if priortype in [1,11]:
+    if numpy.isnan(logprior_pot):
+        logprior_pot = -numpy.inf
+    if priortype in [1,11,12]:
         sys.exit("Error in logprob_MCMC_fitDF_only(): It makes no sense "+\
                  "to use priortype = "+str(priortype)+" because the "+\
                  "potential is not fitted anyway.")
@@ -491,7 +499,7 @@ def logprob_MCMC_fitDF_only(
         f.write("%3.5f \n" % (loglike + logprior_pot))
         f.close()
 
-    return loglike + logprior
+    return loglike + logprior_pot
 
 #------------------------------------------------------------------------
 
@@ -543,12 +551,6 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
                             - (float array, float array, float array, etc.) 
                             - actions, guiding star radii and frequencies
                               of the data
-
-
-        lnhrs,lnszs,lnhszs  - (float array, float array, float array) 
-                            - grid of p_DF parameters ln(h_r), 
-                              ln(sigma_z), ln(h_sigma_z) to investigate 
-                              the likelihood
 
         dfParFid_galpy      - (float array) 
                             - parameters of the fiducial qdf in galpy units
@@ -666,9 +668,13 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     #priortype = 1:  additionally: prior on flat rotation curve
     #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc
     #                (--> taken care of in loglikelihood_dfPar)
-    if priortype in [0,1,11]:
+    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
+    #                (--> taken care of in loglikelihood_dfPar)
+    if priortype in [0,1,11,12]:
         pot_physical = True #any potential which is passed to this function is physical
         logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+        if numpy.isnan(logprior_pot):
+            logprior_pot = -numpy.inf
     else:
         sys.exit("Error in loglikelihood_potPar(): priortype = "+str(priortype)+" is not defined (yet).")
 
@@ -941,7 +947,10 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
     #priortype = 1:  additionally: prior on flat rotation curve
     #                (--> taken care of in function setting up the potential)
     #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
+    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
     logprior_df = calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo)
+    if numpy.isnan(logprior_df):
+        logprior_df = -numpy.inf
 
     if return_likelihoods_of_stars:
         return lnL_i + logprior_df

@@ -29,6 +29,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2017-01-04 - Now also the df parameter limits are checked if they are physical. - Trick (MPIA)
            2017-01-09 - Added keyword datasetname_previous, analogous to testname_previous. - Trick (MPIA)
            2017-02-12 - Now takes into account priortype = 11 (limits on hr). - Trick (MPIA)
+           2017-02-24 - Now takes into account priortype = 12 (limits on hr,hsr,hsz). - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -283,19 +284,30 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
 
     #_____take care of boundaries set by prior_____
     priortype = ANALYSIS['priortype']
-    if priortype in [0,1,11]:
+    if priortype in [0,1,11,12]:
         #priortype = 0:  flat priors in potential parameters and 
         #                logarithmically flat  priors in DF parameters
         #priortype = 1:  additionally: prior on flat rotation curve
         #                (--> taken care of in function setting up the potential)
         #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
+        #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
         if priortype in [0,1]:
             pass
-        elif priortype in [11]:
+        elif priortype in [11,12]:
             dftype = ANALYSIS['dftype']
             if dftype in [0,11,12]:
+
+                #priortype = 11: h_R
                 dfParLowerBound_fit[0] = numpy.log(0.5/_REFR0)
                 dfParUpperBound_fit[0] = numpy.log(20./_REFR0)
+
+                #priortype = 12: h_sigma_R, h_sigma_z
+                if priortype == 12:
+                    dfParLowerBound_fit[3] = numpy.log(0.5/_REFR0)
+                    dfParUpperBound_fit[3] = numpy.log(20./_REFR0)
+                    dfParLowerBound_fit[4] = numpy.log(0.5/_REFR0)
+                    dfParUpperBound_fit[4] = numpy.log(20./_REFR0)
+
             else:
                 sys.exit("Error in adapt_fitting_range(): priortype = "+str(priortype)+\
                          " is not defined for df type = "+str(dftype)+".")
