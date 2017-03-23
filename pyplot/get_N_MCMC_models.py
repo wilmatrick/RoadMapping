@@ -8,7 +8,7 @@ import scipy
 import scipy.stats
 from outlier_model import scale_df_fit_to_phys
 
-def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/'):
+def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/',randomseed=None):
 
     """
         NAME:
@@ -17,6 +17,7 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
         OUTPUT:
         HISTORY:
             2017-01-03 - Now uses scale_df_fit_to_phys to allow for flexible number of parameters. - Trick (MPIA)
+            2017-03-22 - Corrected minor bug, that was drawing samples with replacement. I want to draw samples without replacement. - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -58,8 +59,23 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     nwalker = numpy.shape(chain_out)[0]
     nsteps  = numpy.shape(chain_out)[1]
     ndim    = numpy.shape(chain_out)[2]
-    iwalker = numpy.random.randint(0,high=nwalker,size=N)
-    istep   = numpy.random.randint(burnin_steps,high=nsteps,size=N)
+
+    if randomseed is not None:
+        numpy.random.seed(seed=randomseed)
+
+    #random samples with replacement (not what I want):
+    #iwalker = numpy.random.randint(0,high=nwalker,size=N)
+    #istep   = numpy.random.randint(burnin_steps,high=nsteps,size=N)
+
+    #random samples without replacement:
+    total_samples = nwalker * (nsteps-burnin_steps)
+    sample_numbers = range(total_samples)
+    ind = numpy.random.choice(sample_numbers,size=N,replace=False)
+    istep = ind // nwalker + burnin_steps
+    iwalker = ind % nwalker 
+    if len(numpy.unique(istep*nwalker+iwalker )) < N:
+        sys.exit("Error in get_N_MCMC_models(): Elements to draw from MCMC are not unique.")
+
     models  = chain_out[iwalker,istep,:].reshape((-1,ndim))
 
     #_____potential parameters_____
