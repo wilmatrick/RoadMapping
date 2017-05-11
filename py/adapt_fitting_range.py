@@ -30,6 +30,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
            2017-01-09 - Added keyword datasetname_previous, analogous to testname_previous. - Trick (MPIA)
            2017-02-12 - Now takes into account priortype = 11 (limits on hr). - Trick (MPIA)
            2017-02-24 - Now takes into account priortype = 12 (limits on hr,hsr,hsz). - Trick (MPIA)
+           2017-04-03 - Added priortype = 22. - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -284,25 +285,27 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
 
     #_____take care of boundaries set by prior_____
     priortype = ANALYSIS['priortype']
-    if priortype in [0,1,11,12]:
+    if priortype in [0,1,11,12,22]:
         #priortype = 0:  flat priors in potential parameters and 
         #                logarithmically flat  priors in DF parameters
         #priortype = 1:  additionally: prior on flat rotation curve
         #                (--> taken care of in function setting up the potential)
         #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
-        #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
+        #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc
+        #priortype = 22: flat priors in potential parameters and 
+        #                logarithmically flat  priors in DF parameters, [hr,hsr,hsz] in [0.5,20]kpc
         if priortype in [0,1]:
             pass
-        elif priortype in [11,12]:
+        elif priortype in [11,12,22]:
             dftype = ANALYSIS['dftype']
             if dftype in [0,11,12]:
 
-                #priortype = 11: h_R
+                #priortype = [11,22]: h_R
                 dfParLowerBound_fit[0] = numpy.log(0.5/_REFR0)
                 dfParUpperBound_fit[0] = numpy.log(20./_REFR0)
 
-                #priortype = 12: h_sigma_R, h_sigma_z
-                if priortype == 12:
+                #priortype = [12,22]: h_sigma_R, h_sigma_z
+                if priortype in [12,22]:
                     dfParLowerBound_fit[3] = numpy.log(0.5/_REFR0)
                     dfParUpperBound_fit[3] = numpy.log(20./_REFR0)
                     dfParLowerBound_fit[4] = numpy.log(0.5/_REFR0)

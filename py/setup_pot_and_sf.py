@@ -320,7 +320,8 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
            2015-11-30 - Started setup_SelectionFunction_object.py on the basis of BovyCode/py/setup_SelectionFunction_object.py - Trick (MPIA)
            2016-09-20 - Incompleteness_function is now function of (R_galpy,phi_deg,z_galpy) in Galactocentric coordinates, and not anymore of r,z in solarcentric coordinates - Trick (MPIA)
            2016-09-16 - Added **kwargs to allow pre-calculated incompleteness in sftype=4. - Trick (MPIA)
-           2016-12-12 - Added in sftype=4 (Incomplete Shell) the file_no=2 (red clump selection function). - Trick (MPIA)
+           2016-12-12 - Added in sftype=4 (Incomplete Shell) the file_no=2 (red clump selection function for TGAS/RAVE with excl. disk). - Trick (MPIA)
+           2017-04-08 - Added in sftype=4 (Incomplete Shell) the file_no=3 (red clump selection function for TGAS/RAVE with excl. disk and wrong abs. magnitudes to test SF.) - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -462,9 +463,11 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                     )
         else: #use precalculated SF incompleteness data from file:
             file_no = int(sfPar_phys[5])
-            if file_no in [1,2]:    #file_no=1: TGAS_RAVE_footprint, file_no=2: TGAS_RAVE_red_clump_SF
+            if file_no in [1,2,3,4]:    #file_no=1: TGAS_RAVE_footprint, file_no=2: TGAS_RAVE_red_clump_SF, file_no=3: TGAS_RAVE_red_clump_testSF
                 if   file_no == 1: selection_function_name = 'TGAS_RAVE_footprint'
                 elif file_no == 2: selection_function_name = 'TGAS_RAVE_red_clump'
+                elif file_no == 3: selection_function_name = 'TGAS_RAVE_red_clump_testSF'
+                elif file_no == 4: selection_function_name = 'TGAS_RAVE_red_clump_lessQC'
                 #1. Reading the SF as function of healpix_ID and distance from sun:
                 filename_SF_hpID_dkpc = '../data/'+selection_function_name+'_SF_of_hpID_dkpc.sav'
                 if os.path.exists(filename_SF_hpID_dkpc):

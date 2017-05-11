@@ -25,6 +25,7 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
            2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
            2017-02-10 - Added priortype 11 (flat rotation curve + bounded h_R). - Trick (MPIA)
            2017-02-24 - Added priortype 12 (flat rotation curve + bounded h_R,h_s_R,h_s_z). - Trick (MPIA)
+           2017-05-11 - Now printing names of different incompleteness files. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -617,9 +618,17 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         sfParEst  = numpy.array(out[nl:nl+6,1],dtype=float)
         
         if print_to_screen:
+            file_no   = int(sfParTrue[5])
             print "SELECTION FUNCTION:"
             print "           * shell around sun"
-            print "           * incompleteness from file no. ",int(sfParTrue[5])
+            print "           * incompleteness from file no. ",int(file_no),
+            if   file_no == 1: print "('TGAS_RAVE_footprint')"
+            elif file_no == 2: print "('TGAS_RAVE_red_clump')"
+            elif file_no == 3: print "('TGAS_RAVE_red_clump_testSF')"
+            elif file_no == 4: print "('TGAS_RAVE_red_clump_lessQC')"
+            else: 
+                 sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
+                 "selection function file no. "+str(file_no)+" is not defined.")
             print "           * true parameters:"
             print "                d_min [kpc], d_max [kpc], R_Sun [kpc], phi_Sun [deg], z_Sun [kpc]"
             print "               ",sfParTrue[0:5]
@@ -633,14 +642,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
     if print_to_screen:
 
         print "PRIORS:"
-        if priortype in [0,1,11,12]:
+        if priortype in [0,1,11,12,22]:
             print "           * Flat priors on potential parameters (inside physical regime)."
             print "           * Logarithmically flat priors on DF parameters."
         if priortype in [1,11,12]:
             print "           * Bovy & Rix (2013), eq. (41), prior on slope of rotation curve."
         if priortype == 11:
             print "           * qdf parameter h_R limited to be inside [0.5,20] kpc."
-        if priortype == 12:
+        if priortype in [12,22]:
             print "           * qdf parameters h_R, h_s_R, h_s_z limited to be inside [0.5,20] kpc."
 
         print "NUMERICAL PRECISION:"

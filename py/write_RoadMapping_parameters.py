@@ -48,6 +48,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
            2017-01-03 - Added dftype. - Trick (MPIA)
            2017-01-09 - Added keyword datasetname_testname_to_be_copied to be able to copy an existing analysis file.
            2017-01-17 - Added pottype 82, 821 (for fitting to Gaia data; with 3xMN disk). - Trick (MPIA)
+           2017-04-04 - Added priortype 22. - Trick (MPIA)
     """
 
     #analysis parameter file:
@@ -146,6 +147,7 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     elif priortype == 1:  f.write('# prior              type: 1 = flat priors on parameters + Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.\n')
     elif priortype == 11: f.write('# prior              type: 11 = flat priors on parameters + Bovy & Rix (2013), eq. (41), flat rotation curve + hr in [0.5,20] kpc.\n')
     elif priortype == 12: f.write('# prior              type: 12 = flat priors on parameters + Bovy & Rix (2013), eq. (41), flat rotation curve + hr,hsR,hsz in [0.5,20] kpc.\n')
+    elif priortype == 22: f.write('# prior              type: 22 = flat priors on potential and log(DF) parameters + hr,hsR,hsz in [0.5,20] kpc.\n')
     else: sys.exit("Error in write_RoadMapping_parameters(): prior type "+str(priortype)+" is not defined.")
 
     #MCMC accuracy parameters:
@@ -166,6 +168,9 @@ def write_RoadMapping_parameters(datasetname,testname=None,
     if update and (vT_galpy_max   is None): vT_galpy_max = out['vT_galpy_max']
     elif           vT_galpy_max   is None : vT_galpy_max = 1.5
     if             vT_galpy_max == 0.     : vT_galpy_max = 1.5
+    if vT_galpy_max != 1.5:
+        sys.exit("Error in write_RoadMapping_parameters(): "+\
+                 "galpy.quasiisothermaldf() does not yet account for vT_galpy_max != 1.5. This keyword is therefore meaningless until I'm debugging the galpy code and adding it to the official galpy version.")
     #actionAngleStaeckel focal distance Delta:
     if update and (use_default_Delta is None): use_default_Delta = int(out['use_default_Delta'])
     elif           use_default_Delta is None : use_default_Delta = 1    #True

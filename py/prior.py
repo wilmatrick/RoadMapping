@@ -32,7 +32,7 @@ def calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=
         logprior = -numpy.inf
 
     else:
-        if priortype == 0:
+        if priortype in [0,22]:
             #_____potential parameters_____
             #flat prior
             #zero outside the given grid limits and in unphysical regions 
@@ -109,6 +109,7 @@ def calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo):
         HISTORY:
             2017-02-10 - Written - Trick (MPIA)
             2017-02-24 - Added priortype 12 (flat rotation curve + bounded h_R,h_s_R,h_s_z). - Trick (MPIA)
+            2017-04-03 - Added priortype 22 (bounded h_R,h_s_R,h_s_z). - Trick (MPIA)
     """
 
     #_____global constants_____
@@ -144,7 +145,7 @@ def calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo):
                      " is not defined for df type = "+str(dftype)+\
                      ".")
 
-    elif priortype == 12:
+    elif priortype in [12,22]:
 
         #_____df parameters_____
         #logarithmically flat priors

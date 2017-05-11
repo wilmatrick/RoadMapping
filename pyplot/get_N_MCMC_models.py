@@ -8,7 +8,7 @@ import scipy
 import scipy.stats
 from outlier_model import scale_df_fit_to_phys
 
-def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/',randomseed=None):
+def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=None,mockdatapath=None,fulldatapath='../out/',randomseed=None,with_replacement=False):
 
     """
         NAME:
@@ -17,7 +17,8 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
         OUTPUT:
         HISTORY:
             2017-01-03 - Now uses scale_df_fit_to_phys to allow for flexible number of parameters. - Trick (MPIA)
-            2017-03-22 - Corrected minor bug, that was drawing samples with replacement. I want to draw samples without replacement. - Trick (MPIA)
+            2017-03-24 - Code allows now samples to be drawn from MCMC with or without replacement. - Trick (MPIA)
+            2017-04-10 - Minor bug introduced on 2017-01-03 in return value dfParModels_phys was corrected. - Trick (MPIA)
     """
 
     #_____reference scales_____
@@ -63,14 +64,14 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     if randomseed is not None:
         numpy.random.seed(seed=randomseed)
 
-    #random samples with replacement (not what I want):
+    #old version (delete later):
     #iwalker = numpy.random.randint(0,high=nwalker,size=N)
     #istep   = numpy.random.randint(burnin_steps,high=nsteps,size=N)
 
-    #random samples without replacement:
+    #this version of drawing random samples allows with/without replacement:
     total_samples = nwalker * (nsteps-burnin_steps)
     sample_numbers = range(total_samples)
-    ind = numpy.random.choice(sample_numbers,size=N,replace=False)
+    ind = numpy.random.choice(sample_numbers,size=N,replace=with_replacement)
     istep = ind // nwalker + burnin_steps
     iwalker = ind % nwalker 
     if len(numpy.unique(istep*nwalker+iwalker )) < N:
@@ -88,7 +89,7 @@ def get_N_MCMC_models(datasetname,testname=None,N=12,analysis_output_filename=No
     ndfpar    = len(dfParEst_fit)
     ndffitpar = numpy.sum(dfParFitBool)
     dfParModels_fit = numpy.tile(dfParEst_fit,(N,1))
-    dfParModels_fit[:,dfParFitBool] = models[:,0:ndffitpar]
+    dfParModels_fit[:,dfParFitBool] = models[:,npotfitpar::]
     dfParModels_phys = scale_df_fit_to_phys(ANALYSIS['dftype'],dfParModels_fit)
 
     return potParModels_phys, dfParModels_phys

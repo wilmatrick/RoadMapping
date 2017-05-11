@@ -1,6 +1,7 @@
 #_____import packages_____
 import math
 import numpy
+import sys
 
 def calculate_outlier_model(dftype,dfPar_galpy,
                             ro,vo,

@@ -245,6 +245,9 @@ def logprob_MCMC(
     #                (--> taken care of in loglikelihood_dfPar)
     #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
     #                (--> taken care of in loglikelihood_dfPar)
+    #priortype = 22: flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters, [hr,hsr,hsz] in [0.5,20]kpc
+    #                (--> taken care of in loglikelihood_dfPar)
     logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     if numpy.isnan(logprior_pot):
         logprior_pot = -numpy.inf
@@ -483,7 +486,10 @@ def logprob_MCMC_fitDF_only(
     #                (--> taken care of in loglikelihood_dfPar)
     #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
     #                (--> taken care of in loglikelihood_dfPar)
-    logprior_pot = calculate_logprior_pot(priortype,pottype,potPar_phys,pot_physical,pot=pot)
+    #priortype = 22: flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters, [hr,hsr,hsz] in [0.5,20]kpc
+    #                (--> taken care of in loglikelihood_dfPar)
+    logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
     if numpy.isnan(logprior_pot):
         logprior_pot = -numpy.inf
     if priortype in [1,11,12]:
@@ -670,7 +676,10 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
     #                (--> taken care of in loglikelihood_dfPar)
     #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
     #                (--> taken care of in loglikelihood_dfPar)
-    if priortype in [0,1,11,12]:
+    #priortype = 22: flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters, [hr,hsr,hsz] in [0.5,20]kpc
+    #                (--> taken care of in loglikelihood_dfPar)
+    if priortype in [0,1,11,12,22]:
         pot_physical = True #any potential which is passed to this function is physical
         logprior_pot = calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=pot)
         if numpy.isnan(logprior_pot):
@@ -947,7 +956,9 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
     #priortype = 1:  additionally: prior on flat rotation curve
     #                (--> taken care of in function setting up the potential)
     #priortype = 11: additionally: prior on hr to be between 0.5 and 20 kpc 
-    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc 
+    #priortype = 12: additionally: prior on hsr and hsz to be between 0.5 and 20 kpc
+    #priortype = 22: flat priors in potential parameters and 
+    #                logarithmically flat  priors in DF parameters, [hr,hsr,hsz] in [0.5,20]kpc
     logprior_df = calculate_logprior_df(priortype,dftype,dfPar_galpy,ro,vo)
     if numpy.isnan(logprior_df):
         logprior_df = -numpy.inf
