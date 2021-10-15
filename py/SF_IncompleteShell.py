@@ -10,7 +10,6 @@ import healpy
 from galpy.util import bovy_coords
 from galpy.util import save_pickles
 import matplotlib.pyplot as plt
-import colormaps as cmaps
 
 class SF_IncompleteShell(SelectionFunction):
     """
@@ -197,6 +196,7 @@ class SF_IncompleteShell(SelectionFunction):
             incomp_Rbin_kpc, incomp_zbin_kpc -- float arrays -- coordinate axes of the (R,z) 2D grid
         HISTORY:
             2016-09-20 - Started. - Trick (MPIA)
+            2019-12-12 - now using default colormap. - Trick (MPA)
         """
    
         #coordinates at which to evaluate the integral:
@@ -228,7 +228,7 @@ class SF_IncompleteShell(SelectionFunction):
         #plot to test integration:
         fig = plt.figure(figsize=(6,5))
         ax = fig.add_subplot(111)
-        im = ax.imshow(self._incomp_SF_of_R_z.T,origin='lower',cmap=cmaps.magma,extent=[min(Rs_kpc),max(Rs_kpc),min(zs_kpc),max(zs_kpc)],aspect='equal',interpolation='nearest')
+        im = ax.imshow(self._incomp_SF_of_R_z.T,origin='lower',cmap='magma',extent=[min(Rs_kpc),max(Rs_kpc),min(zs_kpc),max(zs_kpc)],aspect='equal',interpolation='nearest')
         ax.set_xlabel('$R$ [kpc]')
         ax.set_ylabel('$z$ [kpc]')
         cbar = plt.colorbar(im)

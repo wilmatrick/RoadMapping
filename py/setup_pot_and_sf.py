@@ -673,6 +673,7 @@ def plhalo_from_dlnvcdlnr(dlnvcdlnr,diskpot,bulgepot,fh):
     HISTORY:
         201?-??-?? - Written - Bovy (???)
         2013-12-09 - some comments added - Trick (MPIA)
+        2019-12-12 - changed input parameter order of evaluateRforces() - Trick (MPA)
     """
     #Method:
     #1. The second derivative of the halo potential, which we will use in the following, is:
@@ -697,9 +698,9 @@ def plhalo_from_dlnvcdlnr(dlnvcdlnr,diskpot,bulgepot,fh):
     #5. |F_R,tot| = 1 in this normalization at R=1.
 
     #First calculate the derivatives dvc^2/dR of disk and bulge     
-    dvcdr_disk= -potential.evaluateRforces(1.,0.,diskpot)+potential.evaluateR2derivs(1.,0.,diskpot)
+    dvcdr_disk= -potential.evaluateRforces(diskpot,1.,0.)+potential.evaluateR2derivs(diskpot,1.,0.)
              #= -F_R(R=1,z=0,disk)                       +d^2 Phi / d R^2 (R=1,z=0,disk)      #this is d v_circ^2 / dR = - F_R + R * d^2 Phi / d R^2
-    dvcdr_bulge= -potential.evaluateRforces(1.,0.,bulgepot)+potential.evaluateR2derivs(1.,0.,bulgepot)
+    dvcdr_bulge= -potential.evaluateRforces(bulgepot,1.,0.)+potential.evaluateR2derivs(bulgepot,1.,0.)
              #= -F_R(R=1,z=0,bulge)                        +d^2 Phi / d R^2 (R=1,z=0,bulge)  
     return 2.-(2.*dlnvcdlnr-dvcdr_disk-dvcdr_bulge)/fh
 
