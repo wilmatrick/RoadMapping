@@ -32,21 +32,47 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         NAME:
            analyze_mockdata_RoadMapping
         PURPOSE:
+            Run the RoadMapping action-based dynamical modeling machinery.
         INPUT:
+            datasetname   - name of the data set to analyze. Expects the data to be at
+                            mockdatapath+"/"+datasetname+"/"+ datasetname+"_mockdata.sav"
+            testname      - name of this specific RoadMapping analysis. Expects a analysis parameter file at
+                            mockdatapath+"/"+datasetname+"/"+datasetname+"_"+testname+"_analysis_parameters.txt"
+            multicores    - number of cores to use in parallel processing. 
+                            Note, this code runs on a single node only, with multiple cores. 
+                            Usually, RoadMapping would run analyses for several MAPs, 
+                            so I analyse different MAPs on different nodes, but each MAP only on one node.
+                            Ideally, the number of cores available is an integer multiple of the 
+                            number of walkers used in the MCMC (= 64).
+            mockdatapath  - Folder where the data can be found (see above).
+            redo_analysis - If False, pick off the analysis where it was interrupted previously. 
+                            If True, overwrite any existing analysis output files.
+            method        - Options are 'GRID' and 'MCMC'. I recommend performing a nested 'GRID' search 
+                            a few times first to find the peak and width of the pdf, and then launch the 
+                            'MCMC' at the peak to sample the exact shape of the pdf more smoothly.
+                       
         OUTPUT:
+            None. The analysis output will be stored in a folder '../out/'.
         HISTORY:
-           2015-11-27 - Started analyze_mockdata_RoadMapping.py on the basis of BovyCode/py/analyze_mockdata_RoadMapping.py - Trick (MPIA)
-           2016-02-16 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object() to speed up the ActionAngleStaeckelGrid. - Trick (MPIA)
-           2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and MCMC_info that take care of choosing different Staeckel Deltas.
+           2015-11-27 - Started analyze_mockdata_RoadMapping.py on the basis of 
+                        BovyCode/py/analyze_mockdata_RoadMapping.py - Trick (MPIA)
+           2016-02-16 - Added _MULTI keyword to setup_Potential_and_ActionAngle_object() 
+                        to speed up the ActionAngleStaeckelGrid. - Trick (MPIA)
+           2016-04-15 - Added keywords to setup_Potential_and_ActionAngle_object() and 
+                        MCMC_info that take care of choosing different Staeckel Deltas.
            2016-05-02 - Changed MCMC from 100 walkers to 64 walkers, to account for actual number of CPUs on my cluster.
            2016-12-13 - Added datatype = 5, which uses TGAS/RAVE data and a covariance error matrix. - Trick (MPIA)
            2016-12-27 - The likelihood now takes also care of priors on the potential parameters. - Trick (MPIA)
-           2017-01-03 - Added calculation of normalisation and data for oulier model (dftype = 12). Removed in_sf_data. - Trick (MPIA)
+           2017-01-03 - Added calculation of normalisation and data for oulier model (dftype = 12). 
+                        Removed in_sf_data. - Trick (MPIA)
            2017-01-09 - Test now for all datatypes if all stars are inside the selection function. - Trick (MPIA)
+           2021-10-20 - Added an Exception if any datatype other than 1 is used, 
+                        and a warning about galpy versions other than 1.2. - Trick (MPA
     """
 
-    if galpy.__version__ != '1.2':
-        sys.exit("Error in analyze_mockdata_RoadMapping(): RoadMapping works currently with galpy.__version__ = 1.2 only.")
+    #if galpy.__version__ != '1.2':
+    #    sys.exit("Error in analyze_mockdata_RoadMapping(): RoadMapping works currently with galpy.__version__ = 1.2 only.")
+    print("DEBUGGING OUTPUT in analyze_mockdata_RoadMapping(): Switched off warning about only using galpy's version 1.2 in October 2021. Make sure this does not lead to unexpected problems when using different galpy versions. Especially for Python 3.")
 
     print "______________________________________________________________________"
     print "_____Analyse mock data set: ",datasetname
@@ -106,6 +132,14 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         noStars =  ANALYSIS['noStars'][0]
     else:
         noStars = ANALYSIS['noStars']
+        
+    #...abort analysis to warn about possible bug:
+    if ANALYSIS['datatype'] != 1:
+        raise Exception('----- ABORT ROADMAPPING FOR ANY DATATYPE OTHER THAN 1 (perfect mock data) -----\n'+\
+                       'Wilma suspects that there might be still a little bug in the code \n'+\
+                       'that does not account for v_circ(R_Sun) as a free parameter when converting from ra,dec etc. \n'+\
+                       'to Galactocentric coordinates and then to actions.\n'+
+                       'Check first and fix if necessary before doing anything else.')
 
     #_____start timer_____
     zeit_start = time.time()

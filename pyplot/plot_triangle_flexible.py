@@ -19,7 +19,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                                 method='MCMC',
                                 burnin_steps=None,color=True,
                                 fit_gaussian=True,
-                                datapath='/home/trick/ElenaSim/out/'):
+                                datapath='../data/',outputpath='../out/'):
 
     """
         NAME:
@@ -28,7 +28,10 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
         INPUT:
         OUTPUT:
         HISTORY:
-           2015-12-07 - Started plot_triangle_flexible.py on the basis of BovyCode/pyplots/plot_triangle_flexible.py - Trick (MPIA)
+           2015-12-07 - Started plot_triangle_flexible.py on the basis of 
+                        BovyCode/pyplots/plot_triangle_flexible.py - Trick (MPIA)
+           2021-10-20 - Made file paths consistent and accounted for grid searches 
+                        with 3^N data points only. - Trick (MPA)
     """
 
     #_____reference scales_____
@@ -37,8 +40,8 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
 
     #_____load data from file_____
     if analysis_output_filename is None:
-        if testname is None: analysis_output_filename = datapath+datasetname+"_analysis_output_"+method+".sav"
-        else:                analysis_output_filename = datapath+datasetname+"_"+testname+"_analysis_output_"+method+".sav"
+        if testname is None: analysis_output_filename = outputpath+datasetname+"_analysis_output_"+method+".sav"
+        else:                analysis_output_filename = outputpath+datasetname+"_"+testname+"_analysis_output_"+method+".sav"
     savefile= open(analysis_output_filename,'rb')    
     if method == 'MCMC':
         chain_out      = pickle.load(savefile)             #MCMC chain
@@ -66,7 +69,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
         if burnin_steps is None:
             ANALYSIS = read_RoadMapping_parameters(
                 datasetname,testname=testname,
-                fulldatapath=datapath
+                mockdatapath=datapath
                 )
             burnin_steps = ANALYSIS['noMCMCburnin']
         chain = chain_out[:, burnin_steps:, :].reshape((-1, ndim))
@@ -374,15 +377,20 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                 con95upper = numpy.min(sortarr[cumulative >= (1.-0.9545) * cumulative[-1]])
                 con95lower = numpy.max(sortarr[cumulative <= (1.-0.9545) * cumulative[-1]])
                 con95 = 0.5 * (con95upper + con95lower)
-                con99upper = numpy.min(sortarr[cumulative >= (1.-0.9973) * cumulative[-1]])
-                con99lower = numpy.max(sortarr[cumulative <= (1.-0.9973) * cumulative[-1]])
-                con99 = 0.5 * (con99upper + con99lower)
+                if len(N[0,:]) > 3:
+                    con99upper = numpy.min(sortarr[cumulative >= (1.-0.9973) * cumulative[-1]])
+                    temp = sortarr[cumulative <= (1.-0.9973) * cumulative[-1]]
+                    con99lower = numpy.max(temp)
+                    con99 = 0.5 * (con99upper + con99lower)
+                    levels = numpy.array([con99,con95,con68,cumulative[-1]])
+                else:
+                    levels = numpy.array([con68,cumulative[-1]])
 
                 #_____plot contours_____
                 if color:
-                    if   xpotflag and ypotflag:         ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('lightskyblue','cornflowerblue','royalblue'))
-                    elif not xpotflag and not ypotflag: ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('lightgreen','limegreen','seagreen'))
-                    elif xpotflag or ypotflag:          ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('mediumpurple','darkorchid','indigo'))
+                    if   xpotflag and ypotflag:         ax.contourf(xx,yy,N.T,levels,colors=('lightskyblue','cornflowerblue','royalblue'))
+                    elif not xpotflag and not ypotflag: ax.contourf(xx,yy,N.T,levels,colors=('lightgreen','limegreen','seagreen'))
+                    elif xpotflag or ypotflag:          ax.contourf(xx,yy,N.T,levels,colors=('mediumpurple','darkorchid','indigo'))
                 else:
                     ax.contourf(xx,yy,N.T,[con99,con95,con68,cumulative[-1]],colors=('0.7','0.5','0.3'))
                 #ax.contour(xx,yy,N.T,[con68,con95,con99],colors=['g','b','r'],linestyles=['solid','solid','solid'])
@@ -432,7 +440,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
     #_____adjust and save plot_____
     plt.subplots_adjust(hspace=0,wspace=0,bottom=0.07, right=0.99, top=0.95,left=0.07) 
     #plt.tight_layout()
-    plt.savefig(plotfilename,format='eps', dpi=300)
+    plt.savefig(plotfilename, dpi=300)
 
 #--------------------------------------------------------------
 
@@ -441,7 +449,7 @@ def str2bool(v):
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:
-        plotfilename = '../out/'+sys.argv[1]+'_triangle.eps'
+        plotfilename = '../out/'+sys.argv[1]+'_triangle.png'
         plot_triangle_flexible(sys.argv[1],plotfilename,method=sys.argv[2],testname=None)
     elif len(sys.argv) == 4:
         plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=None)

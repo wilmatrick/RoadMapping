@@ -39,7 +39,8 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         filename = fulldatapath+outname
 
     #load parameters:
-    out = numpy.loadtxt(filename)
+    out = numpy.loadtxt(filename,comments='#')
+
 
     #Reference scales:
     _REFR0 = 8.                 #[kpc], Reference radius 

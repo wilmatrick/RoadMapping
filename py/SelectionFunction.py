@@ -1177,9 +1177,11 @@ class SelectionFunction:
                         density in the observed volume.)
                         (Default: True)
 
-            n_sigma - (float) - ???
+            n_sigma - (float) - integration range in vR and vz direction: 
+                        +/- n_sigma x velocity dispersion (Default: 4)
 
-            vT_galpy_max - (float) - ???
+            vT_galpy_max - (float) - integration range in vT direction: 
+                        from 0 to vT_galpy_max (Default: 1.5)
         
 
         OUTPUT:

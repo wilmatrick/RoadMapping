@@ -54,11 +54,52 @@ class SF_Wedge(SelectionFunction):
 
     def _contains(self,R,z,phi=None):
 
-        sys.exit("Error in SF_Wedge._contains(): This method is not implemented yet. TO DO!!!!!!!!!!!!!!!!!!!!!")
+        """
+            NAME:
+               _contains
+            PURPOSE:
+                Tests whether a list of points is inside the wedge or not.
+            INPUT:
+            OUTPUT:
+                contains - (float array) - 0 if outside of wedge, 1 if inside of wedge
+            HISTORY:
+               2021-10-18 - Written. - Trick (MPA)
+        """
 
         if self._with_incompleteness:
             sys.exit("Error in SF_Wedge._contains(): "+
                      "Function not yet implemented to take care of imcompleteness.")
+
+        if phi is None: sys.exit("Error in SF_Wedge._contains(): Always specify phi in case of the wedge-shaped selection function.")
+                 
+        # Make sure array input works:
+        if isinstance(R,numpy.ndarray):
+            if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(R)
+            if not isinstance(phi,numpy.ndarray): phi = phi + numpy.zeros_like(R)
+        elif isinstance(z,numpy.ndarray):
+            if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(z)
+            if not isinstance(phi,numpy.ndarray): phi = phi + numpy.zeros_like(z)
+        elif isinstance(phi,numpy.ndarray):
+            if not isinstance(R,numpy.ndarray): R = R + numpy.zeros_like(phi)
+            if not isinstance(z,numpy.ndarray): z = z + numpy.zeros_like(phi)
+        else:
+            sys.exit("Error in SF_Wedge._contains(): This function is not implemented for scalar input.")
+        if numpy.any(numpy.array([len(z),len(phi)]) != len(R)):
+            print numpy.shape(R),numpy.shape(z),numpy.shape(phi)
+            sys.exit("Error in SF_Wedge._contains(): Input arrays do not have the same length.")
+                 
+        # Make sure phi is within [-180.,180.]:
+        while numpy.sum(phi >  180.): phi[phi >  180.] = phi[phi >  180.] - 360.
+        while numpy.sum(phi < -180.): phi[phi < -180.] = phi[phi < -180.] + 360.
+
+        # Test if this point 
+        # is inside or outside of observed volume:
+        index_inside_SF =  (self._Rmin <= R  ) * (self._Rmax >= R  ) * \
+                           (self._zmin <= z  ) * (self._zmax >= z  ) * \
+                           (self._pmin <= phi) * (self._pmax >= phi)
+        contains = numpy.zeros_like(R) #return 0 if outside
+        contains[index_inside_SF] = 1. #return 1 if inside
+        return contains
 
     #---------------------------------------------------------------------
 

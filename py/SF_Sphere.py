@@ -51,7 +51,7 @@ class SF_Sphere(SelectionFunction):
             NAME:
                _contains
             PURPOSE:
-                Tests whether a list of point is inside the sphere or not.
+                Tests whether a list of points is inside the sphere or not.
             INPUT:
             OUTPUT:
                 contains - (float array) - 0 if outside of sphere, 1 if inside of sphere

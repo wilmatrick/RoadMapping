@@ -106,7 +106,7 @@ def logprob_MCMC(
     dftype          = int(          info_MCMC['dftype'])
     priortype       = int(          info_MCMC['priortype'])
     noStars         = int(          info_MCMC['noStars'])
-    norm_outlier    = float(        info_MCMC['norm_outlier'])
+    norm_outlier    =               info_MCMC['norm_outlier']
     marginal_coord  = int(          info_MCMC['marginal_coord'])
     xgl_marginal    = numpy.array(  info_MCMC['xgl_marginal'],dtype='float64')
     wgl_marginal    = numpy.array(  info_MCMC['wgl_marginal'],dtype='float64')
@@ -116,6 +116,8 @@ def logprob_MCMC(
     use_default_Delta = bool(       info_MCMC['use_default_Delta'])
     estimate_Delta  = bool(         info_MCMC['estimate_Delta'])
     Delta_fixed     = float(        info_MCMC['Delta_fixed'])
+    
+    if norm_outlier is not None: norm_outlier = float(norm_outlier)
 
     #_____separate coordinates into free potential and free df coordinates_____
     npotpar = numpy.sum(potParFitBool)
