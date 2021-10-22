@@ -1,4 +1,6 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 import numpy
 import sys
 from read_RoadMapping_parameters import read_RoadMapping_parameters
@@ -69,12 +71,12 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     potParLowerBound_phys = out['potParLowerBound_phys']
     potParUpperBound_phys = out['potParUpperBound_phys']
     if numpy.any(potParMin_phys < potParLowerBound_phys):
-        print "potParMin_phys: ",potParMin_phys
-        print "potParLowerBound_phys: ",potParLowerBound_phys
+        print("potParMin_phys: ",potParMin_phys)
+        print("potParLowerBound_phys: ",potParLowerBound_phys)
         sys.exit("Error in setup_parameter_fit(): The minimum of the potential fitting range is smaller than the physical lower boundary.")
     elif numpy.any(potParMax_phys > potParUpperBound_phys):
-        print "potParMax_phys: ",potParMax_phys
-        print "potParUpperBound_phys: ",potParUpperBound_phys
+        print("potParMax_phys: ",potParMax_phys)
+        print("potParUpperBound_phys: ",potParUpperBound_phys)
         sys.exit("Error in setup_parameter_fit(): The maximum of the potential fitting range is larger than the physical upper boundary.")
 
     #_____test if number of grid points is reasonable_____
@@ -85,7 +87,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         Max = potParMax_phys[ii]
         Est = potParEst_phys[ii]
         if N < 0:
-            print "potParFitNo = ",potParFitNo
+            print("potParFitNo = ",potParFitNo)
             sys.exit("Error in setup_parameter_fit(): "+\
              "Only postive integers allowed as number of grid points.")
         if N == 1 and ((Min != Max) or (Min != Est)):
@@ -109,14 +111,13 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             #width of grid in physical units:
             dx = 0.5 * numpy.fabs(xs[1]-xs[0])
             #inital walker positions:
-            mid = (len(xs)-1)/2
+            mid = (len(xs)-1)//2
             min_walkerpos.extend([xs[mid]-dx])
             max_walkerpos.extend([xs[mid]+dx])
             #count fit parameters
             kk += 1
             if print_to_screen:
-                print potNamesScreen[ii],'\t:\t',N,'\tin\t',
-                print '[',potParMin_phys[ii],',',potParMax_phys[ii],']'
+                print(potNamesScreen[ii],'\t:\t',N,'\tin\t','[',potParMin_phys[ii],',',potParMax_phys[ii],']')
         elif N == 1:
             xs = numpy.array([potParEst_phys[ii]])
         #assign arrays to quantities:
@@ -213,12 +214,12 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
     dfParLowerBound_fit = out['dfParLowerBound_fit']
     dfParUpperBound_fit = out['dfParUpperBound_fit']
     if numpy.any(dfParMin_fit < dfParLowerBound_fit):
-        print "dfParMin_fit: ",dfParMin_fit
-        print "dfParLowerBound_fit: ",dfParLowerBound_fit
+        print("dfParMin_fit: ",dfParMin_fit)
+        print("dfParLowerBound_fit: ",dfParLowerBound_fit)
         sys.exit("Error in setup_parameter_fit(): The minimum of the df fitting range is smaller than the physical lower boundary.")
     elif numpy.any(dfParMax_fit > dfParUpperBound_fit):
-        print "dfParMax_fit: ",dfParMax_fit
-        print "dfParUpperBound_fit: ",dfParUpperBound_fit
+        print("dfParMax_fit: ",dfParMax_fit)
+        print("dfParUpperBound_fit: ",dfParUpperBound_fit)
         sys.exit("Error in setup_parameter_fit(): The maximum of the df fitting range is larger than the physical upper boundary.")
 
     #_____test if number of grid points is reasonable_____
@@ -229,7 +230,7 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
         Max = dfParMax_fit[ii]
         Est = dfParEst_fit[ii]
         if N < 0:
-            print "dfParFitNo = ",dfParFitNo
+            print("dfParFitNo = ",dfParFitNo)
             sys.exit("Error in setup_parameter_fit(): "+\
              "Only postive integers allowed as number of grid points.")
         if N == 1 and ((Min != Max) or (Min != Est)):
@@ -255,14 +256,13 @@ def setup_parameter_fit(datasetname,testname=None,mockdatapath='../data/',print_
             #width of grid in fit units:
             dx = 0.5 * numpy.fabs(xs[1]-xs[0])
             #inital walker positions:
-            mid = (len(xs)-1)/2
+            mid = (len(xs)-1)//2
             min_walkerpos.extend([xs[mid]-dx])
             max_walkerpos.extend([xs[mid]+dx])
             #count fit parameter
             kk += 1 
             if print_to_screen:
-                print dfNamesScreen[ii],'\t:\t',N,'\tin\t',
-                print '[',dfParMin_fit[ii],',',dfParMax_fit[ii],']'
+                print(dfNamesScreen[ii],'\t:\t',N,'\tin\t','[',dfParMin_fit[ii],',',dfParMax_fit[ii],']')
         elif N == 1:
             xs = numpy.array([dfParEst_fit[ii]])
         #assign arrays to quantities:

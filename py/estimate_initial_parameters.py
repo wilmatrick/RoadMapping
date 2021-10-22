@@ -1,4 +1,6 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 import math
 import scipy.optimize
 import scipy.interpolate
@@ -174,7 +176,7 @@ def estimate_fiducial_qdf(R_kpc=None,vR_kms=None,
     sig_R   = res.x[0]
     h_sig_R = res.x[1]
     if not res.success:
-        print "Problem in radial velocity dispersion: ",res.message
+        print("Problem in radial velocity dispersion: ",res.message)
 
     #...vertical velocity dispersion...
 
@@ -190,7 +192,7 @@ def estimate_fiducial_qdf(R_kpc=None,vR_kms=None,
     sig_z   = res.x[0]
     h_sig_z = res.x[1]
     if not res.success:
-        print "Problem in vertical velocity dispersion: ",res.message
+        print("Problem in vertical velocity dispersion: ",res.message)
 
     #____fitting the tracer scale length_____
 
@@ -226,7 +228,7 @@ def estimate_fiducial_qdf(R_kpc=None,vR_kms=None,
     res = scipy.optimize.minimize(mloglike_dens, x0, args=(R_kpc_tracers,Rmin_kpc,Rmax_kpc), bounds=bounds)
     h_R   = res.x
     if not res.success:
-        print "Problem in tracer scale length: ",res.message
+        print("Problem in tracer scale length: ",res.message)
 
 
     """#_____transforming the measured tracer scale length to qdf scale length_____
@@ -284,7 +286,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
     if plot: fig = plt.figure(figsize=(6,5))
 
     #_____fitting velocity disersion profiles_____
-    print "    ... fitting velocity dispersions"
+    print("    ... fitting velocity dispersions")
 
     #...radial velocity dispersion...
 
@@ -302,7 +304,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
         sig_R   = res.x[0] * _REFV0
         h_sig_R = res.x[1] * _REFR0
         if not res.success:
-            print "Problem in radial velocity dispersion: ",res.message
+            print("Problem in radial velocity dispersion: ",res.message)
 
         if plot:
             ax = fig.add_subplot(121)
@@ -341,7 +343,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
         sig_z   = res.x[0] * _REFV0
         h_sig_z = res.x[1] * _REFR0
         if not res.success:
-            print "Problem in vertical velocity dispersion: ",res.message
+            print("Problem in vertical velocity dispersion: ",res.message)
 
         if plot:
             ax = fig.add_subplot(122)
@@ -365,7 +367,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
             ax.set_xlabel('$v_z$ [km/s]')
 
     #____fitting the tracer scale length and height_____
-    print "    ... fitting double exponential disk"
+    print("    ... fitting double exponential disk")
 
     #boundary conditions:
     bounds = [(1.2/_REFR0,16./_REFR0),(0.001/_REFR0,5./_REFR0)]
@@ -383,12 +385,12 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
     h_R_disk   = res.x[0] * _REFR0
     h_z_disk   = res.x[1] * _REFR0
     if not res.success:
-        print "Problem in tracer scale length & height: ",res.message
+        print("Problem in tracer scale length & height: ",res.message)
 
     """
 
     #____fitting the Miyamoto-Nagai disk_____
-    print "    ... fitting Miyamoto-Nagai disk"
+    print("    ... fitting Miyamoto-Nagai disk")
 
     #initial guess:
     x0 = [h_R_disk/_REFR0,h_z_disk/_REFR0] #[kpc/_REFR0]
@@ -402,7 +404,7 @@ def estimate_initial_df_parameters(R_kpc,vR_kms,phi_deg,vT_kms,z_kpc,vz_kms,
     a_disk  = res.x[0] * _REFR0
     b_disk  = res.x[1] * _REFR0
     if not res.success:
-        print "Problem in fitting MN disk: ",res.message
+        print("Problem in fitting MN disk: ",res.message)
 
     """
 

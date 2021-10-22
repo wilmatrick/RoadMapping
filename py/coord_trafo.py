@@ -1,3 +1,5 @@
+#from __future__ import print_function
+#from __past__ import division
 import galpy
 from galpy.util import bovy_coords
 import math
@@ -74,8 +76,8 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(R,phi,z)_true \t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii],phi_rad[ii],z_kpc[ii])
+            print(ii, "(R,phi,z)_true \t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii],phi_rad[ii],z_kpc[ii]))
 
     # (R,z,phi) --> (x,y,z):
     xyz = bovy_coords.galcencyl_to_XYZ(
@@ -87,8 +89,8 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
     Zs_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii,"(x,y,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (Xs_kpc[ii],Ys_kpc[ii],Zs_kpc[ii])
+            print(ii,"(x,y,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (Xs_kpc[ii],Ys_kpc[ii],Zs_kpc[ii]))
 
     # (x,y,z) --> (l,b,d):
     lbd = bovy_coords.XYZ_to_lbd(
@@ -100,8 +102,8 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
     d_kpc = lbd[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(l,b,d) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii], b_rad[ii], d_kpc[ii])
+            print(ii, "(l,b,d) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii], b_rad[ii], d_kpc[ii]))
 
     # (l,b) --> (ra,dec)
     radec = bovy_coords.lb_to_radec(
@@ -112,15 +114,15 @@ def galcencyl_to_radecDM(R_kpc,phi_rad,z_kpc,
     dec_rad = radec[:,1]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(ra,dec) \t\t= "+\
-              "(%5.3f, %5.3f) \t\tin [rad]" % (ra_rad[ii],dec_rad[ii])
+            print(ii, "(ra,dec) \t\t= "+\
+              "(%5.3f, %5.3f) \t\tin [rad]" % (ra_rad[ii],dec_rad[ii]))
 
     # d --> DM (distance modulus):
     DM_mag = 5. * numpy.log10(d_kpc * 1000.) - 5.
     if not quiet:
        for ii in range(ndata):
-            print ii, "(DM,d) \t\t= "+\
-              "(%5.3f,%5.3f) \t\tin [mag,kpc]" % (DM_mag[ii],d_kpc[ii])
+            print(ii, "(DM,d) \t\t= "+\
+              "(%5.3f,%5.3f) \t\tin [mag,kpc]" % (DM_mag[ii],d_kpc[ii]))
 
   
     if ndata == 1:
@@ -167,8 +169,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(R,phi,z)_true \t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii],phi_rad[ii],z_kpc[ii])
+            print(ii, "(R,phi,z)_true \t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii],phi_rad[ii],z_kpc[ii]))
 
     # (R,z,phi) --> (x,y,z):
     xyz = bovy_coords.galcencyl_to_XYZ(
@@ -180,8 +182,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     Zs_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii,"(x,y,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (Xs_kpc[ii],Ys_kpc[ii],Zs_kpc[ii])
+            print(ii,"(x,y,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (Xs_kpc[ii],Ys_kpc[ii],Zs_kpc[ii]))
 
     # (x,y,z) --> (l,b,d):
     lbd = bovy_coords.XYZ_to_lbd(
@@ -193,8 +195,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     d_kpc = lbd[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(l,b,d) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii], b_rad[ii], d_kpc[ii])
+            print(ii, "(l,b,d) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii], b_rad[ii], d_kpc[ii]))
 
     # (l,b) --> (ra,dec)
     radec = bovy_coords.lb_to_radec(
@@ -205,22 +207,22 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     dec_rad = radec[:,1]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(ra,dec) \t\t= "+\
-              "(%5.3f, %5.3f) \t\tin [rad]" % (ra_rad[ii],dec_rad[ii])
+            print(ii, "(ra,dec) \t\t= "+\
+              "(%5.3f, %5.3f) \t\tin [rad]" % (ra_rad[ii],dec_rad[ii]))
 
     # d --> DM (distance modulus):
     DM_mag = 5. * numpy.log10(d_kpc * 1000.) - 5.
     if not quiet:
        for ii in range(ndata):
-            print ii, "(DM,d) \t\t= "+\
-              "(%5.3f,%5.3f) \t\tin [mag,kpc]" % (DM_mag[ii],d_kpc[ii])
+            print(ii, "(DM,d) \t\t= "+\
+              "(%5.3f,%5.3f) \t\tin [mag,kpc]" % (DM_mag[ii],d_kpc[ii]))
 
     #_____b. convert velocities to los-velocity and proper motions_____
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(vR,vT,vz)_true \t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vR_kms[ii],vT_kms[ii],vz_kms[ii])
+            print(ii, "(vR,vT,vz)_true \t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vR_kms[ii],vT_kms[ii],vz_kms[ii]))
 
     # (vR,vz,vT) --> (vx,vy,vz):
     vxyz = bovy_coords.galcencyl_to_vxvyvz(
@@ -233,8 +235,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     vz_kms = vxyz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(vx,vy,vz) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vx_kms[ii], vy_kms[ii],vz_kms[ii])
+            print(ii, "(vx,vy,vz) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vx_kms[ii], vy_kms[ii],vz_kms[ii]))
 
     # (vx,vy,vz) --> (vlos,pm_l,pm_b):
     vrpmlpmb = bovy_coords.vxvyvz_to_vrpmllpmbb(
@@ -247,8 +249,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     pmb_masyr = vrpmlpmb[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(v_los,pm_l,pm_b) \t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [km/s,mas/yr,mas/yr]" % (vlos_kms[ii], pml_masyr[ii], pmb_masyr[ii])
+            print(ii, "(v_los,pm_l,pm_b) \t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [km/s,mas/yr,mas/yr]" % (vlos_kms[ii], pml_masyr[ii], pmb_masyr[ii]))
 
     # (pm_l,pm_b) --> (pm_ra,pm_dec):
     pmradec = bovy_coords.pmllpmbb_to_pmrapmdec(
@@ -260,8 +262,8 @@ def galcencyl_to_radecDMvlospmradec(R_kpc,phi_rad,z_kpc,
     pm_dec_masyr = pmradec[:,1]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(pm_ra,pm_dec) \t= "+\
-              "(%5.3f, %5.3f) \t\tin [mas/yr]" % (pm_ra_masyr[ii],pm_dec_masyr[ii])
+            print(ii, "(pm_ra,pm_dec) \t= "+\
+              "(%5.3f, %5.3f) \t\tin [mas/yr]" % (pm_ra_masyr[ii],pm_dec_masyr[ii]))
   
     if ndata == 1:
         return (ra_rad[0],dec_rad[0],DM_mag[0],vlos_kms[0],pm_ra_masyr[0],pm_dec_masyr[0])
@@ -290,8 +292,8 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(ra,dec,DM) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,mag]" % (ra_rad[ii],dec_rad[ii],DM_mag[ii])
+            print(ii, "(ra,dec,DM) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,mag]" % (ra_rad[ii],dec_rad[ii],DM_mag[ii]))
 
     #(DM) --> (d):
     d_kpc = 10.**(0.2 * DM_mag + 1.) * 10.**(-3)
@@ -306,8 +308,8 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(l,b,d) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii],b_rad[ii],d_kpc[ii])
+            print(ii, "(l,b,d) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii],b_rad[ii],d_kpc[ii]))
 
     # (l,b,d) --> (x,y,z):
     xyz = bovy_coords.lbd_to_XYZ(
@@ -319,8 +321,8 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
     z_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(x,y,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (x_kpc[ii],y_kpc[ii],z_kpc[ii])
+            print(ii, "(x,y,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (x_kpc[ii],y_kpc[ii],z_kpc[ii]))
 
     # (x,y,z) --> (R,z,phi):
     Rzphi = bovy_coords.XYZ_to_galcencyl(
@@ -332,8 +334,8 @@ def radecDM_to_galcencyl(ra_rad,dec_rad,DM_mag,
     z_kpc   = Rzphi[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii,"(R,phi,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii], phi_rad[ii], z_kpc[ii])
+            print(ii,"(R,phi,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii], phi_rad[ii], z_kpc[ii]))
 
     if ndata == 1:
         return (R_kpc[0], phi_rad[0], z_kpc[0])
@@ -377,8 +379,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(ra,dec,DM) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,mag]" % (ra_rad[ii],dec_rad[ii],DM_mag[ii])
+            print(ii, "(ra,dec,DM) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,mag]" % (ra_rad[ii],dec_rad[ii],DM_mag[ii]))
 
     #(DM) --> (d):
     d_kpc = 10.**(0.2 * DM_mag + 1.) * 10.**(-3)
@@ -393,8 +395,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
 
     if not quiet:
         for ii in range(ndata):
-            print ii, "(l,b,d) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii],b_rad[ii],d_kpc[ii])
+            print(ii, "(l,b,d) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [rad,rad,kpc]" % (l_rad[ii],b_rad[ii],d_kpc[ii]))
 
     # (l,b,d) --> (x,y,z):
     xyz = bovy_coords.lbd_to_XYZ(
@@ -406,8 +408,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     z_kpc = xyz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(x,y,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (x_kpc[ii],y_kpc[ii],z_kpc[ii])
+            print(ii, "(x,y,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc]" % (x_kpc[ii],y_kpc[ii],z_kpc[ii]))
 
     # (x,y,z) --> (R,z,phi):
     Rzphi = bovy_coords.XYZ_to_galcencyl(
@@ -419,8 +421,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     z_kpc   = Rzphi[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii,"(R,phi,z) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii], phi_rad[ii], z_kpc[ii])
+            print(ii,"(R,phi,z) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [kpc,rad,kpc]" % (R_kpc[ii], phi_rad[ii], z_kpc[ii]))
 
     #_____b. convert velocities (pm_ra,pm_dec,vlos) to (vR,vz,vT)_____
 
@@ -435,8 +437,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     pmb_masyr = pmlpmb[:,1]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(v_los,pm_l,pm_b) \t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [mas/yr]" % (vlos_kms[ii],pml_masyr[ii], pmb_masyr[ii])
+            print(ii, "(v_los,pm_l,pm_b) \t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [mas/yr]" % (vlos_kms[ii],pml_masyr[ii], pmb_masyr[ii]))
 
     # (v_los,pm_l,pm_b) & (l,b,d) --> (vx,vy,vz):
     vxvyvz = bovy_coords.vrpmllpmbb_to_vxvyvz(
@@ -451,8 +453,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     vz_kms = vxvyvz[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(vx,vy,vz) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vx_kms[ii],vy_kms[ii],vz_kms[ii])
+            print(ii, "(vx,vy,vz) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vx_kms[ii],vy_kms[ii],vz_kms[ii]))
 
     # (vx,vy,vz) & (x,y,z) --> (vR,vT,vz):
     vRvTvZ = bovy_coords.vxvyvz_to_galcencyl(
@@ -471,8 +473,8 @@ def radecDMvlospmradec_to_galcencyl(ra_rad,dec_rad,DM_mag,
     vz_kms = vRvTvZ[:,2]
     if not quiet:
         for ii in range(ndata):
-            print ii, "(vR,vT,vz) \t\t= "+\
-              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vR_kms[ii], vT_kms[ii], vz_kms[ii])
+            print(ii, "(vR,vT,vz) \t\t= "+\
+              "(%5.3f, %5.3f, %5.3f) \tin [km/s]" % (vR_kms[ii], vT_kms[ii], vz_kms[ii]))
 
     if ndata == 1:
         return (R_kpc[0], phi_rad[0], z_kpc[0], vR_kms[0], vT_kms[0], vz_kms[0])

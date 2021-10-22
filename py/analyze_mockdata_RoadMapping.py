@@ -1,7 +1,10 @@
 #______________________________
 #_____import packages__________
 #______________________________
+#from __past__ import division
+#from __future__ import print_function
 import emcee
+import importlib
 import math
 import multiprocessing
 import numpy
@@ -74,13 +77,13 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
     #    sys.exit("Error in analyze_mockdata_RoadMapping(): RoadMapping works currently with galpy.__version__ = 1.2 only.")
     print("DEBUGGING OUTPUT in analyze_mockdata_RoadMapping(): Switched off warning about only using galpy's version 1.2 in October 2021. Make sure this does not lead to unexpected problems when using different galpy versions. Especially for Python 3.")
 
-    print "______________________________________________________________________"
-    print "_____Analyse mock data set: ",datasetname
-    if testname is not None: print "_____test: ",testname
-    print "_____with: ",method
-    print "______________________________________________________________________"
+    print("______________________________________________________________________")
+    print("_____Analyse mock data set: ",datasetname)
+    if testname is not None: print("_____test: ",testname)
+    print("_____with: ",method)
+    print("______________________________________________________________________")
 
-    #_____read analysis parameters and print them to screen_____
+    #_____read analysis parameters and write them to screen_____
     ANALYSIS = read_RoadMapping_parameters(
             datasetname,testname=testname,
             mockdatapath=mockdatapath,
@@ -205,7 +208,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____________________________________
 
         #_____initialize parameter grid_____
-        print "Parameter intervals to investigate "
+        print("Parameter intervals to investigate ")
         FITGRID = setup_parameter_fit(
                     datasetname,testname=testname,
                     mockdatapath=mockdatapath,
@@ -226,7 +229,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         # test if input file exists already, 
         # if yes, load previous iteration indexes etc.   
         if os.path.exists(savefilename) and not redo_analysis:                                          
-            print "Loading state from file "+savefilename
+            print("Loading state from file "+savefilename)
             savefile    = open(savefilename,'rb')
             loglike_out = pickle.load(savefile)
             ii          = pickle.load(savefile)
@@ -238,22 +241,21 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____Start analysis on Grid________
         #___________________________________
 
-        print "\n"
+        print("\n")
 
-        print " *** Start running the GRID analysis *** "
+        print(" *** Start running the GRID analysis *** ")
             
         #_____start iteration through potentials_____
         start = time.time()
         while ii < npots:
             if True:
-                #print "\r",
-                #print "Working on potential ",ii+1," / ",npots,
-                #print "Working on potential ",ii+1," / ",npots
-                #print "time of one potential: ", time.time() - start
+                #text  = "\r"
+                #text += "Working on potential "+str(ii+1)+" / "+str(npots)
+                #text += "time of one potential: "+str(time.time() - start)
                 #start = time.time()
         
                 #_____setup potential / Action object_____
-                #print "   * setup potential"
+                #print("   * setup potential")
                 potPar_phys = potParArr_phys[ii,:]
                 try:
                     if ANALYSIS['use_default_Delta']:
@@ -309,7 +311,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
                     traf = numpy.array([ro,vo,vo,vo]).reshape((4,1))
                     data_for_outlier_model_galpy = data_for_outlier_model / traf
 
-                #print "   * calculate data actions"
+                #print("   * calculate data actions")
                 #_____calculate actions and frequencies of the data_____
                 #before calculating the actions, the data is properly 
                 #scaled to galpy units with the current potentials vo and ro
@@ -360,7 +362,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
       
                 #_____calculate the likelihoods for all p_DF parameters_____
                 # for the given p_Phi parameters
-                #print "   * calculate likelihood"
+                #print("   * calculate likelihood")
                 loglike_out[ii,:] = loglikelihood_potPar(
                                         pot,aA,sf,ANALYSIS['dftype'],
                                         _N_SPATIAL_R,_N_SPATIAL_Z,
@@ -405,9 +407,9 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____________________________________
 
         #_____initialize parameter grid_____
-        print "Parameter intervals to investigate with MCMC:"
-        print "     * potential: central grid point only used for initial walker positions"#MCMC on grid"
-        print "     * DF:        central grid point used for initial walker positions & fiducial qDF / fitting range"
+        print("Parameter intervals to investigate with MCMC:")
+        print("     * potential: central grid point only used for initial walker positions")
+        print("     * DF:        central grid point used for initial walker positions & fiducial qDF / fitting range")
         FITGRID = setup_parameter_fit(
                     datasetname,testname=testname,
                     mockdatapath=mockdatapath,
@@ -450,7 +452,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
         #_____Start analysis with MCMC______
         #___________________________________
 
-        print " *** Save & read shared data *** "
+        print(" *** Save & read shared data *** ")
 
         #_____prepare output for current iteration state_____
         if testname is None: chainfilename = "../out/"+datasetname+"_chain_MCMC.dat"
@@ -504,7 +506,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             #As we precalculate all actions anyway, we use the standard StaeckelFudge
             #to set up the potential in the MCMC chain.
             if pottype in numpy.array([21,31,41,421,51,61,71,81]): 
-                pottype_slim = (pottype-1)/10
+                pottype_slim = (pottype-1)//10
                 info_MCMC['pottype'] = pottype_slim
             #Set the Staeckel Fudge Delta once and for all:
             if use_default_Delta: 
@@ -563,7 +565,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             shared_data_SF_incompleteShell_filename = current_path+'_shared_SF_incompleteShell.npy'
 
         #_____2. load shared data into global variables_____
-        reload(likelihood)
+        importlib.reload(likelihood)
         if not DF_fit_only: #standard case
             from likelihood import logprob_MCMC as log_likelihood_MCMC
         else:   #special case: potential is kept fixed
@@ -581,7 +583,7 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
             os.remove(shared_data_SF_incompleteShell_filename)
         
 
-        print " *** Start running the MCMC *** "
+        print(" *** Start running the MCMC *** ")
 
 
         #_____randomize random number generator_____
@@ -667,10 +669,9 @@ def analyze_mockdata_RoadMapping(datasetname,testname=None,multicores=63,mockdat
     zeit_th = int(zeit_t/3600.)
     zeit_tm = int((zeit_t - zeit_th*3600.0)/60.0)
     zeit_ts = zeit_t % 60.
-    print ""
-    print "Finished analysis of: ",savefilename
-    print "time:", zeit_th, "hours", zeit_tm, "minutes", 
-    print int(zeit_ts), "seconds"
+    print("")
+    print("Finished analysis of: ",savefilename)
+    print("time:", zeit_th, "hours", zeit_tm, "minutes",int(zeit_ts), "seconds")
    
     return None
 

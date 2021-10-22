@@ -106,7 +106,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
     #____flat to check if already a fine grid is required______
     fine_grid = 1
 
-    print "===== adapt fitting range ====="
+    print("===== adapt fitting range =====")
 
     #_____iterate over all quantities_____
     for ii in range(nquant):
@@ -142,7 +142,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
             #_____find new fit range_____
             if (frac < test): #the second highest bin is smaller than a gaussian at N*sigma.
                 fine_grid *= 0
-                print "Zoom in\t",
+                print("Zoom in\t",end=" ")
                 #zoom into highest bin, slightly shift it to mean:
                 xmin = x_mean - 0.5 * numpy.fabs(dx)
                 xmax = x_mean + 0.5 * numpy.fabs(dx)
@@ -155,11 +155,11 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
                 if len(xp) % 2 == 0:
                     sys.exit("Error in adapt_fitting_range(): Better choose an odd number of grid points.")
                 else:
-                    mid = (len(xp)-1)/2
+                    mid = (len(xp)-1)//2
                     biggest = numpy.sum(prob[mid] < prob)
                     if (numpy.sum(biggest) > 0):  
                         #peak is not in the middle: shift
-                        print "shift range\t",
+                        print("shift range\t",end=" ")
                         mu = x_mean
                         sigma = 0.5 * Delta_x / (n_sigma_range)
                         fine_grid *= 0
@@ -168,18 +168,18 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
                         if len(xp) == 3:
                             #special case: pegged at limit:
                             if prob[2] < 2e-308:
-                                print "Pegged at upper limit\t",
+                                print("Pegged at upper limit\t",end=" ")
                                 mu = xp[0] + 0.45 * Delta_x
                                 sigma = 0.45 * Delta_x / n_sigma_range
                                 fine_grid *= 0
                             elif prob[0] < 2e-308:
-                                print "Pegged at lower limit\t",
+                                print("Pegged at lower limit\t",end=" ")
                                 mu = xp[2] - 0.45 * Delta_x
                                 sigma = 0.45 * Delta_x / n_sigma_range
                                 fine_grid *= 0
                             else:
-                                print "Gauss through 3 points\t",
-                                print "(",prob,")\t",
+                                print("Gauss through 3 points\t",end=" ")
+                                print("(",prob,")\t",end=" ")
                                 term1 = numpy.log(prob[2]/prob[1]) * (xp[1]**2-xp[0]**2) - numpy.log(prob[0]/prob[1]) * (xp[1]**2-xp[2]**2)
                                 term2 = numpy.log(prob[2]/prob[1]) * (xp[1]   -xp[0]   ) - numpy.log(prob[0]/prob[1]) * (xp[1]   -xp[2]   )
                                 mu = 0.5*term1/term2
@@ -187,14 +187,14 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
                                 fine_grid *= 1
                         elif len(xp) > 3:
                             try:
-                                print "fit Gauss\t",
+                                print("fit Gauss\t",end=" ")
                                 popt, pcov = scipy.optimize.curve_fit(gauss, xp, prob,p0=[1.,x_mean,x_stddev])
                                 A = popt[0]
                                 mu = popt[1]
                                 sigma = numpy.fabs(popt[2])
                                 fine_grid *= 1
                             except RuntimeError:
-                                print "estimate Gauss\t",
+                                print("estimate Gauss\t",end=" ")
                                 n = 0.5 * ( numpy.sqrt(-2.*numpy.log(prob[0]/prob[mid])) + numpy.sqrt(-2.*numpy.log(prob[-1]/prob[mid])))
                                 mu    = x_mean
                                 sigma = Delta_x / n
@@ -204,16 +204,16 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
 
             else:
                 #something went wrong, try again with slightly smaller fit range
-                print "try again\t",
+                print("try again\t",end=" ")
                 fine_grid *= 0
                 xmin = x_mean - 0.45*Delta_x
                 xmax = x_mean + 0.45*Delta_x
 
             if numpy.isnan(xmin) or numpy.isnan(xmax):
                 #something went terribly wrong, try again with slightly larger fit range:
-                print "and try again\t",
+                print("and try again\t",end=" ")
                 fine_grid *= 0
-                mid = (len(xp)-1)/2
+                mid = (len(xp)-1)//2
                 xmin = xp[mid] - 0.52*Delta_x
                 xmax = xp[mid] + 0.52*Delta_x
 
@@ -246,7 +246,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
                 xp = b[0:-1] + dx
 
                 #_____find new fit range_____
-                print "fit Gauss\t",
+                print("fit Gauss\t",end=" ")
                 popt, pcov = scipy.optimize.curve_fit(gauss, xp, N, p0=[max(N),x_mean,x_stddev])
                 A = popt[0]
                 mu = popt[1]
@@ -261,7 +261,7 @@ def adapt_fitting_range(datasetname,testname=None,analysis_output_filename=None,
             xmin = mu - n_sigma_range * sigma
             xmax = mu + n_sigma_range * sigma
 
-        print "     --> ",fitParNamesLatex[ii]
+        print("     --> ",fitParNamesLatex[ii])
 
         qmin[ii] = xmin
         qmax[ii] = xmax

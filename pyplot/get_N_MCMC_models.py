@@ -1,4 +1,6 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 import pickle
 import sys
 sys.path.insert(0,'/home/trick/RoadMapping/py')
@@ -175,7 +177,7 @@ def get_MCMC_mean_SE(datasetname,testname=None,analysis_output_filename=None,moc
                 A = popt[0]
                 mu = popt[1]
                 sigma = numpy.fabs(popt[2])
-                print A, mu, sigma
+                print(A, mu, sigma)
                 if mu >= xmin:
                     means[ii] = mu
                     stddevs[ii] = sigma

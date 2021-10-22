@@ -165,7 +165,7 @@ class SF_IncompleteShell(SelectionFunction):
         out = numpy.zeros(ndata)
         for ii in range(ndata):
             d_index = (d_kpc[ii] >= self._incomp_dbin_kpc[0:-1]) * (d_kpc[ii] < self._incomp_dbin_kpc[1::])
-            #??remove???print d_kpc[ii],self._dmax*self._galpy_to_kpc
+            #??remove???print(d_kpc[ii],self._dmax*self._galpy_to_kpc)
             out[ii] = self._incomp_SF_of_hpID_dkpc[pixelIDs[ii],d_index]
         return out
 
@@ -235,7 +235,7 @@ class SF_IncompleteShell(SelectionFunction):
         cbar.set_label(r'$R \times \Delta \phi$ [kpc]')
         plt.tight_layout()
         plt.savefig(plotfilename,dpi=300)
-        print "ATTENTION: Have a look at "+plotfilename+" and check that the SF is okay."
+        print("ATTENTION: Have a look at "+plotfilename+" and check that the SF is okay.")
 
         #output:
         return self._incomp_SF_of_R_z, self._incomp_Rbin_kpc, self._incomp_zbin_kpc
@@ -341,7 +341,7 @@ class SF_IncompleteShell(SelectionFunction):
         else:
             sys.exit("Error in SF_IncompleteShell._contains(): This function is not implemented for scalar input.")
         if numpy.any(numpy.array([len(z),len(phi)]) != len(R)):
-            print numpy.shape(R),numpy.shape(z),numpy.shape(phi)
+            print(numpy.shape(R),numpy.shape(z),numpy.shape(phi))
             sys.exit("Error in SF_IncompleteShell._contains(): Input arrays do not have the same length.")
 
         # rotate x axis to go through center of sphere:
@@ -366,10 +366,10 @@ class SF_IncompleteShell(SelectionFunction):
         contains = numpy.zeros_like(R)   #return 0 if outside
         contains[index_inside_SF] = 1.   #return 1 if inside
 
-        #print len(contains),numpy.sum(contains)  
+        #print(len(contains),numpy.sum(contains))
         #for ii in range(len(contains)):
         #    if not contains[ii]:
-        #        print R[ii],z[ii],phi[ii],completeness[ii]
+        #        print(R[ii],z[ii],phi[ii],completeness[ii])
         return contains
 
 
@@ -447,13 +447,13 @@ class SF_IncompleteShell(SelectionFunction):
 
             if numpy.sum(outside) > 0:
                 if throw_error_outside:
-                    print "x^2+y^2+z^2 = ",(xp[outside][0])**2 + (yp[outside][0])**2 + (zp[outside][0])**2
-                    print "d_max^2     = ",self._dmax**2
-                    print "d_min^2     = ",self._dmin**2
-                    print "R: ",self._Rmin," <= ",R[outside][0]," <= ",self._Rmax,"?"
-                    print "z: ",self._zmin," <= ",z[outside][0]," <= ",self._zmax,"?"
+                    print("x^2+y^2+z^2 = ",(xp[outside][0])**2 + (yp[outside][0])**2 + (zp[outside][0])**2)
+                    print("d_max^2     = ",self._dmax**2)
+                    print("d_min^2     = ",self._dmin**2)
+                    print("R: ",self._Rmin," <= ",R[outside][0]," <= ",self._Rmax,"?")
+                    print("z: ",self._zmin," <= ",z[outside][0]," <= ",self._zmax,"?")
                     dphi = numpy.degrees(0.5 * self._deltaphi_max_rad(R[outside][0],z[outside][0]))
-                    print "phi: ",self._phisun_deg-dphi," <= ",phi[outside][0]," <= ",self._phisun_deg+dphi,"?"
+                    print("phi: ",self._phisun_deg-dphi," <= ",phi[outside][0]," <= ",self._phisun_deg+dphi,"?")
                     sys.exit("Error in SF_IncompleteShell._densfunc(). If yes, something is wrong. Testing of code is required.")
                 if set_outside_zero:
                     sys.exit("Error in SF_IncompleteShell._densfunc(): If set_outside_zero=True, taking care of array input is not implemented yet.")
@@ -588,7 +588,7 @@ class SF_IncompleteShell(SelectionFunction):
         """
 
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         if recalc_densgrid:
             self.densityGrid(
                 nrs_nonfid=nrs,
@@ -609,8 +609,8 @@ class SF_IncompleteShell(SelectionFunction):
         if self._zmin < 0. and self._zmax > 0.:
             zprime = 0.
         densmax = self._df.density(self._Rmin,zprime,ngl=ngl_vel,nsigma=n_sigma,vTmax=vT_galpy_max)
-        #print densmax
-        #print self._densfunc(self._Rmin,zprime,phi=self._phisun_deg)
+        #print(densmax)
+        #print(self._densfunc(self._Rmin,zprime,phi=self._phisun_deg))
         #sys.exit("test")
 
         #number of found mockdata:
@@ -620,7 +620,7 @@ class SF_IncompleteShell(SelectionFunction):
         zarr = []
         phiarr = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
             
@@ -635,7 +635,7 @@ class SF_IncompleteShell(SelectionFunction):
             if rc < self._dmin:
                 nreject += 1
                 if not quiet: 
-                    print nreject," rejected"
+                    print(nreject," rejected")
             else:
 
                 #transformation to (R,phi,z):
@@ -658,11 +658,11 @@ class SF_IncompleteShell(SelectionFunction):
                     zarr.extend([z])
                     phiarr.extend([phi])
                     nfound += 1
-                    if not quiet: print nfound," found"
+                    if not quiet: print(nfound," found")
                 else:
                     nreject += 1
                     if not quiet: 
-                        print nreject," rejected"
+                        print(nreject," rejected")
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
@@ -693,13 +693,13 @@ class SF_IncompleteShell(SelectionFunction):
         #take care of possible negative radius:
         if dmax_env > self._Rcen:
             sys.exit("Error in SF_IncompleteShell._spatialSampleDF_measurementErrors(): Envelope sphere reaches beyond the Galactic center. Change code! This should not happen!")
-        print "Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", renv_kpc," kpc"
+        print("Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", renv_kpc," kpc")
 
         #_____create new selection function as envelope_____
         #envelope selection function:
         sf_env = SF_IncompleteShell(dmax_env,self._Rcen,df=self._df)
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         sf_env.densityGrid(
                 nrs_nonfid=nrs,
                 nzs_nonfid=nzs,
@@ -729,7 +729,7 @@ class SF_IncompleteShell(SelectionFunction):
         dec_rad_true  = []
         DM_mag_true   = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
 
@@ -806,7 +806,7 @@ class SF_IncompleteShell(SelectionFunction):
             index = numpy.array(d_kpc_p <= dmax_kpc,dtype=bool)
             nfound += numpy.sum(index)
             nreject += nmore - numpy.sum(index)
-            if not quiet: print "Found: ",nfound, ", Reject: ",nreject
+            if not quiet: print("Found: ",nfound, ", Reject: ",nreject)
 
             # add found coordinates to list:
             if numpy.sum(index) > 0:

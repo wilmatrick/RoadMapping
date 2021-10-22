@@ -799,8 +799,8 @@ def write_RoadMapping_parameters(datasetname,testname=None,
                  "selection function type "+str(sftype)+" is not defined.")
 
     if datatype in [2,5] and sftype == 4:
-        print "Warning in write_RoadMapping_parameters(): "+\
-              "If datatype = [2,5] and sftype = 4: Check that they use the same sun coordinates!"
+        print("Warning in write_RoadMapping_parameters(): "+\
+              "If datatype = [2,5] and sftype = 4: Check that they use the same sun coordinates!")
 
     #_____close file_____
     f.close()

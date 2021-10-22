@@ -78,7 +78,7 @@ class SF_Sphere(SelectionFunction):
         else:
             sys.exit("Error in SF_Sphere._contains(): This function is not implemented for scalar input.")
         if numpy.any(numpy.array([len(z),len(phi)]) != len(R)):
-            print numpy.shape(R),numpy.shape(z),numpy.shape(phi)
+            print(numpy.shape(R),numpy.shape(z),numpy.shape(phi))
             sys.exit("Error in SF_Sphere._contains(): Input arrays do not have the same length.")
 
       
@@ -202,13 +202,13 @@ class SF_Sphere(SelectionFunction):
 
             if numpy.sum(outside) > 0:
                 if throw_error_outside:
-                    print "x^2+y^2+z^2 = ",(xp[outside][0])**2 + (yp[outside][0])**2 + (zp[outside][0])**2
-                    print "d_max^2     = ",self._dmax**2
-                    print "R: ",self._Rmin," <= ",R[outside][0]," <= ",self._Rmax,"?"
-                    print "z: ",self._zmin," <= ",z[outside][0]," <= ",self._zmax,"?"
+                    print("x^2+y^2+z^2 = ",(xp[outside][0])**2 + (yp[outside][0])**2 + (zp[outside][0])**2)
+                    print("d_max^2     = ",self._dmax**2)
+                    print("R: ",self._Rmin," <= ",R[outside][0]," <= ",self._Rmax,"?")
+                    print("z: ",self._zmin," <= ",z[outside][0]," <= ",self._zmax,"?")
                     dphi = numpy.degrees(0.5 * self._deltaphi_max_rad(R[outside][0],z[outside][0]))
-                    print "phi: ",self._phicen_deg-dphi," <= ",phi[outside][0]," <= ",self._phicen_deg+dphi,"?"
-                    print hahaha
+                    print("phi: ",self._phicen_deg-dphi," <= ",phi[outside][0]," <= ",self._phicen_deg+dphi,"?")
+                    print(hahaha)
                     sys.exit("Error in SF_Sphere._densfunc(): If yes, something is wrong. Testing of code is required.")
                 if set_outside_zero:
                     sys.exit("Error in SF_Sphere._densfunc(): If set_outside_zero=True, taking care of array input is not implemented yet.")
@@ -411,7 +411,7 @@ class SF_Sphere(SelectionFunction):
         """
 
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         if recalc_densgrid:
             self.densityGrid(
                 nrs_nonfid=nrs,
@@ -432,8 +432,8 @@ class SF_Sphere(SelectionFunction):
         if self._zmin < 0. and self._zmax > 0.:
             zprime = 0.
         densmax = self._df.density(self._Rmin,zprime,ngl=ngl_vel,nsigma=n_sigma,vTmax=vT_galpy_max)
-        #print densmax
-        #print self._densfunc(self._Rmin,zprime,phi=self._phicen_deg)
+        #print(densmax)
+        #print(self._densfunc(self._Rmin,zprime,phi=self._phicen_deg))
         #sys.exit("test")
 
         #number of found mockdata:
@@ -443,7 +443,7 @@ class SF_Sphere(SelectionFunction):
         zarr = []
         phiarr = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
             
@@ -474,11 +474,11 @@ class SF_Sphere(SelectionFunction):
                 zarr.extend([z])
                 phiarr.extend([phi])
                 nfound += 1
-                if not quiet: print nfound," found"
+                if not quiet: print(nfound," found")
             else:
                 nreject += 1
                 if not quiet: 
-                    print nreject," rejected"
+                    print(nreject," rejected")
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
@@ -710,13 +710,13 @@ class SF_Sphere(SelectionFunction):
         #take care of possible negative radius:
         if dmax_env > self._Rcen:
             sys.exit("Error in SF_Sphere._spatialSampleDF_measurementErrors(): Envelope sphere reaches beyond the Galactic center. Change code! This should not happen!")
-        print "Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", renv_kpc," kpc"
+        print("Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", renv_kpc," kpc")
 
         #_____create new selection function as envelope_____
         #envelope selection function:
         sf_env = SF_Sphere(dmax_env,self._Rcen,zcen=self._zcen,phicen_deg=self._phicen_deg,df=self._df)
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         sf_env.densityGrid(
                 nrs_nonfid=nrs,
                 nzs_nonfid=nzs,
@@ -746,7 +746,7 @@ class SF_Sphere(SelectionFunction):
         dec_rad_true  = []
         DM_mag_true   = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
 
@@ -823,7 +823,7 @@ class SF_Sphere(SelectionFunction):
             index = numpy.array(d_kpc_p <= dmax_kpc,dtype=bool)
             nfound += numpy.sum(index)
             nreject += nmore - numpy.sum(index)
-            if not quiet: print "Found: ",nfound, ", Reject: ",nreject
+            if not quiet: print("Found: ",nfound, ", Reject: ",nreject)
 
             # add found coordinates to list:
             if numpy.sum(index) > 0:
@@ -900,13 +900,13 @@ class SF_Sphere(SelectionFunction):
         #take care of possible negative radius:
         if dmax_env > self._Rcen:
             sys.exit("Error in SF_Sphere._sampleDF_correlatedMeasurementErrors(): Envelope sphere reaches beyond the Galactic center. Change code! This should not happen!")
-        print "Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", dmax_env_kpc," kpc"
+        print("Radius of observed volume: ",dmax_kpc," kpc, Radius of envelope volume:", dmax_env_kpc," kpc")
 
         #_____create new selection function as envelope_____
         #envelope selection function:
         sf_env = SF_Sphere(dmax_env,self._Rcen,zcen=self._zcen,phicen_deg=self._phicen_deg,df=self._df)
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         sf_env.densityGrid(
                 nrs_nonfid=nrs,
                 nzs_nonfid=nzs,
@@ -926,7 +926,7 @@ class SF_Sphere(SelectionFunction):
         out_true  = numpy.zeros((6,nmock))
         out_error = numpy.zeros((6,nmock))
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
 
@@ -1076,7 +1076,7 @@ class SF_Sphere(SelectionFunction):
             nfound_old = nfound
             nfound += numpy.sum(index)
             nreject += nmore - numpy.sum(index)
-            if not quiet: print "Found: ",nfound, ", Reject: ",nreject
+            if not quiet: print("Found: ",nfound, ", Reject: ",nreject)
 
             # add found coordinates to list:
             if numpy.sum(index) > 0:

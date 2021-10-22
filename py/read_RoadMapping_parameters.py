@@ -133,9 +133,9 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 1    #1 more line: number of data points
 
         if print_to_screen:
-            print "DATA TYPE: * mock data"
-            print "           * no measurement errors"
-            print "           * ",noStars," stars"
+            print("DATA TYPE: * mock data")
+            print("           * no measurement errors")
+            print("           * ",noStars," stars")
 
     elif datatype == 2:
 
@@ -150,19 +150,19 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 3    #3 more lines: number of data points + globar errors + position of sun
 
         if print_to_screen:
-            print "DATA TYPE: * mock data"
-            print "           * ",noStars," stars"
-            print "           * observables with measurement errors"
-            print "           * 'general' measurement errors (just for info):"
-            print "                d(distance modulus) [mag], d(RA) & d(DEC) [rad]"
-            print "               ",errPar_obs[0:2]
-            print "                d(v_los) [kms], d(prop motion) [mas/yr]"
-            print "               ",errPar_obs[2:4]
-            print "           * APPROXIMATION: ignoring position errors in the analysis"
-            print "                  (except effect of distance errors on velocities)"
-            print "           * Coordinates of the sun (heliocentric observables --> Galactocentric coordinates):"
-            print "                R [kpc], phi [deg], z [kpc], vR [km/s], vT [km/s], vz [km/s]"
-            print "               ",sunCoords_phys               
+            print("DATA TYPE: * mock data")
+            print("           * ",noStars," stars")
+            print("           * observables with measurement errors")
+            print("           * 'general' measurement errors (just for info):")
+            print("                d(distance modulus) [mag], d(RA) & d(DEC) [rad]")
+            print("               ",errPar_obs[0:2])
+            print("                d(v_los) [kms], d(prop motion) [mas/yr]")
+            print("               ",errPar_obs[2:4])
+            print("           * APPROXIMATION: ignoring position errors in the analysis")
+            print("                  (except effect of distance errors on velocities)")
+            print("           * Coordinates of the sun (heliocentric observables --> Galactocentric coordinates):")
+            print("                R [kpc], phi [deg], z [kpc], vR [km/s], vT [km/s], vz [km/s]")
+            print("               ",sunCoords_phys)
 
     elif datatype == 3:
 
@@ -183,11 +183,11 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
                  "Coordinate no. "+marginal_coord+" to marginalize over is not known.")
         
         if print_to_screen:
-            print "DATA TYPE: * mock data"
-            print "           * no measurement errors"
-            print "           * ",noStars," stars"
-            print "           * don't use data coordinate ",marginalize_over
-            print "           * marginalization over ",marginalize_over," with N_gl = ",ngl_marginal
+            print("DATA TYPE: * mock data")
+            print("           * no measurement errors")
+            print("           * ",noStars," stars")
+            print("           * don't use data coordinate ",marginalize_over)
+            print("           * marginalization over ",marginalize_over," with N_gl = ",ngl_marginal)
 
     elif datatype == 4:
 
@@ -197,12 +197,12 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 1    #1 more line: number of data points
 
         if print_to_screen:
-            print "DATA TYPE: * mock data"
-            print "           * mix of two data sets: "
-            print "              "+datasetname+"_MAIN with",noStars[1]," stars"
-            print "              "+datasetname+"_POLL with",noStars[2]," stars"
-            print "           * in total ",noStars[0]," stars"
-            print "           * no measurement errors"
+            print("DATA TYPE: * mock data")
+            print("           * mix of two data sets: ")
+            print("              "+datasetname+"_MAIN with",noStars[1]," stars")
+            print("              "+datasetname+"_POLL with",noStars[2]," stars")
+            print("           * in total ",noStars[0]," stars")
+            print("           * no measurement errors")
 
     elif datatype == 5:
 
@@ -215,14 +215,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 2    #2 more lines: number of data points + galactocentric (x,y,z) position & velocity of sun
 
         if print_to_screen:
-            print "DATA TYPE: * TGAS/RAVE red clump stars"
-            print "           * ",noStars," stars"
-            print "           * observables with covariance error matrix"
-            print "           * APPROXIMATION: ignoring position errors in the analysis"
-            print "                  (except effect of position errors on velocities)"
-            print "           * Coordinates of the sun (heliocentric observables --> Galactocentric coordinates):"
-            print "                X_gc [kpc], Y_gc [kpc], Z_gc [kpc], vX_gc [km/s], vY_gc [km/s], vZ_gc [km/s]"
-            print "               ",sunCoords_phys 
+            print("DATA TYPE: * TGAS/RAVE red clump stars")
+            print("           * ",noStars," stars")
+            print("           * observables with covariance error matrix")
+            print("           * APPROXIMATION: ignoring position errors in the analysis")
+            print("                  (except effect of position errors on velocities)")
+            print("           * Coordinates of the sun (heliocentric observables --> Galactocentric coordinates):")
+            print("                X_gc [kpc], Y_gc [kpc], Z_gc [kpc], vX_gc [km/s], vY_gc [km/s], vZ_gc [km/s]")
+            print("               ",sunCoords_phys)
 
     else:
         sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
@@ -253,10 +253,10 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 3
 
         if print_to_screen:
-            print "POTENTIAL: * isochrone potential"
-            print "           * true parameters:"
-            print "                R_sun [kpc], v_circ(R_sun) [km/s], b [kpc]"
-            print "               ",potParTrue_phys
+            print("POTENTIAL: * isochrone potential")
+            print("           * true parameters:")
+            print("                R_sun [kpc], v_circ(R_sun) [km/s], b [kpc]")
+            print("               ",potParTrue_phys)
 
     elif pottype == 2 or pottype == 21:
         #2-COMPONENT KK STAECKEL
@@ -279,13 +279,13 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 6
 
         if print_to_screen:
-            print "POTENTIAL: * 2-component KK Staeckel potential"
-            print "             (Batsleer & Dejonghe 1994)"
-            if   pottype == 2:  print "           * action calculation: actionAngleStaeckel"
-            elif pottype == 21: print "           * action calculation: actionAngleStaeckelGrid"
-            print "           * true parameters:"
-            print "                R_sun [kpc], v_circ(R_sun) [km/s], Delta, ac_D, ac_H, k"
-            print "               ",potParTrue_phys
+            print("POTENTIAL: * 2-component KK Staeckel potential")
+            print("             (Batsleer & Dejonghe 1994)")
+            if   pottype == 2:  print("           * action calculation: actionAngleStaeckel")
+            elif pottype == 21: print("           * action calculation: actionAngleStaeckelGrid")
+            print("           * true parameters:")
+            print("                R_sun [kpc], v_circ(R_sun) [km/s], Delta, ac_D, ac_H, k")
+            print("               ",potParTrue_phys)
 
     elif pottype == 3 or pottype == 31:
         #MW-LIKE (Bovy & Rix 2013)
@@ -308,13 +308,13 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 6
 
         if print_to_screen:
-            print "POTENTIAL: * MW-like potential"
-            print "             (Bovy & Rix 2013)"
-            if   pottype == 3:  print "           * action calculation: actionAngleStaeckel"
-            elif pottype == 31: print "           * action calculation: actionAngleStaeckelGrid"
-            print "           * true parameters:"
-            print "                R_sun [kpc], v_circ(R_sun) [km/s], R_d [kpc], z_h [kpc], f_h, d(ln v_c)/d(ln r)"
-            print "               ",potParTrue_phys
+            print("POTENTIAL: * MW-like potential")
+            print("             (Bovy & Rix 2013)")
+            if   pottype == 3:  print("           * action calculation: actionAngleStaeckel")
+            elif pottype == 31: print("           * action calculation: actionAngleStaeckelGrid")
+            print("           * true parameters:")
+            print("                R_sun [kpc], v_circ(R_sun) [km/s], R_d [kpc], z_h [kpc], f_h, d(ln v_c)/d(ln r)")
+            print("               ",potParTrue_phys)
     
     elif pottype in numpy.array([4,41,42,421],dtype=int):
         #MWPotential2014 (Bovy2015) (4) or MWPotential from galpy (42)
@@ -338,13 +338,13 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
 
         if print_to_screen:
             
-            if   pottype in numpy.array([4 ,41 ],dtype=int): print "POTENTIAL: * MWPotential2014 (Bovy 2015)"
-            elif pottype in numpy.array([42,421],dtype=int): print "POTENTIAL: * MWPotential from galpy"
-            if   pottype in numpy.array([4 ,42 ],dtype=int): print "           * action calculation: actionAngleStaeckel"
-            elif pottype in numpy.array([41,421],dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
-            print "           * true parameters:"
-            print "                R_sun [kpc], v_circ(R_sun) [km/s]"
-            print "               ",potParTrue_phys
+            if   pottype in numpy.array([4 ,41 ],dtype=int): print("POTENTIAL: * MWPotential2014 (Bovy 2015)")
+            elif pottype in numpy.array([42,421],dtype=int): print("POTENTIAL: * MWPotential from galpy")
+            if   pottype in numpy.array([4 ,42 ],dtype=int): print("           * action calculation: actionAngleStaeckel")
+            elif pottype in numpy.array([41,421],dtype=int): print("           * action calculation: actionAngleStaeckelGrid")
+            print("           * true parameters:")
+            print("                R_sun [kpc], v_circ(R_sun) [km/s]")
+            print("               ",potParTrue_phys)
     
     elif pottype in numpy.array([5,6,7,8,82,51,61,71,81,821],dtype=int):
         if pottype == 5 or pottype == 51:
@@ -394,22 +394,22 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += npotpar
 
         if print_to_screen:
-            if   pottype in numpy.array([5,51]       ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge "
-            elif pottype in numpy.array([6,61]       ,dtype=int): print "POTENTIAL: * potential with Double Exponential disk, Hernquist halo + bulge "
-            elif pottype in numpy.array([7,71]       ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge "
-            elif pottype in numpy.array([8,81]       ,dtype=int): print "POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge "
-            elif pottype in numpy.array([82,821]     ,dtype=int): print "POTENTIAL: * potential with 3MN-exp-sech disk (Smith et al. 2015), NFW halo + Hernquist bulge "
-            if   pottype in numpy.array([5,51,6,61]  ,dtype=int): print "             (for simulation by Elena D'Onghia)"
-            elif pottype in numpy.array([7,71]       ,dtype=int): print "             (galpy MWPotential like)"
-            elif pottype in numpy.array([8,81,82,821],dtype=int): print "             (for fitting to Gaia data)"
-            if   pottype in numpy.array([5,6,7,8,82]     ,dtype=int): print "           * action calculation: actionAngleStaeckel"
-            elif pottype in numpy.array([51,61,71,81,821],dtype=int): print "           * action calculation: actionAngleStaeckelGrid"
-            print "           * true parameters:"
-            if   pottype in numpy.array([5,51,7,71],dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]"
-            elif pottype in numpy.array([6,61]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc]"
-            elif pottype in numpy.array([8,81]     ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc], M_b [10^10 Msun], a_b [kpc]"
-            elif pottype in numpy.array([82,821]   ,dtype=int):print "                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc], M_b [10^10 Msun], a_b [kpc]"
-            print "               ",potParTrue_phys
+            if   pottype in numpy.array([5,51]       ,dtype=int): print("POTENTIAL: * potential with Miyamoto-Nagai disk, Hernquist halo + bulge ")
+            elif pottype in numpy.array([6,61]       ,dtype=int): print("POTENTIAL: * potential with Double Exponential disk, Hernquist halo + bulge ")
+            elif pottype in numpy.array([7,71]       ,dtype=int): print("POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge ")
+            elif pottype in numpy.array([8,81]       ,dtype=int): print("POTENTIAL: * potential with Miyamoto-Nagai disk, NFW halo + Hernquist bulge ")
+            elif pottype in numpy.array([82,821]     ,dtype=int): print("POTENTIAL: * potential with 3MN-exp-sech disk (Smith et al. 2015), NFW halo + Hernquist bulge ")
+            if   pottype in numpy.array([5,51,6,61]  ,dtype=int): print("             (for simulation by Elena D'Onghia)")
+            elif pottype in numpy.array([7,71]       ,dtype=int): print("             (galpy MWPotential like)")
+            elif pottype in numpy.array([8,81,82,821],dtype=int): print("             (for fitting to Gaia data)")
+            if   pottype in numpy.array([5,6,7,8,82]     ,dtype=int): print("           * action calculation: actionAngleStaeckel")
+            elif pottype in numpy.array([51,61,71,81,821],dtype=int): print("           * action calculation: actionAngleStaeckelGrid")
+            print("           * true parameters:")
+            if   pottype in numpy.array([5,51,7,71],dtype=int):print("                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc]")
+            elif pottype in numpy.array([6,61]     ,dtype=int):print("                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc]")
+            elif pottype in numpy.array([8,81]     ,dtype=int):print("                R_sun [kpc], v_circ(R_sun) [km/s], a_d [kpc], b_d [kpc], f_h, a_h [kpc], M_b [10^10 Msun], a_b [kpc]")
+            elif pottype in numpy.array([82,821]   ,dtype=int):print("                R_sun [kpc], v_circ(R_sun) [km/s], hr_d [kpc], hz_d [kpc], f_h, a_h [kpc], M_b [10^10 Msun], a_b [kpc]")
+            print("               ",potParTrue_phys)
     else:
         sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "potential type "+str(pottype)+" is not defined.")
@@ -430,10 +430,10 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         vo_known = False
 
     if print_to_screen:
-        print "           * parameters kept fixed?"
-        print "               ",numpy.invert(potParFitBool)
-        print "             at value"
-        print "               ",potParEst_phys
+        print("           * parameters kept fixed?")
+        print("               ",numpy.invert(potParFitBool))
+        print("             at value")
+        print("               ",potParEst_phys)
 
 
 
@@ -471,17 +471,17 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 5
 
         if print_to_screen:
-            print "QUASI-ISOTHERMAL DISTRIBUTION FUNCTION:"
-            if dftype == 11: print "           * with robust likelihood, L_i = max(L_i,0.001*median(L_i)"
-            print "           * true parameters:"
-            print "                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc]"
-            print "               ",dfParTrue_phys
-            print "           * parameters kept fixed?"
-            print "               ",numpy.invert(dfParFitBool)
-            print "             at value"
-            print "               ",dfParEst_phys
-            print "           * fiducial qdf parameters:"
-            print "               ",dfParFid_phys
+            print("QUASI-ISOTHERMAL DISTRIBUTION FUNCTION:")
+            if dftype == 11: print("           * with robust likelihood, L_i = max(L_i,0.001*median(L_i)")
+            print("           * true parameters:")
+            print("                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc]")
+            print("               ",dfParTrue_phys)
+            print("           * parameters kept fixed?")
+            print("               ",numpy.invert(dfParFitBool))
+            print("             at value")
+            print("               ",dfParEst_phys)
+            print("           * fiducial qdf parameters:")
+            print("               ",dfParFid_phys)
 
         #physical boundaries:
         dfParLowerBound_fit = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf])
@@ -519,17 +519,17 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         nl += 8
 
         if print_to_screen:
-            print "QUASI-ISOTHERMAL DISTRIBUTION FUNCTION + HALO OUTLIER MODEL:"
-            print "           * with halo outlier model, L_i = (1-p) * L_DF + p * L_out"
-            print "           * true parameters:"
-            print "                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc], pout, svout [km/s], hsvout [kpc]"
-            print "               ",dfParTrue_phys
-            print "           * parameters kept fixed?"
-            print "               ",numpy.invert(dfParFitBool)
-            print "             at value"
-            print "               ",dfParEst_phys
-            print "           * fiducial qdf parameters:"
-            print "               ",dfParFid_phys
+            print("QUASI-ISOTHERMAL DISTRIBUTION FUNCTION + HALO OUTLIER MODEL:")
+            print("           * with halo outlier model, L_i = (1-p) * L_DF + p * L_out")
+            print("           * true parameters:")
+            print("                hr [kpc], sr [km/s], sz [km/s], hsr [kpc], hsz [kpc], pout, svout [km/s], hsvout [kpc]")
+            print("               ",dfParTrue_phys)
+            print("           * parameters kept fixed?")
+            print("               ",numpy.invert(dfParFitBool))
+            print("             at value")
+            print("               ",dfParEst_phys)
+            print("           * fiducial qdf parameters:")
+            print("               ",dfParFid_phys)
 
         #physical boundaries:
         dfParLowerBound_fit = numpy.array([-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,-numpy.inf,0.,-numpy.inf,-numpy.inf])
@@ -551,14 +551,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         sfParEst  = numpy.array(out[nl:nl+6,1],dtype=float)
 
         if print_to_screen:
-            print "SELECTION FUNCTION:"
-            print "           * wedge"
-            print "           * true parameters:"
-            print "                R_min [kpc], R_max [kpc], z_min [kpc], z_max [kpc], phi_min [deg], phi_max [deg]"
-            print "               ",sfParTrue
+            print("SELECTION FUNCTION:")
+            print("           * wedge")
+            print("           * true parameters:")
+            print("                R_min [kpc], R_max [kpc], z_min [kpc], z_max [kpc], phi_min [deg], phi_max [deg]")
+            print("               ",sfParTrue)
             if numpy.sum(sfParTrue != sfParEst) > 0:
-                print "           * parameters used in analysis:"
-                print "               ",sfParEst
+                print("           * parameters used in analysis:")
+                print("               ",sfParEst)
     elif sftype == 3:
         #SPHERE + BOX
         #sfPar = [r_obs_kpc,d_obs_kpc]
@@ -567,14 +567,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         sfParEst  = numpy.array(out[nl:nl+2,1],dtype=float)
         
         if print_to_screen:
-            print "SELECTION FUNCTION:"
-            print "           * sphere around sun"
-            print "           * true parameters:"
-            print "                r_obs [kpc], d_obs [kpc]"
-            print "               ",sfParTrue
+            print("SELECTION FUNCTION:")
+            print("           * sphere around sun")
+            print("           * true parameters:")
+            print("                r_obs [kpc], d_obs [kpc]")
+            print("               ",sfParTrue)
             if numpy.sum(sfParTrue != sfParEst) > 0:
-                print "           * parameters used in analysis:"
-                print "               ",sfParEst
+                print("           * parameters used in analysis:")
+                print("               ",sfParEst)
     elif sftype == 31:
         #SPHERE + INCOMPLETENESS FUNCTION
         #sfPar = [r_sun_kpc,d_sun_kpc,eps_r,eps_z]
@@ -583,17 +583,17 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         sfParEst  = numpy.array(out[nl:nl+4,1],dtype=float)
         
         if print_to_screen:
-            print "SELECTION FUNCTION:"
-            print "           * sphere around sun"
-            print "           * incompleteness function:"
-            print "             comp(r,z) = (1 - eps_r *  r /r_obs)"
-            print "                       * (1 - eps_z * |z|/r_obs)"
-            print "           * true parameters:"
-            print "                r_obs [kpc], d_obs [kpc], eps_r, eps_z"
-            print "               ",sfParTrue
+            print("SELECTION FUNCTION:")
+            print("           * sphere around sun")
+            print("           * incompleteness function:")
+            print("             comp(r,z) = (1 - eps_r *  r /r_obs)")
+            print("                       * (1 - eps_z * |z|/r_obs)")
+            print("           * true parameters:")
+            print("                r_obs [kpc], d_obs [kpc], eps_r, eps_z")
+            print("               ",sfParTrue)
             if numpy.sum(sfParTrue != sfParEst) > 0:
-                print "           * parameters used in analysis:"
-                print "               ",sfParEst
+                print("           * parameters used in analysis:")
+                print("               ",sfParEst)
     elif sftype == 32:
         #SPHERE + BOX + FREE TO CHOOSE CENTER
         #sfPar = [d_max_kpc,R_cen_kpc,phi_cen_deg,z_cen_kpc]
@@ -602,14 +602,14 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         sfParEst  = numpy.array(out[nl:nl+4,1],dtype=float)
         
         if print_to_screen:
-            print "SELECTION FUNCTION:"
-            print "           * sphere around sun"
-            print "           * true parameters:"
-            print "                d_max [kpc], R_cen [kpc], phi_cen [deg], z_cen [kpc]"
-            print "               ",sfParTrue
+            print("SELECTION FUNCTION:")
+            print("           * sphere around sun")
+            print("           * true parameters:")
+            print("                d_max [kpc], R_cen [kpc], phi_cen [deg], z_cen [kpc]")
+            print("               ",sfParTrue)
             if numpy.sum(sfParTrue != sfParEst) > 0:
-                print "           * parameters used in analysis:"
-                print "               ",sfParEst
+                print("           * parameters used in analysis:")
+                print("               ",sfParEst)
     elif sftype == 4:
         #INCOMPLETE SHELL
         #sfPar = [dmin_kpc,dmax_kpc,Rgc_sun_kpc,phigc_obs_deg,zgc_sun_kpc,file_no]
@@ -620,59 +620,61 @@ def read_RoadMapping_parameters(datasetname,testname=None,mockdatapath='../data/
         
         if print_to_screen:
             file_no   = int(sfParTrue[5])
-            print "SELECTION FUNCTION:"
-            print "           * shell around sun"
-            print "           * incompleteness from file no. ",int(file_no),
-            if   file_no == 1: print "('TGAS_RAVE_footprint')"
-            elif file_no == 2: print "('TGAS_RAVE_red_clump')"
-            elif file_no == 3: print "('TGAS_RAVE_red_clump_testSF')"
-            elif file_no == 4: print "('TGAS_RAVE_red_clump_lessQC')"
+            print("SELECTION FUNCTION:")
+            print("           * shell around sun")
+            text = []
+            text += "           * incompleteness from file no. "+str(int(file_no))
+            if   file_no == 1: text += "('TGAS_RAVE_footprint')"
+            elif file_no == 2: text += "('TGAS_RAVE_red_clump')"
+            elif file_no == 3: text += "('TGAS_RAVE_red_clump_testSF')"
+            elif file_no == 4: text += "('TGAS_RAVE_red_clump_lessQC')"
             else: 
                  sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "selection function file no. "+str(file_no)+" is not defined.")
-            print "           * true parameters:"
-            print "                d_min [kpc], d_max [kpc], R_Sun [kpc], phi_Sun [deg], z_Sun [kpc]"
-            print "               ",sfParTrue[0:5]
+            print(text)
+            print("           * true parameters:")
+            print("                d_min [kpc], d_max [kpc], R_Sun [kpc], phi_Sun [deg], z_Sun [kpc]")
+            print("               ",sfParTrue[0:5])
             if numpy.sum(sfParTrue != sfParEst) > 0:
-                print "           * parameters used in analysis:"
-                print "               ",sfParEst  
+                print("           * parameters used in analysis:")
+                print("               ",sfParEst)
     else:
         sys.exit("Error in read_RoadMapping_analysis_parameters(): "+\
                  "selection function type "+str(sftype)+" is not defined.")
 
     if print_to_screen:
 
-        print "PRIORS:"
+        print("PRIORS:")
         if priortype in [0,1,11,12,22]:
-            print "           * Flat priors on potential parameters (inside physical regime)."
-            print "           * Logarithmically flat priors on DF parameters."
+            print("           * Flat priors on potential parameters (inside physical regime).")
+            print("           * Logarithmically flat priors on DF parameters.")
         if priortype in [1,11,12]:
-            print "           * Bovy & Rix (2013), eq. (41), prior on slope of rotation curve."
+            print("           * Bovy & Rix (2013), eq. (41), prior on slope of rotation curve.")
         if priortype == 11:
-            print "           * qdf parameter h_R limited to be inside [0.5,20] kpc."
+            print("           * qdf parameter h_R limited to be inside [0.5,20] kpc.")
         if priortype in [12,22]:
-            print "           * qdf parameters h_R, h_s_R, h_s_z limited to be inside [0.5,20] kpc."
+            print("           * qdf parameters h_R, h_s_R, h_s_z limited to be inside [0.5,20] kpc.")
 
-        print "NUMERICAL PRECISION:"
-        print "           * N_spatial = ",N_spatial,", N_velocity = ",N_velocity
-        print "           * N_sigma   = ",N_sigma,", vT_max [galpy] = ",vT_galpy_max
-        print "           * # of MCMC steps: ",noMCMCsteps,", # of burn-in steps: ",noMCMCburnin
+        print("NUMERICAL PRECISION:")
+        print("           * N_spatial = ",N_spatial,", N_velocity = ",N_velocity)
+        print("           * N_sigma   = ",N_sigma,", vT_max [galpy] = ",vT_galpy_max)
+        print("           * # of MCMC steps: ",noMCMCsteps,", # of burn-in steps: ",noMCMCburnin)
         if MCMC_use_fidDF: 
-            print "           * Analysis uses FIDUCIAL qDF for fitting range also in the MCMC."
+            print("           * Analysis uses FIDUCIAL qDF for fitting range also in the MCMC.")
         else:
-            print "           * Analysis uses CURRENT qDF for fitting range in the MCMC."
+            print("           * Analysis uses CURRENT qDF for fitting range in the MCMC.")
         if datatype in [2,5]:
-            print "           * N_error_samples = ",N_error_samples,", random seed = ",random_seed_for_errors
+            print("           * N_error_samples = ",N_error_samples,", random seed = ",random_seed_for_errors)
         if estimate_Delta:
-            print "           * Analysis uses the Staeckel fudge and ESTIMATES the focal length DELTA for each potential."
+            print("           * Analysis uses the Staeckel fudge and ESTIMATES the focal length DELTA for each potential.")
         if not estimate_Delta and not use_default_Delta:
-            print "           * Analysis uses the Staeckel fudge with FIXED focal length DELTA=",Delta_fixed,"*ro for each potential."
+            print("           * Analysis uses the Staeckel fudge with FIXED focal length DELTA=",Delta_fixed,"*ro for each potential.")
         if not estimate_Delta and use_default_Delta:
-            print "           * Analysis uses the Staeckel fudge with DEFAULT focal length DELTA=0.45*ro for each potential."
+            print("           * Analysis uses the Staeckel fudge with DEFAULT focal length DELTA=0.45*ro for each potential.")
         if use_aASG:
-            print "           * Analysis uses the actionAngleStaeckelGrid with:"
-            print "             Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1]),","
-            print "             npsi = ",int(aASG_accuracy[2]),", nLz = ",int(aASG_accuracy[3])
+            print("           * Analysis uses the actionAngleStaeckelGrid with:")
+            print("             Rmax = ",aASG_accuracy[0],", nE = ",int(aASG_accuracy[1]),",")
+            print("             npsi = ",int(aASG_accuracy[2]),", nLz = ",int(aASG_accuracy[3]))
 
     return {
             'datatype'  :datatype,

@@ -1,4 +1,6 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 from galpy.potential import IsochronePotential
 from galpy.potential import KuzminKutuzovStaeckelPotential
 from galpy import potential
@@ -260,7 +262,7 @@ def setup_Potential_and_ActionAngle_object(pottype,potPar_phys,**kwargs):
             Delta = 0.45*ro 
             #delta=0.45 * R0 is a good estimate for the Milky Way's 
             #Staeckel approximation (cf. Bovy&Rix 2013)
-        #print "Delta = ",Delta
+        #print("Delta = ",Delta)
     elif (pottype in numpy.array([1,2],dtype=int)):
         pass #no Delta needed
     else:
@@ -492,8 +494,8 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                     savefile.close()
                 else:
                     #If the file does not exist, create it:
-                    print "..........File '"+filename_SF_R_z+"' does not exist yet."
-                    print "..........Now integrating over shell."
+                    print("..........File '"+filename_SF_R_z+"' does not exist yet.")
+                    print("..........Now integrating over shell.")
                     sf = SF_IncompleteShell(
                             sfPar_phys[0]/_REFR0/ro,      #dmin [galpy]
                             sfPar_phys[1]/_REFR0/ro,      #dmax [galpy]
@@ -514,7 +516,7 @@ def setup_SelectionFunction_object(sftype,sfPar_phys,ro,df=None,**kwargs):
                         plotfilename='../out/'+selection_function_name+'_SF_preparation_rmax='+dmax_kpc+'_rmin='+dmin_kpc+'_Rsun='+Rsun_kpc+'_zsun='+zsun_kpc+'.png',
                         savefilename=filename_SF_R_z
                         )
-                    print "..........DONE!!!"
+                    print("..........DONE!!!")
             else:
                 sys.exit("Error in setup_SelectionFunction_object: file_no "+file_no+" is not known yet.")
             #    SF_IncompleteShell(dmin,dmax,Rgc_Sun,

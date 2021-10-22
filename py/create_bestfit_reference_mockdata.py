@@ -1,4 +1,6 @@
 #_____import packages_____
+from __past__ import division
+#from __future__ import print_function
 import numpy
 import os
 import pickle
@@ -42,7 +44,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     _REFV0 = 220.   #velocity scaling
 
    #_____get best fit values_____
-    print "* Get best fit values for ",datasetname_original," *"
+    print("* Get best fit values for ",datasetname_original," *")
 
 
     #MCMC output filename:
@@ -63,7 +65,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                             quantities_to_calculate=None,
                             Gaussian_fit=False
                             )
-        print "best fit values (median of MC distribution): ", medians
+        print("best fit values (median of MC distribution): ", medians)
         bestfits = medians
     elif method == 'GRID_midpoint':
         ParFit_GRID_phys = get_GRID_midpoint(
@@ -95,7 +97,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     potPar_phys[ANALYSIS['potParFitBool']] = potPar_phys_MCMC
     ro = potPar_phys[0] / _REFR0
     vo = potPar_phys[1] / _REFV0
-    print "potential parameters: ",potPar_phys
+    print("potential parameters: ",potPar_phys)
 
     #p_DF parameters in galpy units
     #load estimates for fixed DF parameters
@@ -110,7 +112,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     else:
         sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
                  str(ANALYSIS['dftype'])+" is not defined.")
-    print "qDF parameters: ",dfPar_phys
+    print("qDF parameters: ",dfPar_phys)
 
     #fiducial p_DF parameters in galpy units
     #load fiducial DF parameters
@@ -123,7 +125,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
     else:
         sys.exit("Error in create_bestfit_reference_mockdata(): dftype = "+\
                  str(ANALYSIS['dftype'])+" is not defined.")
-    print "Fiducial qDF: ",dfParFid_phys
+    print("Fiducial qDF: ",dfParFid_phys)
 
     #only use qDF parameters and ignore outlier model parameters:
     dfParFitBool = ANALYSIS['dfParFitBool']
@@ -134,7 +136,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
                  str(ANALYSIS['dftype'])+" is not defined.")
 
     #_____setup galaxy_____
-    print "* Setup Galaxy *"
+    print("* Setup Galaxy *")
 
     #potential:
     if not ANALYSIS['use_default_Delta'] or ANALYSIS['estimate_Delta']:
@@ -171,9 +173,9 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         if _DATATYPE == 1: #perfect mock data                                                                             
 
             #sample data:                                                                                         
-            print "* Sample coordinates *"
+            print("* Sample coordinates *")
             rs,zs,phis = sf.spatialSampleDF(nmock=_NSTARS,nrs=_N_SPAT,nzs=_N_SPAT,ngl_vel=_NGL_VEL,n_sigma=_N_SIGMA,_multi=_MULTI,quiet=False) #galpy units                                                                                         
-            print "* Sample velocities *"
+            print("* Sample velocities *")
             vRs,vTs,vzs = sf.velocitySampleDF(rs,zs,_multi=_MULTI)   #galpy units
 
         else:
@@ -238,7 +240,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
         actiondatafilename = mockdata_path+datasetname_reference+"/"+datasetname_reference+"_mockdata_actions.sav"
         if (not os.path.exists(actiondatafilename)) or redo_everything:
 
-            print "* Calculate actions *"
+            print("* Calculate actions *")
             actions = setup_data_actions(pot,aA,
                                ANALYSIS['dftype'],
                                rs,vRs,vTs,zs,vzs,   #data in galpy units
@@ -277,7 +279,7 @@ def create_bestfit_reference_mockdata(datasetname_original,datasetname_reference
             vzs   = pickle.load(savefile)/_REFV0/vo   #vz  [km/s] or actually now galpy
             savefile.close()
 
-            print "* Calculate actions for original data *"
+            print("* Calculate actions for original data *")
             actions = setup_data_actions(pot,aA,
                                ANALYSIS['dftype'],
                                rs,vRs,vTs,zs,vzs,   #data in galpy units

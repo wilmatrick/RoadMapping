@@ -204,12 +204,12 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                     A = popt[0]
                     mu = popt[1]
                     sigma = popt[2]
-                    print "Attention: The Gauss curve fitting to the triangle plot does not account for possible physical upper and lower limits."+ \
-                          "Therefore the result might be slightly different than what the violin plots and get_MCMC_mean_SE() calculate."         
+                    print("Attention: The Gauss curve fitting to the triangle plot does not account for possible physical upper and lower limits."+ \
+                          "Therefore the result might be slightly different than what the violin plots and get_MCMC_mean_SE() calculate.")
                     xtemp = numpy.linspace(x_range[0],x_range[1],200)
                     gtemp = gauss(xtemp, A, mu, sigma)
                     plt.plot(xtemp,gtemp,color='k',linestyle='dashed',linewidth=2)
-                    print labels[ix]," = ",numpy.round(mu,2)," +/- ",numpy.round(sigma,2)
+                    print(labels[ix]," = ",numpy.round(mu,2)," +/- ",numpy.round(sigma,2))
 
 
                 #_____format_____
@@ -350,7 +350,7 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                     dx_pix = numpy.fabs(xp[1] - xp[0])
                     dy_pix = numpy.fabs(yp[1] - yp[0])
                     #normalize:
-                    N /= numpy.sum(N) * dx_pix *dy_pix
+                    N /= numpy.sum(N) * dx_pix * dy_pix
                     #bin edges:
                     bx = numpy.append([xp[0]-dx],xp+dx)
                     by = numpy.append([yp[0]-dy],yp+dy)
@@ -374,10 +374,10 @@ def plot_triangle_flexible(datasetname,plotfilename,testname=None,
                 con68upper = numpy.min(sortarr[cumulative >= (1.-0.6827) * cumulative[-1]])
                 con68lower = numpy.max(sortarr[cumulative <= (1.-0.6827) * cumulative[-1]])
                 con68 = 0.5 * (con68upper + con68lower)
-                con95upper = numpy.min(sortarr[cumulative >= (1.-0.9545) * cumulative[-1]])
-                con95lower = numpy.max(sortarr[cumulative <= (1.-0.9545) * cumulative[-1]])
-                con95 = 0.5 * (con95upper + con95lower)
                 if len(N[0,:]) > 3:
+                    con95upper = numpy.min(sortarr[cumulative >= (1.-0.9545) * cumulative[-1]])
+                    con95lower = numpy.max(sortarr[cumulative <= (1.-0.9545) * cumulative[-1]])
+                    con95 = 0.5 * (con95upper + con95lower)
                     con99upper = numpy.min(sortarr[cumulative >= (1.-0.9973) * cumulative[-1]])
                     temp = sortarr[cumulative <= (1.-0.9973) * cumulative[-1]]
                     con99lower = numpy.max(temp)
@@ -462,5 +462,5 @@ if __name__ == '__main__':
         else:
             plot_triangle_flexible(sys.argv[1],sys.argv[2],method=sys.argv[3],testname=sys.argv[4],datapath=sys.argv[5]+'/')
     else:
-        print "Error in plot_triangle_flexible(): Wrong number of input parameters."
+        print("Error in plot_triangle_flexible(): Wrong number of input parameters.")
 

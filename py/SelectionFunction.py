@@ -217,6 +217,18 @@ class SelectionFunction:
 
             if test_sf: 
                 self._densgrid= numpy.ones((nrs,nzs))
+                
+            #...evaluate on only one core...
+            elif (_multi == 1) or (_multi is None):          
+                self._densgrid= numpy.zeros((nrs,nzs))
+                for ii in range(nrs):
+                    for jj in range(nzs):
+                        self._densgrid[ii,jj]= self._df.density(
+                                                Rs[ii],zs[jj],
+                                                ngl=ngl_vel_nonfid,
+                                                nsigma=n_sigma,
+                                                vTmax=vT_galpy_max
+                                                )
 
             #...calculate separately on multiple cores...
             elif _multi > 1:    
@@ -256,18 +268,10 @@ class SelectionFunction:
                 self._densgrid= numpy.zeros((nrs,nzs))                
                 for x in range(nrs*nzs):
                     self._densgrid[ii[x],jj[x]] = multOut[x]
+            else:
+                raise Exception("Error in SelectionFunction.densityGrid: _multi needs to be set to None or to an integer > 0.")
             
-            #...evaluate on only one core...
-            else:          
-                self._densgrid= numpy.zeros((nrs,nzs))
-                for ii in range(nrs):
-                    for jj in range(nzs):
-                        self._densgrid[ii,jj]= self._df.density(
-                                                Rs[ii],zs[jj],
-                                                ngl=ngl_vel_nonfid,
-                                                nsigma=n_sigma,
-                                                vTmax=vT_galpy_max
-                                                )
+            
 
             #____set up interpolation of density on grid____
 
@@ -465,23 +469,23 @@ class SelectionFunction:
             if n_sigma      is None: n_sigma      = self._n_sigma_fiducial_fit_range
             if vT_galpy_max is None: vT_galpy_max = self._vT_galpy_max_fiducial_fit_range
             if not self._n_sigma_fiducial_fit_range == n_sigma:
-                print "Error in SelectionFunction.densityGrid(): "+\
+                print("Error in SelectionFunction.densityGrid(): "+\
                          "The integration range over the R & z velocitities "+\
                          "given by n_sigma = "+str(n_sigma)+" is not "+\
                          "the same as that of the pre-calculated "+\
                          "fiducial actions, which is "+\
                          str(self._n_sigma_fiducial_fit_range)+"."+\
                          "But as n_sigma is not used in this special "+\
-                         "case the calculation is not stopped."
+                         "case the calculation is not stopped.")
             if not self._vT_galpy_max_fiducial_fit_range == vT_galpy_max:
-                print "Error in SelectionFunction.densityGrid(): "+\
+                print("Error in SelectionFunction.densityGrid(): "+\
                          "The integration range over the tangential velocitities "+\
                          "given by vT_galpy_max = "+str(vT_galpy_max)+" is not "+\
                          "the same as that of the pre-calculated "+\
                          "fiducial actions, which is "+\
                          str(self._vT_galpy_max_fiducial_fit_range)+"."+\
                          "But as vT_galpy_max is not used in this special "+\
-                         "case the calculation is not stopped."
+                         "case the calculation is not stopped.")
 
             #____evaluate df at each grid point____
 
@@ -514,7 +518,7 @@ class SelectionFunction:
                             ])
 
                 # data points to evaluate on one core:
-                M = int(math.floor(ndata / N))
+                M = int(math.floor(float(ndata) / float(N)))
 
                 # first evaluate arrays on each core to make use of 
                 # the fast evaluation of input arrays:
@@ -1087,19 +1091,19 @@ class SelectionFunction:
         out[6,:] = Omega
 
         #if numpy.sum(numpy.isfinite(jr)) < jr.size:
-        #    print "jr",
+        #    print("jr",end=" ")
         #if numpy.sum(numpy.isfinite(lz)) < lz.size:
-        #    print "lz",
+        #    print("lz",end=" ")
         #if numpy.sum(numpy.isfinite(jz)) < jz.size:
-        #    print "Jz",
+        #    print("Jz",end=" ")
         #if numpy.sum(numpy.isfinite(rg)) < rg.size:
-        #    print "rg",
+        #    print("rg",end=" ")
         #if numpy.sum(numpy.isfinite(kappa)) < kappa.size:
-        #    print "kappa",
+        #    print("kappa",end=" ")
         #if numpy.sum(numpy.isfinite(nu)) < nu.size:
-        #    print "nu",
+        #    print("nu",end=" ")
         #if numpy.sum(numpy.isfinite(Omega)) < Omega.size:
-        #    print "Omega",
+        #    print("Omega",end=" ")
 
         return out
 
@@ -1154,7 +1158,7 @@ class SelectionFunction:
                         dimensions to calculate the spatial density at 
                         a given point. (Default: 20)
 
-            quiet - (boolean) - flag to print (=False) or suppress (=True) 
+            quiet - (boolean) - flag to write (=False) or suppress (=True) 
                         status reports in the console. (Default: False)
 
             test_sf - (boolean) - just for test purposes. Sets the 
@@ -1199,7 +1203,7 @@ class SelectionFunction:
             2015-11-30 - Started SelectionFunction.py on the basis of BovyCode/SelectionFunction/SelectionFunction.py - Trick (MPIA)
         """
         if self._with_incompleteness:
-            if not quiet: print "     --> INCOMPLETE DATA SET"
+            if not quiet: print("     --> INCOMPLETE DATA SET")
             return self._spatialSampleDF_incomplete(
                     nmock=nmock,
                     nrs=nrs,nzs=nzs,
@@ -1211,7 +1215,7 @@ class SelectionFunction:
                     recalc_densgrid=recalc_densgrid
                     )
         else:
-            if not quiet: print "     --> COMPLETE DATA SET"
+            if not quiet: print("     --> COMPLETE DATA SET")
             return self._spatialSampleDF_complete(
                     nmock=nmock,
                     nrs=nrs,nzs=nzs,
@@ -1813,16 +1817,23 @@ class SelectionFunction:
         #Determine the maximum of the velocity distribution
         maxVR= 0.
         maxVz= 0.
-        maxVT,fopt,direc,iterations,funcalls,warnflag= scipy.optimize.fmin_powell(_aux_sampleV,1.,args=(R,z,self._df),disp=False,full_output=True)#scipy.optimize.fmin_powell(lambda x: -df(R,0.,x,z,0.,log=True),1.)
+        print("START")
+        print(R,z)
+        maxVT,fopt,direc,iterations,funcalls,warnflag = \
+                            scipy.optimize.fmin_powell(
+                                _aux_sampleV,1.,args=(R,z,self._df),
+                                disp=False,full_output=True
+                                ) #scipy.optimize.fmin_powell(lambda x: -df(R,0.,x,z,0.,log=True),1.)
+        print("END")
         if warnflag > 0:
-            print warnflag
+            print(warnflag)
         logmaxVD= self._df(R,maxVR,maxVT,z,maxVz,log=True)
         #Now rejection-sample
         vRs= []
         vTs= []
         vzs= []
         while len(vRs) < n:
-            nmore= n-len(vRs)+1
+            nmore = n-len(vRs)+1
             #sample
             propvR= numpy.random.normal(size=nmore)*2.*self._df._sr
             propvT= numpy.random.normal(size=nmore)*2.*self._df._sr+maxVT
@@ -2263,29 +2274,29 @@ class SelectionFunction:
 
         #...GL points and weights:
         xgl_v_IN,wgl_v_IN       = numpy.polynomial.legendre.leggauss(ngl_vel_IN)
-        xgl_v_OUT12,wgl_v_OUT12 = numpy.polynomial.legendre.leggauss(ngl_vel_OUT/2)
+        xgl_v_OUT12,wgl_v_OUT12 = numpy.polynomial.legendre.leggauss(ngl_vel_OUT//2)
 
         wgl_v = numpy.concatenate((wgl_v_OUT12,wgl_v_IN,wgl_v_OUT12))
         xgl_v = numpy.concatenate((xgl_v_OUT12,xgl_v_IN,xgl_v_OUT12))
 
         #...integration limits in terms of some sigma:
-        vmin_unscaled = numpy.repeat([-4.,-2.,+2.],[ngl_vel_OUT/2,ngl_vel_IN,ngl_vel_OUT/2])
-        vmax_unscaled = numpy.repeat([-2.,+2.,+4.],[ngl_vel_OUT/2,ngl_vel_IN,ngl_vel_OUT/2])
+        vmin_unscaled = numpy.repeat([-4.,-2.,+2.],[ngl_vel_OUT//2,ngl_vel_IN,ngl_vel_OUT//2])
+        vmax_unscaled = numpy.repeat([-2.,+2.,+4.],[ngl_vel_OUT//2,ngl_vel_IN,ngl_vel_OUT//2])
 
         #Gauss Legendre points & weights for vT integration:
         xgl_vT,wgl_vT   = numpy.polynomial.legendre.leggauss(ngl_vT)"""
 
         #like Bovy:
         #...GL points and weights:
-        xgl_v12,wgl_v12       = numpy.polynomial.legendre.leggauss(ngl_vel/2)
+        xgl_v12,wgl_v12       = numpy.polynomial.legendre.leggauss(ngl_vel//2)
         wgl_v = numpy.concatenate((wgl_v12,wgl_v12))
         xgl_v = numpy.concatenate((xgl_v12,xgl_v12))
 
         #...integration limits in terms of some sigma:
-        #like Bovy: vmin_unscaled = numpy.repeat([-4.,0.],[ngl_vel/2,ngl_vel/2]) 
-        #like Bovy: vmax_unscaled = numpy.repeat([0.,+4.],[ngl_vel/2,ngl_vel/2]) 
-        vmin_unscaled = numpy.repeat([-n_sigma,       0.],[ngl_vel/2,ngl_vel/2]) 
-        vmax_unscaled = numpy.repeat([       0.,+n_sigma],[ngl_vel/2,ngl_vel/2])  
+        #like Bovy: vmin_unscaled = numpy.repeat([-4.,0.],[ngl_vel//2,ngl_vel//2]) 
+        #like Bovy: vmax_unscaled = numpy.repeat([0.,+4.],[ngl_vel//2,ngl_vel//2]) 
+        vmin_unscaled = numpy.repeat([-n_sigma,       0.],[ngl_vel//2,ngl_vel//2]) 
+        vmax_unscaled = numpy.repeat([       0.,+n_sigma],[ngl_vel//2,ngl_vel//2])  
 
         #Gauss Legendre points & weights for vT integration:
         xgl_vT,wgl_vT   = numpy.polynomial.legendre.leggauss(ngl_vT)
@@ -2438,7 +2449,7 @@ class SelectionFunction:
                             _return_actions=True,
                             _return_freqs=True
                             )
-            print 'total calculation:',time.time()-start
+            print('total calculation:',time.time()-start)
             jr_data    = out[1]
             lz_data    = out[2]
             jz_data    = out[3]
@@ -2470,7 +2481,7 @@ class SelectionFunction:
                     _multi
                     ])
             # data points to evaluate on one core:
-            M = int(math.floor(ndata / N))
+            M = int(math.floor(float(ndata) / float(N)))
 
             # first evaluate arrays on each core to make use of 
             # the fast evaluation of input arrays:
@@ -2612,7 +2623,7 @@ class SelectionFunction:
 
 
         #_____initialize interpolated density grid_____
-        if not quiet: print "Initialize (complete) interpolated density grid"
+        if not quiet: print("Initialize (complete) interpolated density grid")
         self.densityGrid(
                 nrs_nonfid=nrs,
                 nzs_nonfid=nzs,
@@ -2633,7 +2644,7 @@ class SelectionFunction:
         zarr = []
         phiarr = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
 
@@ -2685,7 +2696,7 @@ class SelectionFunction:
             #update counters:
             nfound += numpy.sum(index)
             nreject += nmore - numpy.sum(index)
-            if not quiet: print "Found: ",nfound, ", Reject: ",nreject
+            if not quiet: print("Found: ",nfound, ", Reject: ",nreject)
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
@@ -2693,13 +2704,17 @@ class SelectionFunction:
 #---------------------------------------------------------------------------------
 
 def _aux_sampleV(vT,*args):
-    R = args[0]
-    z = args[1]
+    R  = args[0]
+    z  = args[1]
     df = args[2]
-    if isinstance(vT,numpy.ndarray): 
-        return numpy.array([_aux_sampleV(vv,*args) for vv in vT])
-    res = -df(R,0.,vT,z,0.,log=True)
-    return res
+    print('test in _aux_sampleV (1): ',vT,numpy.shape(vT))
+    if isinstance(vT,numpy.ndarray) and len(vT) == 1:
+        return -df(R,0.,vT[0],z,0.,log=True)
+    elif isinstance(vT,numpy.ndarray):
+        raise Exception("Error in _aux_sampleV: received array input with len(1) > 1. "+\
+                        "Expected scalar or array with len(1) = 1.")
+    else:
+        return -df(R,0.,vT,z,0.,log=True)
 
 
 

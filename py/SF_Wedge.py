@@ -85,7 +85,7 @@ class SF_Wedge(SelectionFunction):
         else:
             sys.exit("Error in SF_Wedge._contains(): This function is not implemented for scalar input.")
         if numpy.any(numpy.array([len(z),len(phi)]) != len(R)):
-            print numpy.shape(R),numpy.shape(z),numpy.shape(phi)
+            print(numpy.shape(R),numpy.shape(z),numpy.shape(phi))
             sys.exit("Error in SF_Wedge._contains(): Input arrays do not have the same length.")
                  
         # Make sure phi is within [-180.,180.]:
@@ -132,9 +132,9 @@ class SF_Wedge(SelectionFunction):
 
             if numpy.sum(outside) > 0:
                 if throw_error_outside:
-                    print "R: ",self._Rmin," <= ",R[outside]," <= ",self._Rmax,"?"
-                    print "z: ",self._zmin," <= ",z[outside]," <= ",self._zmax,"?"
-                    print "phi: ",self._pmin," <= ",phi[outside]," <= ",self._pmax,"?"
+                    print("R: ",self._Rmin," <= ",R[outside]," <= ",self._Rmax,"?")
+                    print("z: ",self._zmin," <= ",z[outside]," <= ",self._zmax,"?")
+                    print("phi: ",self._pmin," <= ",phi[outside]," <= ",self._pmax,"?")
                     sys.exit("if yes: something is wrong!")
                 if set_outside_zero:
                     return 0.
@@ -215,7 +215,7 @@ class SF_Wedge(SelectionFunction):
     def _spatialSampleDF_complete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
 
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         if recalc_densgrid:
             self.densityGrid(
                 nrs_nonfid=nrs,
@@ -235,8 +235,8 @@ class SF_Wedge(SelectionFunction):
         if self._zmin < 0. and self._zmax > 0.:
             zprime = 0.
         densmax = self._df.density(self._Rmin,zprime,ngl=ngl_vel,nsigma=n_sigma,vTmax=vT_galpy_max)
-        #print densmax
-        #print self._densfunc(self._Rmin,zprime,phi=0.)
+        #print(densmax)
+        #print(self._densfunc(self._Rmin,zprime,phi=0.))
         #sys.exit("test")
 
         #number of found mockdata:
@@ -246,7 +246,7 @@ class SF_Wedge(SelectionFunction):
         zarr = []
         phiarr = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
             
@@ -267,10 +267,10 @@ class SF_Wedge(SelectionFunction):
                 zarr.extend([z])
                 phiarr.extend([phi])
                 nfound += 1
-                if not quiet: print nfound," found"
+                if not quiet: print(nfound," found")
             else:
                 nreject += 1
-                if not quiet: print nreject," rejected"
+                if not quiet: print(nreject," rejected")
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
@@ -427,12 +427,12 @@ class SF_Wedge(SelectionFunction):
         ngl_vel_OUT = ngl_vel - ngl_vel_IN
         #...GL points and weights:
         xgl_v_IN,wgl_v_IN       = numpy.polynomial.legendre.leggauss(ngl_vel_IN)
-        xgl_v_OUT12,wgl_v_OUT12 = numpy.polynomial.legendre.leggauss(ngl_vel_OUT/2)
+        xgl_v_OUT12,wgl_v_OUT12 = numpy.polynomial.legendre.leggauss(ngl_vel_OUT//2)
         wgl_v = numpy.concatenate((wgl_v_OUT12,wgl_v_IN,wgl_v_OUT12))
         xgl_v = numpy.concatenate((xgl_v_OUT12,xgl_v_IN,xgl_v_OUT12))
         #...integration limits in terms of some sigma:
-        vmin_unscaled = numpy.repeat([-4.,-2.,+2.],[ngl_vel_OUT/2,ngl_vel_IN,ngl_vel_OUT/2])
-        vmax_unscaled = numpy.repeat([-2.,+2.,+4.],[ngl_vel_OUT/2,ngl_vel_IN,ngl_vel_OUT/2])
+        vmin_unscaled = numpy.repeat([-4.,-2.,+2.],[ngl_vel_OUT//2,ngl_vel_IN,ngl_vel_OUT//2])
+        vmax_unscaled = numpy.repeat([-2.,+2.,+4.],[ngl_vel_OUT//2,ngl_vel_IN,ngl_vel_OUT//2])
 
         #shape and dimension of the arrays:
         ngl_vz = ngl_vel
@@ -568,7 +568,7 @@ class SF_Wedge(SelectionFunction):
         shapetuple = numpy.shape(self._R_gl5D)
 
         #evaluate THIS df (not the fiducial) at all the actions on the grid:
-        print "          evaluate df"
+        print("          evaluate df")
 
         if _multi is None or _multi == 1:
             #...evaluation on one core:
@@ -640,7 +640,7 @@ class SF_Wedge(SelectionFunction):
         self._dfgrid_gl5D = numpy.reshape(qdf,shapetuple)
 
         #calculate density at each grid point by summing over velocities:
-        print "          sum over velocities"
+        print("          sum over velocities")
         dens = numpy.sum(self._weights_gl5D * self._dfgrid_gl5D, axis=(0,1,2))
 
         #assign the grid to normal densfunc grid:
@@ -673,10 +673,10 @@ class SF_Wedge(SelectionFunction):
     
         for ii in range(ngl_R):
             for kk in range(ngl_z):
-                print 'R = ',self._R_gl5D[0,0,0,kk,ii],
-                print ', z = ', self._z_gl5D[0,0,0,kk,ii],
+                print('R = ',self._R_gl5D[0,0,0,kk,ii],end=" ")
+                print(', z = ', self._z_gl5D[0,0,0,kk,ii],end=" ")
                 dens = numpy.sum(self._weights_gl5D_vel[:,:,:,kk,ii] * self._dfgrid_gl5D[:,:,:,kk,ii])
-                print ', qdf = ',dens
+                print(', qdf = ',dens)
 
         return self._R_gl5D[0,0,0,:,:].flatten(),self._z_gl5D[0,0,0,:,:].flatten()"""
 

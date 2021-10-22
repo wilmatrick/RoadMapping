@@ -1,11 +1,13 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 import pickle
 import numpy
 import math
 import matplotlib.pyplot as plt
 import matplotlib
 import sys
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 from matplotlib.patches import Polygon
 import scipy.optimize
 import scipy.stats
@@ -33,8 +35,8 @@ def oplot_violines(datasetname,pos_in_plot,
                             plot_true_values=False,
                             show_labels=False,
                             burnin_steps=None,
-                            mockdatapath=None,
-                            fulldatapath=None,
+                            datapath="../data/",
+                            outpath="../out/",
                             Gaussian_fit=False,
                             **kwargs):
 
@@ -44,8 +46,8 @@ def oplot_violines(datasetname,pos_in_plot,
 
     #_____load data from file_____
     if analysis_output_filename is None:
-        if testname is None: analysis_output_filename = "../out/"+datasetname+"_analysis_output_"+method+".sav"
-        else:                analysis_output_filename = "../out/"+datasetname+"_"+testname+"_analysis_output_"+method+".sav"
+        if testname is None: analysis_output_filename = outpath+datasetname+"_analysis_output_"+method+".sav"
+        else:                analysis_output_filename = outpath+datasetname+"_"+testname+"_analysis_output_"+method+".sav"
     savefile= open(analysis_output_filename,'rb')    
     if method == 'MCMC':
         chain_out      = pickle.load(savefile)                #MCMC chain
@@ -66,8 +68,7 @@ def oplot_violines(datasetname,pos_in_plot,
     if method == 'MCMC':
         ANALYSIS = read_RoadMapping_parameters(
             datasetname,testname=testname,
-            mockdatapath=mockdatapath,
-            fulldatapath=fulldatapath
+            mockdatapath=datapath
             )
         #____parameter boundaries_____
         lower_bounds = numpy.append(ANALYSIS['potParLowerBound_phys'][potParFitBool],
@@ -97,26 +98,26 @@ def oplot_violines(datasetname,pos_in_plot,
     axislist = numpy.array(range(ndim),dtype=int)
 
     #_____parse additional plotting parameters_____
-    if kwargs.has_key('edgecolor'):
+    if 'edgecolor' in kwargs:
         edgecolor=kwargs['edgecolor']
         kwargs.pop('edgecolor')
     else:
         edgecolor = 'k'
-    if kwargs.has_key('alpha'):
+    if 'alpha' in kwargs:
         alpha=kwargs['alpha']
         kwargs.pop('alpha')
     else:
         alpha = 1.
     if sigma_levels:
-        if kwargs.has_key('markercolor'):
+        if 'markercolor' in kwargs:
             markercolor=kwargs['markercolor']
             kwargs.pop('markercolor')
         else:
             markercolor='white'
-        if kwargs.has_key('marker'):
+        if marker in kwargs:
             marker=kwargs['marker']
             kwargs.pop('marker')
-            print markercolor,marker
+            print(markercolor,marker)
         else:
             marker='.'
 
@@ -221,7 +222,7 @@ def oplot_violines(datasetname,pos_in_plot,
             else:
                 percentile = numpy.percentile(xs, [15.87,50.,84.13])
                 #percentile2 = percentile
-                #print ii, percentile2[1],', +',percentile2[2]-percentile2[1],', -',percentile2[1]-percentile2[0]
+                #print(ii, percentile2[1],', +',percentile2[2]-percentile2[1],', -',percentile2[1]-percentile2[0])
                 
                 #_____sigma confidence levels_____
                 err_l = percentile[1]-percentile[0]

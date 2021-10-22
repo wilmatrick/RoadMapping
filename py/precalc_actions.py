@@ -91,7 +91,7 @@ def setup_data_actions(pot,aA,
                 ])
 
         # data points to evaluate on one core:
-        M = int(math.floor(ndata / N))
+        M = int(math.floor(float(ndata) / float(N)))
 
         # first evaluate arrays on each core to make use of 
         # the fast evaluation of input arrays:
@@ -195,7 +195,7 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
     _REFV0 = 220.               #[km/s]
 
     #_____setup potential / Action object_____
-    #print "Start potential setup"
+    #print("Start potential setup")
     #start_1 = time.time()
     try:
         if use_default_Delta:
@@ -220,7 +220,7 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
                             )
             else:
                 aAS_Delta = Delta_fixed
-            #print "Delta=",aAS_Delta
+            #print("Delta=",aAS_Delta)
             pot, aA = setup_Potential_and_ActionAngle_object(
                             pottype,
                             potPar_phys,
@@ -241,7 +241,7 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
     ro = potPar_phys[0] / _REFR0
     vo = potPar_phys[1] / _REFV0
     #zeit_t = time.time() - start_1
-    #print "POTENTIAL: ",round(zeit_t,2)," sec"
+    #print("POTENTIAL: ",round(zeit_t,2)," sec")
 
     #_____rescale fiducial qdf parameters to galpy units_____
     #these parameters are used to set the integration grid 
@@ -265,7 +265,7 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
                dfParFid_galpy,ro,
                _MULTI)
     #zeit_t = time.time() - start_2
-    #print "DATA ACTIONS: ",round(zeit_t,2)," sec"
+    #print("DATA ACTIONS: ",round(zeit_t,2)," sec")
 
 
     #_____initialize selection function_____
@@ -333,7 +333,7 @@ def precalc_pot_actions_sf(pottype,sftype,dftype,
     #calculate actions at each grid point on the grid above:
     sf.calculate_actions_on_vig_using_fid_pot(qdf_fid,_multi=_MULTI)"""
     #zeit_t = time.time() - start_3
-    #print "FIDUCIAL ACTIONS: ",round(zeit_t,2)," sec"
+    #print("FIDUCIAL ACTIONS: ",round(zeit_t,2)," sec")
 
     return pot,aA,sf,actions,pot_physical
 

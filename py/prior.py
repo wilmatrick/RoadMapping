@@ -1,4 +1,6 @@
 #_____import packages_____
+#from __past__ import division
+#from __future__ import print_function
 from galpy import potential
 import numpy
 import sys
@@ -86,10 +88,10 @@ def calculate_logprior_potential(priortype,pottype,potPar_phys,pot_physical,pot=
                          " is not defined for potential type = "+str(pottype)+\
                          ".")
 
-            #print "potPar_phys = ",potPar_phys
-            #print "dlnvc_dlnR = ",dlnvc_dlnR 
-            #print "logprior = ", logprior
-            #print "\n"
+            #print("potPar_phys = ",potPar_phys)
+            #print("dlnvc_dlnR = ",dlnvc_dlnR)
+            #print("logprior = ", logprior)
+            #print("\n")
 
         else:
             sys.exit("Error in logprior(): priortype = "+str(priortype)+" is not defined (yet).")

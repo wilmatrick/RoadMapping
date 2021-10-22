@@ -257,10 +257,10 @@ def logprob_MCMC(
     #_____measure time_____
     #zeit_t = time.time() - zeit_start
     #if zeit_t > 120.: 
-    #    print p
-    #    print round(zeit_t,2)," sec"
+    #    print(p)
+    #    print(round(zeit_t,2)," sec")
 
-    #_____print current walker position to file_____
+    #_____write current walker position to file_____
     if not chainfilename is None:
         f = open(chainfilename, "a")
         for k in range(len(p)):
@@ -499,7 +499,7 @@ def logprob_MCMC_fitDF_only(
                  "to use priortype = "+str(priortype)+" because the "+\
                  "potential is not fitted anyway.")
 
-    #_____print current walker position to file_____
+    #_____write current walker position to file_____
     if not chainfilename is None:
         f = open(chainfilename, "a")
         for k in range(len(p)):
@@ -576,7 +576,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
 
     #_____setup fiducial qdf and calculate actions on velocity grid_____
     # velocity grid that corresponds to the sigmas of the fiducial qdf.
-    #print "   * calculate fiducial actions"
+    #print("   * calculate fiducial actions")
     if dftype in [0,11,12]: 
         qdf_fid = quasiisothermaldf(
                     dfParFid_galpy[0],
@@ -618,7 +618,7 @@ def loglikelihood_potPar(pot,aA,sf,dftype,
 
 
     #_____start iteration through distribution functions_____
-    #print "   * iterate through qDFs"   
+    #print("   * iterate through qDFs")
     if _MULTI is None or _MULTI == 1:
         for jj in range(ndfs):
 
@@ -748,11 +748,11 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
             #          DF to zero)
         except Exception as e:
             df_works = False
-            print "Warning in loglikelihood_dfPar(): df cannot be initialized"+\
-                  " for df parameters: "
-            print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
-            print e
-            print "\n"
+            print("Warning in loglikelihood_dfPar(): df cannot be initialized"+\
+                  " for df parameters: ")
+            print(scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy))
+            print(e)
+            print("\n")
     else:
         sys.exit("Error in loglikelihood_dfPar(): dftype = "+str(dftype)+" is not defined.")
 
@@ -771,7 +771,7 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
         dens_norm = sf.Mtot(xgl=_XGL,wgl=_WGL)
 
         #stop = time.time()
-        #print "normalisation: ",stop-start
+        #print("normalisation: ",stop-start)
         #start = time.time()
 
         #_____evaluate DF for each data point_____
@@ -791,10 +791,10 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
             lnL_i -= math.log(dens_norm)
         else:              
             lnL_i = numpy.zeros_like(lnL_i) - numpy.inf
-            print "Warning in loglikelihood_dfPar(): normalization is <= 0"+\
-                  " for df parameters: "
-            print scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy)
-            print "normalization = ",dens_norm,"\n"
+            print("Warning in loglikelihood_dfPar(): normalization is <= 0"+\
+                  " for df parameters: ")
+            print(scale_df_galpy_to_phys(dftype,ro,vo,dfPar_galpy))
+            print("normalization = ",dens_norm,"\n")
 
         # (*Note:* We ignore the model-independent prefactor Sum_i sf(x_i) 
         #          in the likelihood 
@@ -946,7 +946,7 @@ def loglikelihood_dfPar(pot,aA,sf,dftype,
         L_i      = numpy.maximum(L_i,epsilon*median_L)
         lnL_i    = numpy.log(L_i)
 
-    #print "likelihood: ",time.time()-start
+    #print("likelihood: ",time.time()-start)
 
     #_____sum logL for final loglikelihood_____
     # sum up contributions for all data points: 

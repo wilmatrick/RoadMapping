@@ -5,8 +5,6 @@ import pickle
 sys.path.insert(0,'/home/trick/RoadMapping/py')
 from read_RoadMapping_parameters import read_RoadMapping_parameters
 
-datasetname = "isoSphFlex_short_hot_2kpc_1a"
-
 def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='../data/',outputpath='../out/',nwalkers=64):
 
     """
@@ -54,8 +52,8 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='../da
 
     #_____format MCMC chain for plotting_____
     npos = len(out[:,0])
-    print numpy.shape(out)
-    nsteps = npos / nwalkers
+    print(numpy.shape(out))
+    nsteps = npos // nwalkers
     chain  = out[0:nwalkers*nsteps,0:-1]
     steps = numpy.repeat(range(nsteps),nwalkers)
     colors = out[0:nwalkers*nsteps,-1]
@@ -69,30 +67,34 @@ def plot_progress_of_MCMC(datasetname,plotfilename,testname=None,datapath='../da
     for ii in range(nplots):
         ax = plt.subplot(nplots,1,ii+1)
         index = sorted(range(nwalkers*nsteps),key=lambda x: colors[x])
-        plt.scatter(steps[index],chain[:,ii][index],c=colors[index],cmap='magma',edgecolor='None',vmin=-5.,vmax=0.,alpha=0.3)
+        im = ax.scatter(steps[index],chain[:,ii][index],c=colors[index],cmap='magma',edgecolor='None',vmin=-5.,vmax=0.,alpha=0.3)
         ax.set_xlim([min(steps),max(steps)])
         if ii > len(trueValues)-1:
-            plt.ylabel("auxiliary")
+            ax.set_ylabel("auxiliary")
         else:
-            plt.ylabel(fitParNamesLatex[ii])
+            ax.set_ylabel(fitParNamesLatex[ii])
             npot = numpy.sum(potParFitBool) #number of potential fit parameters
             if ii >= npot: #DF parameter
-                plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed',label='estimated')
-                plt.hlines(fiducialValues[ii-npot],min(steps),max(steps),color='red',linewidth=3,linestyle='dashed',label='fiducial')
-                plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed',label='true')
+                ax.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,
+                          linestyle='dashed',label='estimated')
+                ax.hlines(fiducialValues[ii-npot],min(steps),max(steps),color='red',linewidth=3,
+                          linestyle='dashed',label='fiducial')
+                ax.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,
+                          linestyle='dashed',label='true')
             elif ii < npot: #pot parameter
-                plt.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
-                plt.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
-        plt.locator_params(nbins=5)
+                ax.hlines(estimatedValues[ii],min(steps),max(steps),color='gold',linewidth=3,linestyle='dashed')
+                ax.hlines(trueValues[ii],min(steps),max(steps),color='limegreen',linewidth=3,linestyle='dashed')
+        ax.locator_params(nbins=5)
         if ii < nplots-1:
             ax.axes.get_xaxis().set_ticklabels([])
-        if ii == nplots-1:
+        elif ii == nplots-1:
             ax.legend()
-    cb = plt.colorbar(orientation='horizontal')
-    cb.set_label('~ prob')
+            #cb = plt.colorbar(im,orientation='horizontal')
+            #cb.set_label('~ log prob')
+            ax.set_xlabel('MCMC step')
 
     #_____adjust and save plot_____
-    plt.subplots_adjust(hspace=0.1) 
+    plt.subplots_adjust(hspace=0.2) 
     plt.tight_layout()
     plt.savefig(plotfilename)
 

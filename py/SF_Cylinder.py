@@ -1,3 +1,4 @@
+#from __future__ import print_function
 from SelectionFunction import SelectionFunction
 import sys
 import numpy
@@ -96,12 +97,12 @@ class SF_Cylinder(SelectionFunction):
 
             if numpy.sum(outside) > 0:
                 if throw_error_outside:
-                    print "x^2+y^2 = ",x[outside]**2 + y[outside]**2
-                    print "R_sun^2     = ",self._rsun**2
-                    print "R: ",self._Rmin," <= ",R[outside]," <= ",self._Rmax,"?"
-                    print "z: ",self._zmin," <= ",z[outside]," <= ",self._zmax,"?"
+                    print("x^2+y^2 = ",x[outside]**2 + y[outside]**2)
+                    print("R_sun^2     = ",self._rsun**2)
+                    print("R: ",self._Rmin," <= ",R[outside]," <= ",self._Rmax,"?")
+                    print("z: ",self._zmin," <= ",z[outside]," <= ",self._zmax,"?")
                     dphi = 0.5 * self._phimax_rad(R[outside])
-                    print "phi: ",-dphi," <= ",phi[outside]," <= ",+dphi,"?"
+                    print("phi: ",-dphi," <= ",phi[outside]," <= ",+dphi,"?")
                     sys.exit("if yes: something is wrong!")
                 if set_outside_zero:
                     return 0.
@@ -194,7 +195,7 @@ class SF_Cylinder(SelectionFunction):
     def _spatialSampleDF_complete(self,nmock=500,nrs=16,nzs=16,ngl_vel=20,n_sigma=4.,vT_galpy_max=1.5,quiet=False,test_sf=False,_multi=None,recalc_densgrid=True):
 
         #initialize interpolated density grid:
-        if not quiet: print "Initialize interpolated density grid"
+        if not quiet: print("Initialize interpolated density grid")
         if recalc_densgrid:
             self.densityGrid(
                 nrs_nonfid=nrs,
@@ -214,8 +215,8 @@ class SF_Cylinder(SelectionFunction):
         if self._zmin < 0. and self._zmax > 0.:
             zprime = 0.
         densmax = self._df.density(self._Rmin,zprime,ngl=ngl_vel,nsigma=n_sigma,vT_galpy_max=vT_galpy_max)
-        #print densmax
-        #print self._densfunc(self._Rmin,zprime,phi=0.)
+        #print(densmax)
+        #print(self._densfunc(self._Rmin,zprime,phi=0.))
         #sys.exit("test")
         
         #number of found mockdata:
@@ -225,7 +226,7 @@ class SF_Cylinder(SelectionFunction):
         zarr = []
         phiarr = []
 
-        if not quiet: print "Start sampling"
+        if not quiet: print("Start sampling")
 
         while nfound < nmock:
             
@@ -253,10 +254,10 @@ class SF_Cylinder(SelectionFunction):
                 zarr.extend([z])
                 phiarr.extend([phi])
                 nfound += 1
-                if not quiet: print nfound," found"
+                if not quiet: print(nfound," found")
             else:
                 nreject += 1
-                if not quiet: print nreject," rejected"
+                if not quiet: print(nreject," rejected")
 
         return numpy.array(Rarr),numpy.array(zarr),numpy.array(phiarr)
 
