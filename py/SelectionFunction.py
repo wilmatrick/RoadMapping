@@ -1817,14 +1817,11 @@ class SelectionFunction:
         #Determine the maximum of the velocity distribution
         maxVR= 0.
         maxVz= 0.
-        print("START")
-        print(R,z)
         maxVT,fopt,direc,iterations,funcalls,warnflag = \
                             scipy.optimize.fmin_powell(
                                 _aux_sampleV,1.,args=(R,z,self._df),
                                 disp=False,full_output=True
                                 ) #scipy.optimize.fmin_powell(lambda x: -df(R,0.,x,z,0.,log=True),1.)
-        print("END")
         if warnflag > 0:
             print(warnflag)
         logmaxVD= self._df(R,maxVR,maxVT,z,maxVz,log=True)
@@ -2707,7 +2704,6 @@ def _aux_sampleV(vT,*args):
     R  = args[0]
     z  = args[1]
     df = args[2]
-    print('test in _aux_sampleV (1): ',vT,numpy.shape(vT))
     if isinstance(vT,numpy.ndarray) and len(vT) == 1:
         return -df(R,0.,vT[0],z,0.,log=True)
     elif isinstance(vT,numpy.ndarray):
